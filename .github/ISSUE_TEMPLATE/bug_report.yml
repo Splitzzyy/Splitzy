@@ -1,0 +1,35 @@
+name: Bug Report
+description: Report a bug to help us improve
+title: "[BUG]: "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: input
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug you encountered.
+      placeholder: Tell us what you saw...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the problem?
+      placeholder: 1. Go to...\n2. Click on...\n3. See error
+    validations:
+      required: true
+
+  - type: input
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?

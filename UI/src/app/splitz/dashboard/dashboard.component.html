@@ -1,0 +1,254 @@
+<div class="ounded-2xl p-6 min-h-[85vh] overflow-hidden">
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full">
+
+        <!-- Main Content Area (spans 3 columns on xl screens) -->
+        <div class="xl:col-span-3 flex flex-col gap-6">
+
+            <!-- Welcome Section -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 mb-1">Welcome {{userName}}! 👋</h1>
+                        <p class="text-gray-600">Here's your expense overview</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">Last updated</p>
+                        <p class="text-sm font-medium text-gray-900">{{ getCurrentDate() }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance Cards Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Total Balance Card -->
+                <div
+                    class="bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-opacity-15 rounded-full p-3">
+                            <i class="fas fa-wallet text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs uppercase tracking-wide opacity-80 mb-1">Total Balance</div>
+                            <div class="text-2xl md:text-3xl font-bold">
+                                {{ totalBalance | currency:'INR':'symbol': '1.2-2' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm opacity-90">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        <span>Overall financial position</span>
+                    </div>
+                </div>
+            
+                <!-- You Owe Card -->
+                <div
+                    class="bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-opacity-15 rounded-full p-3">
+                            <i class="fas fa-arrow-up text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs uppercase tracking-wide opacity-80 mb-1">You Owe</div>
+                            <div class="text-2xl md:text-3xl font-bold">
+                                {{ youOwe | currency:'INR':'symbol': '1.2-2' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm opacity-90">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span>Amount to pay back</span>
+                    </div>
+                </div>
+            
+                <!-- You Are Owed Card -->
+                <div
+                    class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-opacity-15 rounded-full p-3">
+                            <i class="fas fa-arrow-down text-xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs uppercase tracking-wide opacity-80 mb-1">You Are Owed</div>
+                            <div class="text-2xl md:text-3xl font-bold">
+                                {{ youAreOwed | currency:'INR':'symbol': '1.2-2' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-sm opacity-90">
+                        <i class="fas fa-coins mr-2"></i>
+                        <span>Amount to receive</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debts and Credits Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- You Owe Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-red-50 to-red-100 p-6 border-b border-red-200">
+                        <div class="flex items-center">
+                            <div class="bg-red-500 rounded-full p-2 mr-3">
+                                <i class="fas fa-arrow-up text-white text-sm"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-red-800">You Owe</h2>
+                        </div>
+                    </div>
+                    <div class="p-6 max-h-80 overflow-y-auto">
+                        <ng-container *ngIf="oweTo && oweTo.length; else noOweTo">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                                    *ngFor="let person of oweTo; trackBy: trackByPersonName">
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-white font-semibold text-sm">
+                                                {{ getInitials(person.name) }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-lg font-medium text-gray-900">{{ person.name }}</span>
+                                            <p class="text-sm text-gray-500">Outstanding debt</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-lg font-bold text-red-600">
+                                            {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
+                                        </span>
+                                        <button class="block text-xs text-red-500 hover:text-red-700 mt-1">
+                                            Settle up
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                        <ng-template #noOweTo>
+                            <div class="text-center py-12">
+                                <div class="text-6xl mb-4">🎉</div>
+                                <span class="text-gray-500 text-lg">You owe nothing!</span>
+                                <p class="text-gray-400 text-sm mt-1">You're all caught up with payments</p>
+                            </div>
+                        </ng-template>
+                    </div>
+                </div>
+
+                <!-- You Are Owed Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 p-6 border-b border-green-200">
+                        <div class="flex items-center">
+                            <div class="bg-green-500 rounded-full p-2 mr-3">
+                                <i class="fas fa-arrow-down text-white text-sm"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-green-800">You Are Owed</h2>
+                        </div>
+                    </div>
+                    <div class="p-6 max-h-80 overflow-y-auto">
+                        <ng-container *ngIf="owedFrom && owedFrom.length; else noOwedFrom">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                                    *ngFor="let person of owedFrom; trackBy: trackByPersonName">
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-white font-semibold text-sm">
+                                                {{ getInitials(person.name) }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-lg font-medium text-gray-900">{{ person.name }}</span>
+                                            <p class="text-sm text-gray-500">Owes you money</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-lg font-bold text-green-600">
+                                            {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
+                                        </span>
+                                        <button class="block text-xs text-green-500 hover:text-green-700 mt-1">
+                                            Remind
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                        <ng-template #noOwedFrom>
+                            <div class="text-center py-12">
+                                <div class="text-6xl mb-4">💸</div>
+                                <span class="text-gray-500 text-lg">No one owes you!</span>
+                                <p class="text-gray-400 text-sm mt-1">Time to add some expenses</p>
+                            </div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Groups Sidebar -->
+        <div class="xl:row-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-6 border-b border-purple-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="bg-purple-500 rounded-full p-2 mr-3">
+                            <i class="fas fa-users text-white text-sm"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-purple-800">Groups</h2>
+                    </div>
+                    <button
+                        class="bg-purple-500 hover:bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+                        <i class="fas fa-plus text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 max-h-96 overflow-y-auto">
+                <ng-container *ngIf="groups && groups.length; else noGroups">
+                    <div class="space-y-3">
+                        <a class="block group" *ngFor="let group of groups; trackBy: trackByGroupId"
+                            [routerLink]="['/group', userId, group.groupId]">
+                            <div
+                                class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-purple-50 hover:border-purple-200 border border-transparent transition-all duration-200 group-hover:shadow-md">
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mr-4 group-hover:scale-105 transition-transform">
+                                        <i class="fas fa-users text-white"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-lg font-semibold text-gray-900 group-hover:text-purple-700">
+                                            {{ group.groupName }}
+                                        </span>
+                                        <p class="text-sm text-gray-500">
+                                            {{ getGroupStatus(group.netBalance) }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-lg font-bold" [ngClass]="{
+                                            'text-green-600': group.netBalance > 0,
+                                            'text-red-600': group.netBalance < 0,
+                                            'text-gray-600': group.netBalance === 0
+                                          }">
+                                        {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
+                                    </span>
+                                    <div class="flex items-center mt-1">
+                                        <i
+                                            class="fas fa-chevron-right text-xs text-gray-400 group-hover:text-purple-500"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </ng-container>
+                <ng-template #noGroups>
+                    <div class="text-center py-16">
+                        <div class="text-6xl mb-4">👥</div>
+                        <span class="text-gray-500 text-lg block mb-2">No groups yet!</span>
+                        <p class="text-gray-400 text-sm mb-4">Create a group to start splitting expenses</p>
+                        <button
+                            class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            Create Group
+                        </button>
+                    </div>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+</div>

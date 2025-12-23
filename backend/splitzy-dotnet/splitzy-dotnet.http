@@ -1,0 +1,6 @@
+@splitzy_dotnet_HostAddress = http://localhost:5078
+
+GET {{splitzy_dotnet_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

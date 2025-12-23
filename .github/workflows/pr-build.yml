@@ -1,0 +1,68 @@
+name: PR Build Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      ui: ${{ steps.filter.outputs.ui }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            ui:
+              - 'UI/**'
+
+  backend-build:
+    name: Backend - .NET Build
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore backend/splitzy-dotnet
+
+      - name: Build
+        run: dotnet build backend/splitzy-dotnet --configuration Release --no-restore
+
+  ui-build:
+    name: UI - Angular Build
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ui == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: UI
+        run: npm install
+
+      - name: Build Angular app
+        working-directory: UI
+        run: npm run build

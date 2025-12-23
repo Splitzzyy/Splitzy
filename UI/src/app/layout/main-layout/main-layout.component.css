@@ -1,0 +1,280 @@
+.sidebar {
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 95vh;
+}
+
+/* Animated gradient background */
+@keyframes gradient-shift {
+    0%, 100% { 
+        background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+    }
+}
+
+.animate-gradient-shift {
+    animation: gradient-shift 8s ease-in-out infinite;
+}
+
+/* Floating particles */
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+.particle-1 { top: 20%; left: 10%; animation-delay: 0s; }
+.particle-2 { top: 40%; right: 15%; animation-delay: 1s; }
+.particle-3 { top: 60%; left: 20%; animation-delay: 2s; }
+.particle-4 { top: 80%; right: 10%; animation-delay: 3s; }
+.particle-5 { top: 30%; left: 80%; animation-delay: 4s; }
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) scale(1);
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-20px) scale(1.1);
+        opacity: 0.6;
+    }
+}
+
+/* Navigation links styling */
+.nav-item {
+    transform: translateX(0);
+    transition: all 0.3s ease;
+}
+
+.nav-link {
+    display: block;
+    padding: 0;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.nav-link:hover .nav-link-content {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.nav-link.active-menu .nav-link-content {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3));
+    border-color: rgba(16, 185, 129, 0.5);
+    color: white;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.nav-icon {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover .nav-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.nav-text {
+    font-weight: 500;
+    font-size: 16px;
+}
+
+/* Action buttons styling */
+.action-btn {
+    position: relative;
+    padding: 0;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 24px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.btn-icon {
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover .btn-icon {
+    transform: scale(1.2) rotate(180deg);
+}
+
+.btn-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.expense-btn {
+    /* background: linear-gradient(135deg, #ff5216, #ff6b35); */
+    color: white;
+    box-shadow: 0 8px 25px rgba(255, 82, 22, 0.3);
+}
+
+.expense-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(255, 82, 22, 0.4);
+}
+
+.expense-btn:hover .btn-glow {
+    opacity: 1;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent 70%);
+}
+
+.settle-btn {
+    background: linear-gradient(135deg, #48be9d, #16a085);
+    color: white;
+    box-shadow: 0 8px 25px rgba(72, 190, 157, 0.3);
+}
+
+.settle-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(72, 190, 157, 0.4);
+}
+
+.settle-btn:hover .btn-glow {
+    opacity: 1;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent 70%);
+}
+
+.action-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Content area */
+.content {
+    flex: 1;
+    margin-left: 20px;
+}
+
+/* Main layout */
+.main-layout {
+    display: flex;
+    gap: 20px;
+    min-height: 100vh;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-layout {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .content {
+        margin-left: 0;
+    }
+    
+    .sidebar {
+        order: 2;
+    }
+    
+    .nav-link-content {
+        padding: 12px 16px;
+    }
+    
+    .btn-content {
+        padding: 12px 20px;
+    }
+}
+
+/* Additional hover effects */
+.nav-item:hover {
+    transform: translateX(5px);
+}
+
+/* Smooth scrolling for sidebar */
+.sidebar {
+    scroll-behavior: smooth;
+}
+
+/* Glass morphism effect */
+.sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: inherit;
+    backdrop-filter: blur(20px);
+    z-index: 1;
+}
+
+/* Enhanced focus states for accessibility */
+.nav-link:focus,
+.action-btn:focus {
+    outline: 2px solid rgba(16, 185, 129, 0.5);
+    outline-offset: 2px;
+}
+
+/* Subtle animation for the entire sidebar */
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.sidebar {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+/* Stagger animation for nav items */
+.nav-item:nth-child(1) { animation: slideInLeft 0.8s ease-out; }
+.nav-item:nth-child(2) { animation: slideInLeft 1s ease-out; }
+
+/* Button pulse effect on load */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.action-btn {
+    animation: pulse 2s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+.action-btn:hover {
+    animation: none;
+}

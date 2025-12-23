@@ -1,0 +1,63 @@
+name: Build & Push Backend Docker Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-docker.yml"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version (date + run number)
+        run: |
+          DATE=$(date +'%Y.%m.%d')
+          VERSION=$DATE-${{ github.run_number }}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t rghvgrv/splitzy-api:latest \
+            -t rghvgrv/splitzy-api:${VERSION} \
+            ./backend
+
+      - name: Push Docker image
+        run: |
+          docker push rghvgrv/splitzy-api:latest
+          docker push rghvgrv/splitzy-api:${VERSION}
+
+      - name: Cleanup old Docker Hub images (keep last 2)
+        run: |
+          echo "Fetching Docker Hub token..."
+          TOKEN=$(curl -s -X POST https://hub.docker.com/v2/users/login/ \
+            -H "Content-Type: application/json" \
+            -d '{"username": "'${{ secrets.DOCKERHUB_USERNAME }}'", "password": "'${{ secrets.DOCKERHUB_TOKEN }}'"}' \
+            | jq -r .token)
+
+          echo "Fetching tags..."
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/rghvgrv/splitzy-api/tags?page_size=100" \
+            -H "Authorization: JWT $TOKEN" \
+            | jq -r '.results | sort_by(.last_updated) | reverse | .[2:] | .[].name')
+
+          for TAG in $TAGS; do
+            if [ "$TAG" != "latest" ]; then
+              echo "Deleting tag: $TAG"
+              curl -s -X DELETE \
+                "https://hub.docker.com/v2/repositories/rghvgrv/splitzy-api/tags/$TAG/" \
+                -H "Authorization: JWT $TOKEN"
+            fi
+          done

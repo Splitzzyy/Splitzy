@@ -1,0 +1,154 @@
+.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Custom gradient animations */
+.bg-gradient-to-br {
+    background-size: 200% 200%;
+    animation: gradientShift 6s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Card hover effects */
+.transform:hover {
+    transform: translateY(-2px);
+}
+
+/* Loading shimmer effect for empty states */
+.shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .grid-cols-1.md\\:grid-cols-3 {
+        gap: 1rem;
+    }
+
+    .text-2xl.md\\:text-3xl {
+        font-size: 1.5rem;
+    }
+
+    .p-6 {
+        padding: 1rem;
+    }
+}
+
+/* Enhanced button styles */
+button {
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* Group card animations */
+.group:hover .w-12 {
+    transform: scale(1.05);
+}
+
+/* Balance card pulse effect for zero balances */
+.balance-zero {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Status indicators */
+.status-indicator {
+    position: relative;
+    display: inline-block;
+}
+
+.status-indicator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* Improved focus states for accessibility */
+button:focus,
+a:focus {
+    outline: 2px solid #8b5cf6;
+    outline-offset: 2px;
+}
+
+/* Dark mode support */
+/* @media (prefers-color-scheme: dark) {
+    .bg-white {
+        background-color: #22223b;
+        color: white;
+    }
+
+    .text-gray-900 {
+        color: #f9fafb;
+    }
+
+    .text-gray-600 {
+        color: #d1d5db;
+    }
+
+    .border-gray-100 {
+        border-color: #22223b;
+    }
+} */

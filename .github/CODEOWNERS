@@ -1,0 +1,16 @@
+# Global owners (require approval for ANY change)
+
+- @rghvgrv @shubhamashish33 @aarshivv @Singh-Arekh
+
+# Backend ownership
+
+/backend/ @rghvgrv @aarshivv
+
+# Frontend ownership
+
+/frontend/ @shubhamashish33 @Singh-Arekh
+
+# Infrastructure / DevOps
+
+/docker/ @aarshivv @rghvgrv @Singh-Arekh @shubhamashish33
+.github/ @aarshivv @shubhamashish33 @rghvgrv @Singh-Arekh

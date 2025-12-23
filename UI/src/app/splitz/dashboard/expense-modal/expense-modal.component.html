@@ -1,0 +1,80 @@
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" (click)="close.emit()">
+  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" (click)="$event.stopPropagation()">
+    <div class="flex flex-col gap-4">
+      <!-- Header -->
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-xl font-semibold">Add an expense</h3>
+        <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600">×</button>
+      </div>
+
+      <!-- Amount Input -->
+      <div class="flex items-center gap-2">
+        <span class="text-xl">₹</span>
+        <input 
+          type="number" 
+          [(ngModel)]="amount"
+          class="text-2xl w-full border-none focus:ring-0 font-semibold" 
+          placeholder="0.00"
+        >
+      </div>
+
+      <!-- Description -->
+      <input 
+        type="text" 
+        [(ngModel)]="description"
+        class="w-full border-gray-300 rounded-md" 
+        placeholder="Enter description"
+      >
+
+      <!-- Paid By -->
+      <div class="flex items-center gap-2">
+        <span class="text-gray-600">Paid by</span>
+        <select [(ngModel)]="paidBy" class="border-gray-300 rounded-md">
+          <option *ngFor="let member of members" [value]="member.id">
+            {{member.name}}
+          </option>
+        </select>
+      </div>
+
+      <!-- Split Options -->
+      <div class="border rounded-md p-3">
+        <h4 class="font-medium mb-2">Split equally between</h4>
+        <div class="space-y-2">
+          <div *ngFor="let member of members" 
+               class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <input 
+                type="checkbox"
+                [(ngModel)]="member.isSelected"
+                class="rounded text-blue-600"
+              >
+              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                {{member.avatarLetter}}
+              </div>
+              <span>{{member.name}}</span>
+            </div>
+            <span class="text-gray-600">₹{{getSplitAmount(member)}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-2">
+        <button 
+          (click)="close.emit()"
+          class="px-4 py-2 border rounded-md hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button 
+          (click)="saveExpense()"
+          [disabled]="!isValid()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+          Save
+        </button>
+        <button (click)="printLogger()"> printlogger </button>
+      </div>
+    </div>
+  </div>
+</div>
