@@ -59,12 +59,12 @@ namespace splitzy_dotnet.Controllers
             }
 
             var loginUser = _context.Users.FirstOrDefault(u => u.Email == user.Email);
-            if (loginUser == null || loginUser.PasswordHash != user.Password)
+            if (loginUser == null)
             {
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Invalid email or password"
+                    Message = "Invalid Email"
                 });
             }
 
@@ -75,7 +75,7 @@ namespace splitzy_dotnet.Controllers
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Invalid email or password"
+                    Message = "Worng Password"
                 });
             }
 
