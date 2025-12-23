@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Models;
+using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.Interfaces;
 
 namespace splitzy_dotnet.Controllers
@@ -67,6 +68,17 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
+            var hashedInputPassword = HashingService.HashPassword(user.Password);
+
+            if (loginUser.PasswordHash != hashedInputPassword)
+            {
+                return Unauthorized(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid email or password"
+                });
+            }
+
             var token = _jWTService.GenerateToken(loginUser.UserId);
 
             return Ok(new ApiResponse<object>
@@ -106,11 +118,13 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
+            var hashedPassword = HashingService.HashPassword(request.Password);
+
             var user = new User
             {
                 Name = request.Name,
                 Email = request.Email,
-                PasswordHash = request.Password,
+                PasswordHash = hashedPassword,
                 CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             };
 
@@ -237,5 +251,7 @@ namespace splitzy_dotnet.Controllers
                 Data = new { Id = user.UserId, Token = token }
             });
         }
+
+        [HttpPost]
     }
 }
