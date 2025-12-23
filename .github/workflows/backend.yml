@@ -7,6 +7,8 @@ on:
     paths:
       - "backend/**"
       - ".github/workflows/backend-docker.yml"
+      
+  workflow_dispatch:
 
 jobs:
   docker:
