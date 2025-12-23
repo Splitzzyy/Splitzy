@@ -144,11 +144,11 @@ namespace splitzy_dotnet.Controllers
         }
 
         /// <summary>
-        /// Authenticates a user using a Google ID token.
+        /// Authenticates a user using a ID token.
         /// </summary>
         /// <remarks>
-        /// UI sends the Google ID token.
-        /// Backend validates the token using Google public keys and client ID.
+        /// UI sends the ID token.
+        /// Backend validates the token using public keys and client ID.
         /// If the user does not exist, a new account is created.
         /// Returns a JWT token for API access.
         /// </remarks>
