@@ -1,0 +1,60 @@
+name: Parent → Children → Final
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, splitzy]
+    steps:
+      - run: echo "Starting deployment process"
+
+  changes:
+    runs-on: [self-hosted, splitzy]
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'UI/**'
+            backend:
+              - 'backend/**'
+
+  build_api:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: [self-hosted, splitzy]
+    steps:
+      - name: Build and Push Backend image
+        uses: ./.github/workflows/backend.yml
+
+  build_ui:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: [self-hosted, splitzy]
+    steps:
+      - name: Build and Push Frontend image
+        uses: ./.github/workflows/frontend.yml
+
+  deploy_final:
+    needs: [build_api, build_ui]
+    if: |
+      always() &&
+      (
+        needs.build_api.result != 'skipped' ||
+        needs.build_ui.result != 'skipped'
+      )
+    runs-on: [self-hosted, splitzy]
+    steps:
+      - name: Build and Push Frontend image
+        uses: ./.github/workflows/build_and_deploy.yml
