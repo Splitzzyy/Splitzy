@@ -251,7 +251,5 @@ namespace splitzy_dotnet.Controllers
                 Data = new { Id = user.UserId, Token = token }
             });
         }
-
-        [HttpPost]
     }
 }
