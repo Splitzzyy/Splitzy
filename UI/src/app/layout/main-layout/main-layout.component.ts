@@ -54,26 +54,6 @@ export class MainLayoutComponent implements OnInit {
       return;
     }
 
-    this.spltizService.onFetchSecureLogin().subscribe({
-      next: (response: LoginResponse) => {
-        this.showLoader = false;
-        if (response.success && response.data) {
-          this.spltizService.setUserId(response.data.id);
-          this.spltizService.setToken(response.data.token);
-          this.userId = response.data.id.toString();
-          this.token = response.data.token;
-          this.router.navigate(['/dashboard', this.userId]);
-        }
-        else {
-          this.router.navigate(['/login']);
-        }
-      },
-      error: (error) => {
-        console.error('Auth check failed', error);
-        this.showLoader = false;
-        this.router.navigate(['/login']);
-      }
-    })
   }
 
   isLocalhost(): boolean {

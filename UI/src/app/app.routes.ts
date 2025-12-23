@@ -1,4 +1,6 @@
-import { Routes } from '@angular/router';
+import { Routes, RedirectCommand } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { LoginPageComponent } from './splitz/login-page/login-page.component';
 import { RegisterPageComponent } from './splitz/register-page/register-page.component';
@@ -8,6 +10,14 @@ export const routes: Routes = [
     { path: 'register', component: RegisterPageComponent },
     {
         path: '',
+        canActivate: [() => {
+            const router = inject(Router);
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                return new RedirectCommand(router.parseUrl('/login'));
+            }
+            return true;
+        }],
         component: MainLayoutComponent,
         children: [
             {

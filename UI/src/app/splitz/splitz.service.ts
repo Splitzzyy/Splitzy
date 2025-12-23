@@ -165,8 +165,9 @@ export class SplitzService {
           if (response.success == true) {
             if (response?.data?.id) {
               localStorage.setItem('userId', response.data.id);
+              localStorage.setItem('token', response.data.token);
               this.userIdSubject.next(response.data.id);
-              this.router.navigate(['/dashboard', response.data.id]);
+              this.router.navigate(['/dashboard', response.data.id.toString()]);
             }
           }
           else {
