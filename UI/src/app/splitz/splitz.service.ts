@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from './splitz.model';
+import { GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from './splitz.model';
 
 @Injectable({
   providedIn: 'root'
@@ -126,5 +126,66 @@ export class SplitzService {
   }
   ssoLoginRedirect() {
     window.location.href = `${this.BASE_URL}${this.ENDPOINTS.SSOLOGIN}`;
+  }
+  handleGoogleSignIn(googleResponse: any): void {
+    try {
+      // Decode the JWT token to get user information
+      const token = googleResponse.credential;
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c: string) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const userInfo = JSON.parse(jsonPayload);
+
+      // Store user information from Google
+      const userId = userInfo.sub; // Google's unique user ID
+      const userEmail = userInfo.email;
+      const userName = userInfo.name;
+
+      // Store in localStorage
+      // localStorage.setItem('userId', userId);
+      localStorage.setItem('userEmail', userEmail);
+      localStorage.setItem('userName', userName);
+      localStorage.setItem('googleToken', token);
+
+      // Update subjects
+      // this.userIdSubject.next(userId);
+      this.tokenSubject.next(token);
+
+      // Redirect to dashboard
+      const googleLoginRequest: GoogleLoginRequest = {
+        idToken: token
+      }
+      this.onGoogleLogin(googleLoginRequest).subscribe({
+        next: (response) => {
+          if (response.success == true) {
+            if (response?.data?.id) {
+              localStorage.setItem('userId', response.data.id);
+              this.userIdSubject.next(response.data.id);
+              this.router.navigate(['/dashboard', response.data.id]);
+            }
+          }
+          else {
+            this.router.navigate(['/login']);
+          }
+        },
+        error: (error) => {
+          console.error('Error Google Login:', error);
+        }
+      })
+    } catch (error) {
+      console.error('Error processing Google Sign-In:', error);
+    }
+  }
+  onGoogleLogin(request: GoogleLoginRequest) {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.GOOGLELOGIN}`;
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    return this.http.post<any>(url, request, { headers })
   }
 }
