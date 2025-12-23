@@ -1,10 +1,11 @@
-import { Component, Inject, inject } from '@angular/core';
+import { AfterViewInit, Component, Inject, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SplitzService } from '../splitz.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { LoaderComponent } from '../loader/loader.component';
 import { LoginRequest, LoginResponse } from '../splitz.model';
+import { environment } from '../../environments/environment';
 
 
 @Component({
@@ -14,12 +15,13 @@ import { LoginRequest, LoginResponse } from '../splitz.model';
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css'
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements AfterViewInit {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
   showPassword = false;
   showLoader = false;
+  googleClientId = environment.googleClientId;
 
   constructor(
     private fb: FormBuilder,
@@ -133,5 +135,41 @@ export class LoginPageComponent {
     this.splitzService.ssoLoginRedirect();
     // window.open('https://42761f8c7efd.ngrok-free.app/api/Auth/ssologin', '_self')
 
+  }
+  ngAfterViewInit(): void {
+    // Initialize Google Sign-In
+    this.initializeGoogleSignIn();
+  }
+  private initializeGoogleSignIn(): void {
+    // Declare window.google as any to avoid TypeScript errors
+    const google = (window as any).google;
+
+    if (google && google.accounts && google.accounts.id) {
+      google.accounts.id.initialize({
+        client_id: this.googleClientId,
+        callback: (response: any) => this.handleGoogleLogin(response),
+        auto_prompt: false
+      });
+      // Render the button
+      const buttonDiv = document.getElementById('g_id_signin');
+      if (buttonDiv) {
+        google.accounts.id.renderButton(
+          buttonDiv,
+          {
+            theme: 'outline',
+            size: 'large',
+            width: '100%'
+          }
+        );
+      }
+    }
+  }
+  handleGoogleLogin(response: any): void {
+    if (response.credential) {
+      // Pass the response to service to handle decoding and navigation
+      this.splitzService.handleGoogleSignIn(response);
+    } else {
+      this.errorMessage = 'Google Sign-In failed. Please try again.';
+    }
   }
 }

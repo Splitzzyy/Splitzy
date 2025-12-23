@@ -1,10 +1,11 @@
 export const environment = {
     production: false,
-    //apiBaseUrl: 'https://localhost:7176',
     apiBaseUrl: 'https://splitzy.aarshiv.xyz',
+    googleClientId: '181191664943-7db5glvs01ifeno7o78kotd9ujv910db.apps.googleusercontent.com',
     bypassAuthOnLocalhost: true,
     endpoints: {
         SSOLOGIN: '/api/Auth/ssologin',
+        GOOGLELOGIN: '/api/Auth/google-login',
         SECURE: '/api/Auth/secure',
         LOGIN: '/api/Auth/login',
         LOGOUT: '/api/Auth/logout',

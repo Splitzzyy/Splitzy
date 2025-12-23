@@ -21,3 +21,12 @@ export interface RegisterResponse {
     id?: string;
     message?: string;
 }
+
+export interface GoogleLoginRequest{
+    idToken: string
+}
+export interface GoogleLoginResponse{
+    success: boolean;
+    message: string;
+    data: any;
+}
