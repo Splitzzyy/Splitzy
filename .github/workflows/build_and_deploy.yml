@@ -30,6 +30,8 @@ jobs:
     if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, splitzy]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Build and Push Backend image
         uses: ./.github/workflows/backend.yml
 
@@ -38,6 +40,8 @@ jobs:
     if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, splitzy]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Build and Push Frontend image
         uses: ./.github/workflows/frontend.yml
 
@@ -52,5 +56,7 @@ jobs:
       )
     runs-on: [self-hosted, splitzy]
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Final Build and Deploy
         uses: ./.github/workflows/deploy.yml
