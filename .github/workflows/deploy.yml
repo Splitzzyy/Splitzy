@@ -1,4 +1,4 @@
-name: Deploy latest Backend and UI
+name: Deploy Backend and Frontend
 
 on:
   workflow_dispatch:
