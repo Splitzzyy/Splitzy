@@ -144,7 +144,7 @@ namespace splitzy_dotnet.Controllers
         }
 
         /// <summary>
-        /// Authenticates a user using a ID token.
+        /// Authenticates a user using a ID token value.
         /// </summary>
         /// <remarks>
         /// UI sends the ID token.

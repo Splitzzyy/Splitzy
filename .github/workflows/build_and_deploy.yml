@@ -27,7 +27,7 @@ jobs:
 
   build_api:
     needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, splitzy]
     steps:
       - name: Build and Push Backend image
@@ -35,7 +35,7 @@ jobs:
 
   build_ui:
     needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, splitzy]
     steps:
       - name: Build and Push Frontend image
@@ -46,6 +46,7 @@ jobs:
     if: |
       always() &&
       (
+        github.event_name == 'workflow_dispatch' || 
         needs.build_api.result != 'skipped' ||
         needs.build_ui.result != 'skipped'
       )
