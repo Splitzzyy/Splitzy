@@ -7,11 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: [self-hosted, splitzy]
-    steps:
-      - run: echo "Starting deployment process"
-
   changes:
     runs-on: [self-hosted, splitzy]
     outputs:
