@@ -1,7 +1,12 @@
 name: Deploy Backend and Frontend
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  
+  workflow_call:
+    inputs:
+      image_tag:
+        required: false
+        type: string
 
 jobs:
   docker:
