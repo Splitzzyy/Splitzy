@@ -1,18 +1,11 @@
 name: Build & Push Frontend Docker Image
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "UI/**"
-      - ".github/workflows/frontend.yml"
-
   workflow_dispatch:
 
 jobs:
-  docker:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: [self-hosted, splitzy]
 
     steps:
       - name: Checkout code
@@ -23,12 +16,6 @@ jobs:
           DATE=$(date -u +'%Y.%m.%d')
           VERSION=$DATE-${{ github.run_number }}
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Frontend Docker image
         run: |
