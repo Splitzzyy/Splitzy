@@ -27,36 +27,25 @@ jobs:
 
   build_api:
     needs: changes
-    if: needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, splitzy]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Build and Push Backend image
-        uses: ./.github/workflows/backend.yml
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs.backend == 'true'
+    uses: ./.github/workflows/backend.yml
 
   build_ui:
     needs: changes
-    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, splitzy]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Build and Push Frontend image
-        uses: ./.github/workflows/frontend.yml
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs.frontend == 'true'
+    uses: ./.github/workflows/frontend.yml
 
   deploy_final:
     needs: [build_api, build_ui]
     if: |
       always() &&
       (
-        github.event_name == 'workflow_dispatch' || 
+        github.event_name == 'workflow_dispatch' ||
         needs.build_api.result != 'skipped' ||
         needs.build_ui.result != 'skipped'
       )
-    runs-on: [self-hosted, splitzy]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Final Build and Deploy
-        uses: ./.github/workflows/deploy.yml
+    uses: ./.github/workflows/deploy.yml
