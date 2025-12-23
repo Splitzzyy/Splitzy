@@ -1,4 +1,4 @@
-name: Parent → Children → Final
+name: Full Build, Push and Deploy
 
 on:
   push:
@@ -51,5 +51,5 @@ jobs:
       )
     runs-on: [self-hosted, splitzy]
     steps:
-      - name: Build and Push Frontend image
-        uses: ./.github/workflows/build_and_deploy.yml
+      - name: Final Build and Deploy
+        uses: ./.github/workflows/deploy.yml
