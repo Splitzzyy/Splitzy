@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -18,6 +19,10 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
         optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
+#endregion
+
+#region Controllers
+builder.Services.AddControllers();
 #endregion
 
 #region Authentication
@@ -44,8 +49,6 @@ builder.Services.AddAuthentication(options =>
 });
 #endregion
 
-builder.Services.AddControllers();
-
 #region Authorization
 builder.Services.AddAuthorization(options =>
 {
@@ -55,9 +58,8 @@ builder.Services.AddAuthorization(options =>
 });
 #endregion
 
-builder.Services.AddEndpointsApiExplorer();
-
 #region Swagger
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -98,12 +100,10 @@ builder.Services.AddSwaggerGen(c =>
 });
 #endregion
 
-builder.Services.AddScoped<IJWTService, JWTService>();
-
 #region CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
                 "http://localhost:4200",
@@ -140,9 +140,86 @@ builder.Services.AddDbContext<SplitzyContext>(options =>
 });
 #endregion
 
+#region HealthChecks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<SplitzyContext>("postgres");
+#endregion
+
+#region Services
+builder.Services.AddScoped<IJWTService, JWTService>();
+#endregion
+
 var app = builder.Build();
 
-#region Auto DB Migration
+#region Global Exception Handling
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+
+        logger.LogError(exception, "Unhandled exception occurred");
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            Success = false,
+            Message = "An unexpected error occurred"
+        });
+    });
+});
+#endregion
+
+#region Request Logging 
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+
+    var correlationId =
+        context.Request.Headers["X-Correlation-Id"].FirstOrDefault()
+        ?? Guid.NewGuid().ToString();
+
+    context.Response.Headers["X-Correlation-Id"] = correlationId;
+
+    using (logger.BeginScope(new Dictionary<string, object>
+    {
+        ["CorrelationId"] = correlationId
+    }))
+    {
+        logger.LogInformation(
+            "HTTP {Method} {Path} started",
+            context.Request.Method,
+            context.Request.Path);
+
+        await next();
+
+        logger.LogInformation(
+            "HTTP {Method} {Path} completed with {StatusCode}",
+            context.Request.Method,
+            context.Request.Path,
+            context.Response.StatusCode);
+    }
+});
+#endregion
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+
+app.UseCors("AllowFrontend");
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapHealthChecks("/health");
+app.MapControllers();
+
+#region Auto DB Migration (Non-Prod Friendly)
 using (var scope = app.Services.CreateScope())
 {
     try
@@ -152,21 +229,11 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Migration failed: {ex.Message}");
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogCritical(ex, "Database migration failed");
         throw;
     }
 }
 #endregion
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseCors("AllowAll");
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
 
 app.Run();
