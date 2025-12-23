@@ -31,6 +31,9 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       needs.changes.outputs.backend == 'true'
     uses: ./.github/workflows/backend.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   build_ui:
     needs: changes
@@ -38,6 +41,9 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       needs.changes.outputs.frontend == 'true'
     uses: ./.github/workflows/frontend.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   deploy_final:
     needs: [build_api, build_ui]
