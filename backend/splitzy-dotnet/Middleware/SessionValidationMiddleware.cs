@@ -18,7 +18,7 @@ namespace splitzy_dotnet.Middleware
             {
                 using (var scope = context.RequestServices.CreateScope())
                 {
-                    var _splitzyContext = scope.ServiceProvider.GetRequiredService<SplitzyContext>();
+                    scope.ServiceProvider.GetRequiredService<SplitzyContext>();
                     var _jwtService = scope.ServiceProvider.GetRequiredService<IJWTService>();
 
                     var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");

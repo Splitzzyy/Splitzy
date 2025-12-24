@@ -53,8 +53,6 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         public IActionResult Login([FromBody] LoginRequestDTO user)
         {
-            _logger.LogInformation("Login attempt started for Email={Email}", user?.Email);
-
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid login request payload");
@@ -64,6 +62,17 @@ namespace splitzy_dotnet.Controllers
                     Message = "Invalid request"
                 });
             }
+
+            if (user == null)
+            {
+                _logger.LogWarning("Login failed: request body is null");
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid request"
+                });
+            }
+
 
             var loginUser = _context.Users.FirstOrDefault(u => u.Email == user.Email);
             if (loginUser == null)
@@ -118,7 +127,15 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
         public IActionResult Signup([FromBody] SignupRequestDTO request)
         {
-            _logger.LogInformation("Signup attempt started for Email={Email}", request?.Email);
+            if (request == null)
+            {
+                _logger.LogWarning("Signup failed: request body is null");
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid input"
+                });
+            }
 
             if (!ModelState.IsValid)
             {
@@ -200,8 +217,6 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDTO request)
         {
-            _logger.LogInformation("Google login attempt started");
-
             if (request == null || string.IsNullOrWhiteSpace(request.IdToken))
             {
                 _logger.LogWarning("Google login failed: Missing IdToken");
