@@ -3,21 +3,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Models;
-using splitzy_dotnet.Services.Interfaces;
 
 namespace splitzy_dotnet.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly SplitzyContext _context;
-        private readonly IJWTService _jWTService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(SplitzyContext context, IJWTService jWTService)
+        public UserController(SplitzyContext context, ILogger<UserController> logger)
         {
             _context = context;
-            _jWTService = jWTService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -44,6 +44,7 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while retrieving all users");
                 return StatusCode(500, $"An error occurred while retrieving users: {ex.Message}");
             }
         }
@@ -64,6 +65,9 @@ namespace splitzy_dotnet.Controllers
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
+                    _logger.LogError(
+                       "User not found while fetching group summary. UserId={UserId}",
+                       userId);
                     return NotFound($"User with ID {userId} not found.");
                 }
 

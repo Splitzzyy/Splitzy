@@ -16,15 +16,18 @@ namespace splitzy_dotnet.Controllers
         private readonly SplitzyContext _context;
         private readonly IJWTService _jWTService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             SplitzyContext context,
             IJWTService jWTService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<AuthController> logger)
         {
             _context = context;
             _jWTService = jWTService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         /// <summary>
@@ -34,6 +37,7 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public IActionResult Index()
         {
+            _logger.LogInformation("Auth health check endpoint hit");
             return Ok("Welcome to Splitzy Auth API!");
         }
 
@@ -51,6 +55,7 @@ namespace splitzy_dotnet.Controllers
         {
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("Invalid login request payload");
                 return BadRequest(new ApiResponse<string>
                 {
                     Success = false,
@@ -58,9 +63,21 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
+            if (user == null)
+            {
+                _logger.LogWarning("Login failed: request body is null");
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid request"
+                });
+            }
+
+
             var loginUser = _context.Users.FirstOrDefault(u => u.Email == user.Email);
             if (loginUser == null)
             {
+                _logger.LogWarning("Login failed: Email not found. Email={Email}", user.Email);
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
@@ -72,14 +89,24 @@ namespace splitzy_dotnet.Controllers
 
             if (loginUser.PasswordHash != hashedInputPassword)
             {
+                _logger.LogWarning(
+                    "Login failed: Incorrect password. UserId={UserId}, Email={Email}",
+                    loginUser.UserId,
+                    loginUser.Email);
+
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Worng Password"
+                    Message = "Wrong Password"
                 });
             }
 
             var token = _jWTService.GenerateToken(loginUser.UserId);
+
+            _logger.LogInformation(
+                "Login successful. UserId={UserId}, Email={Email}",
+                loginUser.UserId,
+                loginUser.Email);
 
             return Ok(new ApiResponse<object>
             {
@@ -100,8 +127,19 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
         public IActionResult Signup([FromBody] SignupRequestDTO request)
         {
+            if (request == null)
+            {
+                _logger.LogWarning("Signup failed: request body is null");
+                return BadRequest(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid input"
+                });
+            }
+
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("Invalid signup request payload");
                 return BadRequest(new ApiResponse<string>
                 {
                     Success = false,
@@ -111,6 +149,7 @@ namespace splitzy_dotnet.Controllers
 
             if (_context.Users.Any(u => u.Email == request.Email))
             {
+                _logger.LogWarning("Signup failed: Email already exists. Email={Email}", request.Email);
                 return BadRequest(new ApiResponse<string>
                 {
                     Success = false,
@@ -131,6 +170,11 @@ namespace splitzy_dotnet.Controllers
             _context.Users.Add(user);
             _context.SaveChanges();
 
+            _logger.LogInformation(
+                "Signup successful. UserId={UserId}, Email={Email}",
+                user.UserId,
+                user.Email);
+
             return CreatedAtAction(nameof(Signup), new ApiResponse<object>
             {
                 Success = true,
@@ -150,6 +194,7 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
         public IActionResult Logout()
         {
+            _logger.LogInformation("Logout requested");
             return Ok(new ApiResponse<string>
             {
                 Success = true,
@@ -174,6 +219,7 @@ namespace splitzy_dotnet.Controllers
         {
             if (request == null || string.IsNullOrWhiteSpace(request.IdToken))
             {
+                _logger.LogWarning("Google login failed: Missing IdToken");
                 return BadRequest(new ApiResponse<string>
                 {
                     Success = false,
@@ -181,16 +227,17 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            // Prefer environment variable, fallback to configuration
-            var googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")
-                                 ?? _configuration["Google:ClientId"];
+            var googleClientId =
+                Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")
+                ?? _configuration["Google:ClientId"];
 
             if (string.IsNullOrWhiteSpace(googleClientId))
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<string>
+                _logger.LogError("Google ClientId not configured");
+                return StatusCode(500, new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Google ClientId not configured. Set GOOGLE_CLIENT_ID environment variable or Google:ClientId configuration."
+                    Message = "Google ClientId not configured"
                 });
             }
 
@@ -202,14 +249,16 @@ namespace splitzy_dotnet.Controllers
                     request.IdToken,
                     new GoogleJsonWebSignature.ValidationSettings
                     {
-                        Audience = new[]
-                        {
-                                googleClientId
-                        }
+                        Audience = new[] { googleClientId }
                     });
+
+                _logger.LogInformation(
+                    "Google token validated successfully. Email={Email}",
+                    payload.Email);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Invalid Google token received");
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
@@ -219,6 +268,10 @@ namespace splitzy_dotnet.Controllers
 
             if (!payload.EmailVerified)
             {
+                _logger.LogWarning(
+                    "Google login failed: Email not verified. Email={Email}",
+                    payload.Email);
+
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
@@ -230,6 +283,10 @@ namespace splitzy_dotnet.Controllers
 
             if (user == null)
             {
+                _logger.LogInformation(
+                    "New user created via Google login. Email={Email}",
+                    payload.Email);
+
                 user = new User
                 {
                     Email = payload.Email,
@@ -243,6 +300,11 @@ namespace splitzy_dotnet.Controllers
             }
 
             var token = _jWTService.GenerateToken(user.UserId);
+
+            _logger.LogInformation(
+                "Google login successful. UserId={UserId}, Email={Email}",
+                user.UserId,
+                user.Email);
 
             return Ok(new ApiResponse<object>
             {
