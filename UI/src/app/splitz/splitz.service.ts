@@ -71,6 +71,9 @@ export class SplitzService {
     });
     localStorage.removeItem('userId');
     localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('googleToken');
     this.userIdSubject.next(null);
     this.router.navigate(['/login']);
   }
@@ -182,7 +185,8 @@ export class SplitzService {
   onGoogleLogin(request: GoogleLoginRequest) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.GOOGLELOGIN}`;
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`
     });
     return this.http.post<any>(url, request, { headers })
   }
