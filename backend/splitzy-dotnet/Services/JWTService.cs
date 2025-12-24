@@ -57,5 +57,12 @@ namespace splitzy_dotnet.Services
 
             return false;
         }
+        public string GetUserIdFromToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityToken = tokenHandler.ReadJwtToken(token);
+            var userId = securityToken.Claims.First(claim => claim.Type == "id").Value;
+            return userId;
+        }
     }
 }

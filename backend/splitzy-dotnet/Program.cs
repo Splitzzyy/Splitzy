@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using splitzy_dotnet.Middleware;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.Interfaces;
@@ -203,6 +204,10 @@ app.Use(async (context, next) =>
             context.Response.StatusCode);
     }
 });
+#endregion
+
+#region Use Middleware
+app.UseMiddleware<SessionValidationMiddleware>();
 #endregion
 
 app.UseSwagger();
