@@ -167,6 +167,7 @@ export class SplitzService {
               localStorage.setItem('userId', response.data.id);
               localStorage.setItem('token', response.data.token);
               this.userIdSubject.next(response.data.id);
+              this.tokenSubject.next(response.data.token);
               this.router.navigate(['/dashboard']);
             }
           }
@@ -185,8 +186,7 @@ export class SplitzService {
   onGoogleLogin(request: GoogleLoginRequest) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.GOOGLELOGIN}`;
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.getToken()}`
+      'Content-Type': 'application/json'
     });
     return this.http.post<any>(url, request, { headers })
   }
