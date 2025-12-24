@@ -39,21 +39,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    // Get the id from the route, default to 1 if not present
-    // this.userId = Number(this.route.snapshot.paramMap.get('user')) || 1;
-    this.getDataFromRouteParam();
+    this.onloadDashboardData();
   }
 
-  private getDataFromRouteParam(): void {
-    this.route.params.subscribe(params => {
-      this.userId = +params['userId'];
-      this.onloadDashboardData(this.userId);
-
-    });
-  }
-
-  onloadDashboardData(id: number) {
-    this.splitzService.onFetchDashboardData(id).subscribe((data: any) => {
+  onloadDashboardData() {
+    this.splitzService.onFetchDashboardData().subscribe((data: any) => {
       console.log(data);
       this.userName = data.userName;
       this.totalBalance = data.totalBalance;

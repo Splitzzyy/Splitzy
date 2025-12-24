@@ -37,10 +37,7 @@ registerForm: FormGroup;
   ngOnInit(): void {
     // Redirect if already logged in
     if (this.splitzService.isLoggedIn()) {
-      const userId = this.splitzService.getUserId();
-      if (userId) {
-        this.splitzService.redirectToDashboard(userId);
-      }
+        this.splitzService.redirectToDashboard();
     }
   }
 

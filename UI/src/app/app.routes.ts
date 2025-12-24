@@ -21,17 +21,17 @@ export const routes: Routes = [
         component: MainLayoutComponent,
         children: [
             {
-                path: 'dashboard/:userId',
+                path: 'dashboard',
                 loadComponent: () =>
                     import('./splitz/dashboard/dashboard.component').then(m => m.DashboardComponent),
             },
             {
-                path: 'recent-activity/:userId',
+                path: 'recent-activity',
                 loadComponent: () =>
                     import('./splitz/recentactivity/recentactivity.component').then(m => m.RecentactivityComponent),
             },
             {
-                path: 'group/:userId/:groupId',
+                path: 'group/:groupId',
                 loadComponent: () =>
                     import('./splitz/dashboard/groups/groups.component').then(m => m.GroupsComponent),
             },

@@ -42,10 +42,7 @@ export class LoginPageComponent implements AfterViewInit {
   ngOnInit(): void {
     // Redirect if already logged in
     if (this.splitzService.isLoggedIn()) {
-      const userId = this.splitzService.getUserId();
-      if (userId) {
-        this.splitzService.redirectToDashboard(userId);
-      }
+        this.splitzService.redirectToDashboard();
     }
   }
 
@@ -87,7 +84,7 @@ export class LoginPageComponent implements AfterViewInit {
             }
 
             // Redirect to dashboard with userId in URL
-            this.splitzService.redirectToDashboard(response.data.id.toString());
+            this.splitzService.redirectToDashboard();
           } else {
             this.showLoader = false;
             this.errorMessage = response.message || 'Login failed. Please try again.';

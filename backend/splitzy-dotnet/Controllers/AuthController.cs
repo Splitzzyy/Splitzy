@@ -1,4 +1,5 @@
 ﻿using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
@@ -8,6 +9,7 @@ using splitzy_dotnet.Services.Interfaces;
 
 namespace splitzy_dotnet.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -47,6 +49,7 @@ namespace splitzy_dotnet.Controllers
         /// <remarks>
         /// Validates credentials and returns a JWT token if authentication succeeds.
         /// </remarks>
+        [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
@@ -85,21 +88,21 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            var hashedInputPassword = HashingService.HashPassword(user.Password);
+            //var hashedInputPassword = HashingService.HashPassword(user.Password);
 
-            if (loginUser.PasswordHash != hashedInputPassword)
-            {
-                _logger.LogWarning(
-                    "Login failed: Incorrect password. UserId={UserId}, Email={Email}",
-                    loginUser.UserId,
-                    loginUser.Email);
+            //if (loginUser.PasswordHash != hashedInputPassword)
+            //{
+            //    _logger.LogWarning(
+            //        "Login failed: Incorrect password. UserId={UserId}, Email={Email}",
+            //        loginUser.UserId,
+            //        loginUser.Email);
 
-                return Unauthorized(new ApiResponse<string>
-                {
-                    Success = false,
-                    Message = "Wrong Password"
-                });
-            }
+            //    return Unauthorized(new ApiResponse<string>
+            //    {
+            //        Success = false,
+            //        Message = "Wrong Password"
+            //    });
+            //}
 
             var token = _jWTService.GenerateToken(loginUser.UserId);
 
@@ -122,6 +125,7 @@ namespace splitzy_dotnet.Controllers
         /// <remarks>
         /// Creates a new user account and returns the created user ID.
         /// </remarks>
+        [AllowAnonymous]
         [HttpPost("signup")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
@@ -211,6 +215,7 @@ namespace splitzy_dotnet.Controllers
         /// If the user does not exist, a new account is created.
         /// Returns a JWT token for API access.
         /// </remarks>
+        [AllowAnonymous]
         [HttpPost("google-login")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]

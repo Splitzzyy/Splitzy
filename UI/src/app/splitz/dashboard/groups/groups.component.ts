@@ -61,7 +61,7 @@ export class GroupsComponent implements OnInit {
   // Method 4: Fetch data from service/API if not available
   private async fetchGroupData(groupId: number): Promise<void> {
     try {
-      const data: any = await firstValueFrom(this.splitzService.onFetchGroupData(this.userId, groupId));
+      const data: any = await firstValueFrom(this.splitzService.onFetchGroupData(groupId));
       console.log(data);
       this.groupData = {
         id: data.groupId,
