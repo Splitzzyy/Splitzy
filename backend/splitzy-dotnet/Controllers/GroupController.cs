@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using static splitzy_dotnet.DTO.GroupDTO;
 
@@ -22,13 +23,13 @@ namespace splitzy_dotnet.Controllers
         /// <summary>
         /// Gets all groups a user is part of.
         /// </summary>
-        /// <param name="userId">User ID</param>
         /// <returns>List of groups</returns>
-        [HttpGet("GetAllGroupByUser/{userId}")]
+        [HttpGet("GetAllGroupByUser")]
         [ProducesResponseType(typeof(IEnumerable<UserGroupInfo>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IEnumerable<UserGroupInfo>>> GetAllGroupByUser(int userId)
+        public async Task<ActionResult<IEnumerable<UserGroupInfo>>> GetAllGroupByUser()
         {
+            int userId = HttpContext.GetCurrentUserId();
             try
             {
                 List<GroupMember> groupMemberships = await GetUserGroupMembers(userId);
@@ -177,12 +178,13 @@ namespace splitzy_dotnet.Controllers
         /// <summary>
         /// Gets group overview for a user including balances and expenses.
         /// </summary>
-        [HttpGet("GetGroupOverview/{userId}/{groupId}")]
+        [HttpGet("GetGroupOverview/{groupId}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetGroupOverview(int userId, int groupId)
+        public async Task<ActionResult> GetGroupOverview(int groupId)
         {
+            int userId = HttpContext.GetCurrentUserId();
             try
             {
                 var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == groupId);

@@ -58,7 +58,8 @@ export class SplitzService {
   logout(): void {
     const url = `${this.BASE_URL}${this.ENDPOINTS.LOGOUT}`;
     const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true'
+      'ngrok-skip-browser-warning': 'true',
+      'Authorization': `Bearer ${this.getToken()}`
     });
     this.http.get(url, { headers }).subscribe({
       next: () => {
@@ -78,22 +79,26 @@ export class SplitzService {
     return !!this.getUserId();
   }
 
-  redirectToDashboard(userId: string): void {
-    this.router.navigate(['/dashboard', userId]);
+  redirectToDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
-  onFetchDashboardData(id: any) {
-    const url = `${this.BASE_URL}${this.ENDPOINTS.DASHBOARD}/${id}`;
+  onFetchDashboardData() {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.DASHBOARD}`;
+    const token = this.getToken();
     console.log(`Fetching dashboard data from ${url}`);
     const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true'
+      'ngrok-skip-browser-warning': 'true',
+      'Authorization': `Bearer ${token}`
     });
     return this.http.get<any>(url, { headers });
   }
-  onFetchGroupData(userId: any, groupId: any) {
-    const url = `${this.BASE_URL}${this.ENDPOINTS.GROUP}/${userId}/${groupId}`;
+  onFetchGroupData(groupId: any) {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.GROUP}/${groupId}`;
+    const token = this.getToken();
     console.log(`Fetching group data from ${url}`);
     const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true'
+      'ngrok-skip-browser-warning': 'true',
+      'Authorization': `Bearer ${token}`
     });
     return this.http.get<any>(url, { headers });
   }
@@ -102,27 +107,19 @@ export class SplitzService {
     console.log(`Saving expense to ${url}`);
     const headers = new HttpHeaders({
       'ngrok-skip-browser-warning': 'true',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`
     });
     return this.http.post<any>(url, expense, { headers });
   }
-  getRecentActivity(userId: any) {
-    const url = `${this.BASE_URL}${this.ENDPOINTS.RECENT}/${userId}`;
+  getRecentActivity() {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.RECENT}`;
     console.log(`Fetching recent activity from ${url}`);
     const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true'
+      'ngrok-skip-browser-warning': 'true',
+      'Authorization': `Bearer ${this.getToken()}`
     });
     return this.http.get<any[]>(url, { headers });
-  }
-  onFetchSecureLogin(): Observable<LoginResponse> {
-    const url = `${this.BASE_URL}${this.ENDPOINTS.SECURE}`;
-    const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true'
-    });
-    return this.http.get<LoginResponse>(url, {
-      headers,
-      withCredentials: true
-    });
   }
   ssoLoginRedirect() {
     window.location.href = `${this.BASE_URL}${this.ENDPOINTS.SSOLOGIN}`;
@@ -167,7 +164,7 @@ export class SplitzService {
               localStorage.setItem('userId', response.data.id);
               localStorage.setItem('token', response.data.token);
               this.userIdSubject.next(response.data.id);
-              this.router.navigate(['/dashboard', response.data.id.toString()]);
+              this.router.navigate(['/dashboard']);
             }
           }
           else {

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 
 namespace splitzy_dotnet.Controllers
@@ -52,27 +53,27 @@ namespace splitzy_dotnet.Controllers
         /// <summary>
         /// Retrieves group and expense summary for a specific user.
         /// </summary>
-        /// <param name="userId">The user's ID.</param>
         /// <returns>User's group and expense summary.</returns>
-        [HttpGet("{userId}")]
+        [HttpGet("summary")]
         [ProducesResponseType(typeof(UserGroupExpenseDTO), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<UserGroupExpenseDTO>> GetUserGroupSummary(int userId)
+        public async Task<ActionResult<UserGroupExpenseDTO>> GetUserGroupSummary()
         {
+            int currentUserId = HttpContext.GetCurrentUserId();
             try
             {
-                var user = await _context.Users.FindAsync(userId);
+                var user = await _context.Users.FindAsync(currentUserId);
                 if (user == null)
                 {
                     _logger.LogError(
                        "User not found while fetching group summary. UserId={UserId}",
-                       userId);
-                    return NotFound($"User with ID {userId} not found.");
+                       currentUserId);
+                    return NotFound($"User with ID {currentUserId} not found.");
                 }
 
                 var groups = await _context.GroupMembers
-                    .Where(gm => gm.UserId == userId)
+                    .Where(gm => gm.UserId == currentUserId)
                     .Include(gm => gm.Group)
                     .Select(gm => new UserGroupInfo
                     {
@@ -82,7 +83,7 @@ namespace splitzy_dotnet.Controllers
                     }).ToListAsync();
 
                 var totalPaid = await _context.Expenses
-                    .Where(e => e.PaidByUserId == userId)
+                    .Where(e => e.PaidByUserId == currentUserId)
                     .SumAsync(e => (decimal?)e.Amount) ?? 0;
 
                 var result = new UserGroupExpenseDTO

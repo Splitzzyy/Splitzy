@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 
 namespace splitzy_dotnet.Controllers
@@ -21,14 +22,14 @@ namespace splitzy_dotnet.Controllers
         /// <summary>
         /// Retrieves dashboard data for a specific user.
         /// </summary>
-        /// <param name="userId">User ID</param>
         /// <returns>User dashboard summary</returns>
-        [HttpGet("dashboard/{userId}")]
+        [HttpGet("dashboard")]
         [ProducesResponseType(typeof(UserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<UserDTO>> GetDashboard(int userId)
+        public async Task<ActionResult<UserDTO>> GetDashboard()
         {
+            int userId = HttpContext.GetCurrentUserId();
             try
             {
                 var user = await _context.Users.FindAsync(userId);
@@ -114,13 +115,13 @@ namespace splitzy_dotnet.Controllers
         /// <summary>
         /// Gets recent activity (expenses and logs) for a specific user.
         /// </summary>
-        /// <param name="userId">User ID</param>
         /// <returns>List of recent activities</returns>
-        [HttpGet("recent/{userId}")]
+        [HttpGet("recent")]
         [ProducesResponseType(typeof(List<RecentActivityDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetRecentActivity(int userId)
+        public async Task<IActionResult> GetRecentActivity()
         {
+            int userId = HttpContext.GetCurrentUserId();
             try
             {
                 var groupIds = await _context.GroupMembers

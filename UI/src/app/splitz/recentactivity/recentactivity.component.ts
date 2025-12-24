@@ -32,10 +32,8 @@ export class RecentactivityComponent implements OnInit {
     this.getDataFromRouteParam();
   }
   private getDataFromRouteParam(): void {
-    this.route.params.subscribe(params => {
-      this.userId = params['userId'];
       this.loadActivityData();
-    });
+
   }
   formatDate(dateString: string): string {
     const date = new Date(dateString);
@@ -67,9 +65,8 @@ export class RecentactivityComponent implements OnInit {
   }
 
   async loadActivityData(): Promise<any> {
-    if (!this.userId) return;
     try {
-      this.activityData = await firstValueFrom(this.splitzService.getRecentActivity(this.userId));
+      this.activityData = await firstValueFrom(this.splitzService.getRecentActivity());
     } catch (error) {
       console.error('Error loading activity data:', error);
     }

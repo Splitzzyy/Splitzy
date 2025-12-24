@@ -44,13 +44,13 @@ export class MainLayoutComponent implements OnInit {
       try { this.spltizService.setToken(''); } catch {}
       this.userId = localUserId;
       this.token = '';
-      this.router.navigate(['/dashboard', this.userId]);
+      this.router.navigate(['/dashboard']);
       return;
     }
 
     if (this.userId && this.token) {
       this.showLoader = false;
-      this.router.navigate(['/dashboard', this.userId]);
+      this.router.navigate(['/dashboard']);
       return;
     }
 
@@ -73,14 +73,14 @@ export class MainLayoutComponent implements OnInit {
   navigateToDashboard() {
     const userId = localStorage.getItem('userId');
     if (userId) {
-      this.router.navigate(['/dashboard', userId]);
+      this.router.navigate(['/dashboard']);
     }
   }
 
   navigateToRecentActivity() {
     const userId = localStorage.getItem('userId');
     if (userId) {
-      this.router.navigate(['/recent-activity', userId]);
+      this.router.navigate(['/recent-activity']);
     }
   }
   logout() {
