@@ -349,10 +349,17 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequestUser request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Email == request.Email);
 
             if (user == null)
-                return BadRequest("Email does not exist");
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Email does not exist"
+                });
+            }
 
             // Generate reset token
             var token = _jWTService.GeneratePasswordResetToken(user.UserId);
@@ -360,19 +367,35 @@ namespace splitzy_dotnet.Controllers
             var resetLink =
                 $"https://splitzy.aarshiv.xyz/setup-password?token={token}";
 
-            // Send forget email
             try
             {
                 var html = new ForgotPasswordTemplate().Build(resetLink);
-                await _emailService.SendAsync(request.Email, "Reset your Splitzy password", html);
-                _logger.LogInformation("Password reset email sent");
+                await _emailService.SendAsync(
+                    request.Email,
+                    "Reset your Splitzy password",
+                    html
+                );
+
+                _logger.LogInformation("Password reset email sent to {Email}", request.Email);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+                _logger.LogError(ex, "Failed to send reset email to {Email}", request.Email);
+
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Failed to send password reset email"
+                });
             }
-            return Ok("Password reset link sent to your email");
+
+            return Ok(new
+            {
+                success = true,
+                message = "Password reset link sent to your email"
+            });
         }
+
 
         [AllowAnonymous]
         [HttpPost("verify")]
