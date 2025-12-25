@@ -37,4 +37,6 @@ export const routes: Routes = [
             },
         ],
     },
+    // Wildcard route - redirect to login for any undefined path
+    { path: '**', redirectTo: '/login' },
 ];
