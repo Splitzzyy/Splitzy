@@ -93,21 +93,21 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            //var hashedInputPassword = HashingService.HashPassword(user.Password);
+            var hashedInputPassword = HashingService.HashPassword(user.Password);
 
-            //if (loginUser.PasswordHash != hashedInputPassword)
-            //{
-            //    _logger.LogWarning(
-            //        "Login failed: Incorrect password. UserId={UserId}, Email={Email}",
-            //        loginUser.UserId,
-            //        loginUser.Email);
+            if (loginUser.PasswordHash != hashedInputPassword)
+            {
+                _logger.LogWarning(
+                    "Login failed: Incorrect password. UserId={UserId}, Email={Email}",
+                    loginUser.UserId,
+                    loginUser.Email);
 
-            //    return Unauthorized(new ApiResponse<string>
-            //    {
-            //        Success = false,
-            //        Message = "Wrong Password"
-            //    });
-            //}
+                return Unauthorized(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Wrong Password"
+                });
+            }
 
             var token = _jWTService.GenerateToken(loginUser.UserId);
 
