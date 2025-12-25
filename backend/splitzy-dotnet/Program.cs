@@ -22,6 +22,15 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json",
         optional: true, reloadOnChange: true)
     .AddEnvironmentVariables();
+
+var startupLogger = LoggerFactory
+    .Create(logging => logging.AddConsole())
+    .CreateLogger("Startup");
+
+startupLogger.LogInformation(
+    "🌍 ASPNETCORE_ENVIRONMENT = {Environment}",
+    builder.Environment.EnvironmentName
+);
 #endregion
 
 #region Controllers
