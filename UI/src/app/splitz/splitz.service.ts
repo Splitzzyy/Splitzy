@@ -182,7 +182,7 @@ export class SplitzService {
   }
 
   setupPassword(resetData: { token: string; newPassword: string }): Observable<any> {
-    const url = `${this.BASE_URL}/api/auth/setup-password`;
+    const url = `${this.BASE_URL}${this.ENDPOINTS.SETUPPASS}`;
     const headers = new HttpHeaders({
       'ngrok-skip-browser-warning': 'true',
       'Content-Type': 'application/json'

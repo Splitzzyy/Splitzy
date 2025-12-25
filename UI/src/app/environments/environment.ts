@@ -14,6 +14,7 @@ export const environment = {
         GROUP: '/api/Group/GetGroupOverview',
         EXPENSE: '/api/Expense/AddExpense',
         RECENT: '/api/Dashboard/recent',
-        FORGOTPASS: '/api/Auth/forget-password'
+        FORGOTPASS: '/api/Auth/forget-password',
+        SETUPPASS: '/api/Auth/verify',
     }
 };
