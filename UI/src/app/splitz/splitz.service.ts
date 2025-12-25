@@ -171,4 +171,22 @@ export class SplitzService {
     });
     return this.http.post<any>(url, request, { headers })
   }
+
+  forgotPassword(email: string): Observable<any> {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.FORGOTPASS}`;
+    const headers = new HttpHeaders({
+      'ngrok-skip-browser-warning': 'true',
+      'Content-Type': 'application/json'
+    });
+    return this.http.post<any>(url, { email }, { headers });
+  }
+
+  setupPassword(resetData: { token: string; newPassword: string }): Observable<any> {
+    const url = `${this.BASE_URL}/api/auth/setup-password`;
+    const headers = new HttpHeaders({
+      'ngrok-skip-browser-warning': 'true',
+      'Content-Type': 'application/json'
+    });
+    return this.http.post<any>(url, resetData, { headers });
+  }
 }

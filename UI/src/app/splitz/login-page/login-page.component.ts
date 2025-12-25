@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Inject, inject } from '@angular/core';
+import { AfterViewInit, Component, Inject, inject, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SplitzService } from '../splitz.service';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -6,6 +6,8 @@ import { CommonModule } from '@angular/common';
 import { LoaderComponent } from '../loader/loader.component';
 import { LoginRequest, LoginResponse } from '../splitz.model';
 import { environment } from '../../environments/environment';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -15,13 +17,14 @@ import { environment } from '../../environments/environment';
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css'
 })
-export class LoginPageComponent implements AfterViewInit {
+export class LoginPageComponent implements AfterViewInit, OnDestroy {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
   showPassword = false;
   showLoader = false;
   googleClientId = environment.googleClientId;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -59,52 +62,57 @@ export class LoginPageComponent implements AfterViewInit {
   }
 
   onSubmit(): void {
-    if (this.loginForm.valid) {
+    if (this.loginForm.valid && !this.isLoading) {
       this.isLoading = true;
       this.errorMessage = '';
+      this.loginForm.disable();
 
       const loginData: LoginRequest = {
         email: this.loginForm.value.email,
         password: this.loginForm.value.password
       };
 
-      this.splitzService.login(loginData).subscribe({
-        next: (response: LoginResponse) => {
-          this.showLoader = true;
-          this.isLoading = false;
+      this.splitzService.login(loginData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: LoginResponse) => {
+            this.showLoader = true;
+            this.isLoading = false;
 
-          if (response.success && response.data.id) {
-            // Store user ID in service and session
-            this.showLoader = false;
-            this.splitzService.setUserId(response.data.id);
+            if (response.success && response.data.id) {
+              // Store user ID in service and session
+              this.showLoader = false;
+              this.splitzService.setUserId(response.data.id);
 
-            // Store token if provided
-            if (response.data.token) {
-              this.splitzService.setToken(response.data.token);
+              // Store token if provided
+              if (response.data.token) {
+                this.splitzService.setToken(response.data.token);
+              }
+
+              // Redirect to dashboard with userId in URL
+              this.splitzService.redirectToDashboard();
+            } else {
+              this.showLoader = false;
+              this.errorMessage = response.message || 'Login failed. Please try again.';
+              this.loginForm.enable();
             }
-
-            // Redirect to dashboard with userId in URL
-            this.splitzService.redirectToDashboard();
-          } else {
+          },
+          error: (error: any) => {
+            this.isLoading = false;
             this.showLoader = false;
-            this.errorMessage = response.message || 'Login failed. Please try again.';
-          }
-        },
-        error: (error: any) => {
-          this.isLoading = false;
-          this.showLoader = false;
-          console.error('Login error:', error);
+            this.loginForm.enable();
+            console.error('Login error:', error);
 
-          if (error.status === 401) {
-            this.errorMessage = 'Invalid email or password.';
-          } else if (error.status === 500) {
-            this.errorMessage = 'Server error. Please try again later.';
-          } else {
-            this.errorMessage = error.error?.message || 'An error occurred. Please try again.';
+            if (error.status === 401) {
+              this.errorMessage = 'Invalid email or password.';
+            } else if (error.status === 500) {
+              this.errorMessage = 'Server error. Please try again later.';
+            } else {
+              this.errorMessage = error.error?.message || 'An error occurred. Please try again.';
+            }
           }
-        }
-      });
-    } else {
+        });
+    } else if (!this.isLoading) {
       // Mark all fields as touched to show validation errors
       this.loginForm.markAllAsTouched();
     }
@@ -136,6 +144,11 @@ export class LoginPageComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     // Initialize Google Sign-In
     this.initializeGoogleSignIn();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
   private initializeGoogleSignIn(): void {
     // Declare window.google as any to avoid TypeScript errors
