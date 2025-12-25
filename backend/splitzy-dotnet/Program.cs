@@ -25,6 +25,7 @@ builder.Configuration
 builder.Services.AddControllers();
 #endregion
 
+builder.Services.AddScoped<IEmailService, MailService>();
 #region Authentication
 builder.Services.AddAuthentication(options =>
 {

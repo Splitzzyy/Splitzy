@@ -6,6 +6,7 @@ using splitzy_dotnet.DTO;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.Interfaces;
+using splitzy_dotnet.Templates;
 
 namespace splitzy_dotnet.Controllers
 {
@@ -19,17 +20,21 @@ namespace splitzy_dotnet.Controllers
         private readonly IJWTService _jWTService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
+        private readonly IEmailService _emailService;
 
         public AuthController(
             SplitzyContext context,
             IJWTService jWTService,
             IConfiguration configuration,
-            ILogger<AuthController> logger)
+            ILogger<AuthController> logger,
+            IEmailService emailService)
         {
             _context = context;
             _jWTService = jWTService;
             _configuration = configuration;
             _logger = logger;
+            _emailService = emailService;
+
         }
 
         /// <summary>
@@ -178,13 +183,24 @@ namespace splitzy_dotnet.Controllers
                 "Signup successful. UserId={UserId}, Email={Email}",
                 user.UserId,
                 user.Email);
-
+            // Send welcome email
+            try
+            {
+                var html = new WelcomeEmailTemplate().Build(request.Name);
+                _emailService.SendAsync(user.Email, "Welcome to Splitzy! 👋", html);
+                _logger.LogInformation("Welcome email sent to {Email}", user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+            }
             return CreatedAtAction(nameof(Signup), new ApiResponse<object>
             {
                 Success = true,
                 Message = "Signup successful",
                 Data = new { Id = user.UserId }
             });
+
         }
 
         /// <summary>
@@ -303,7 +319,17 @@ namespace splitzy_dotnet.Controllers
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
             }
-
+            // Send welcome email
+            try
+            {
+                var html = new WelcomeEmailTemplate().Build(user.Name);
+                await _emailService.SendAsync(user.Email, "Welcome to Splitzy! 👋", html);
+                _logger.LogInformation("Welcome email sent to {Email}", user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+            }
             var token = _jWTService.GenerateToken(user.UserId);
 
             _logger.LogInformation(
