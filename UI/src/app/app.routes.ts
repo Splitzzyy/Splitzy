@@ -4,10 +4,14 @@ import { Router } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { LoginPageComponent } from './splitz/login-page/login-page.component';
 import { RegisterPageComponent } from './splitz/register-page/register-page.component';
+import { ForgotPasswordComponent } from './splitz/forgot-password/forgot-password.component';
+import { SetupPasswordComponent } from './splitz/setup-password/setup-password.component';
 
 export const routes: Routes = [
     { path: 'login', component: LoginPageComponent },
     { path: 'register', component: RegisterPageComponent },
+    { path: 'forgot-password', component: ForgotPasswordComponent },
+    { path: 'setup-password', component: SetupPasswordComponent },
     {
         path: '',
         canActivate: [() => {

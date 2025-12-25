@@ -13,6 +13,8 @@ export const environment = {
         DASHBOARD: '/api/Dashboard/dashboard',
         GROUP: '/api/Group/GetGroupOverview',
         EXPENSE: '/api/Expense/AddExpense',
-        RECENT: '/api/Dashboard/recent'
+        RECENT: '/api/Dashboard/recent',
+        FORGOTPASS: '/api/Auth/forget-password',
+        SETUPPASS: '/api/Auth/verify',
     }
 };
