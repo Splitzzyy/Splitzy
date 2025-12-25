@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.Interfaces;
@@ -248,9 +249,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            var googleClientId =
-                Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID")
-                ?? _configuration["Google:ClientId"];
+            var googleClientId = Constants.GoogleClientId;
 
             if (string.IsNullOrWhiteSpace(googleClientId))
             {
