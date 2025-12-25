@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.Interfaces;
@@ -11,6 +12,8 @@ using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Constants.Init(builder.Configuration);
 
 #region Configuration
 builder.Configuration
@@ -25,6 +28,7 @@ builder.Configuration
 builder.Services.AddControllers();
 #endregion
 
+builder.Services.AddScoped<IEmailService, EMailService>();
 #region Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -39,10 +43,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidIssuer = Constants.JwtIssuer,
+        ValidAudience = Constants.JwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            Encoding.UTF8.GetBytes(Constants.JwtKey)
         ),
         ClockSkew = TimeSpan.Zero
     };
@@ -118,23 +122,10 @@ builder.Services.AddCors(options =>
 #region Database
 builder.Services.AddDbContext<SplitzyContext>(options =>
 {
-    var pgHost = builder.Configuration["POSTGRES_HOST"];
-    var pgDb = builder.Configuration["POSTGRES_DB"];
-    var pgUser = builder.Configuration["POSTGRES_USER"];
-    var pgPassword = builder.Configuration["POSTGRES_PASSWORD"];
-    var pgPort = builder.Configuration["POSTGRES_PORT"];
+    var connectionString = builder.Configuration["Postgres:ConnectionString"];
 
-    string connectionString;
-
-    if (!string.IsNullOrWhiteSpace(pgHost))
-    {
-        connectionString =
-            $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPassword}";
-    }
-    else
-    {
-        connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
-    }
+    if (string.IsNullOrWhiteSpace(connectionString))
+        throw new InvalidOperationException("Postgres connection string is missing");
 
     options.UseNpgsql(connectionString);
 });

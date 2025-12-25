@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -6,13 +7,8 @@ using System.Text;
 
 namespace splitzy_dotnet.Services
 {
-    public class JWTService(IConfiguration configuration) : IJWTService
+    public class JWTService() : IJWTService
     {
-        private readonly string _key = configuration["Jwt:Key"];
-        private readonly string _issuer = configuration["Jwt:Issuer"];
-        private readonly string _audience = configuration["Jwt:Audience"];
-        private readonly int _expiryInMinutes = int.Parse(configuration["Jwt:ExpiryInMinutes"]);
-
         public string GenerateToken(int id)
         {
             var claims = new[]
@@ -21,14 +17,14 @@ namespace splitzy_dotnet.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.JwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _issuer,
-                audience: _audience,
+                issuer: Constants.JwtIssuer,
+                audience: Constants.JwtAudience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_expiryInMinutes),
+                expires: DateTime.UtcNow.AddMinutes(Constants.JwtExpiryMinutes),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -36,15 +32,15 @@ namespace splitzy_dotnet.Services
 
         public bool ValidateToken(string token)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.JwtKey));
             var createToken = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = _issuer,
-                ValidAudience = _audience,
+                ValidIssuer = Constants.JwtIssuer,
+                ValidAudience = Constants.JwtAudience,
                 IssuerSigningKey = key
             };
 
@@ -64,5 +60,67 @@ namespace splitzy_dotnet.Services
             var userId = securityToken.Claims.First(claim => claim.Type == "id").Value;
             return userId;
         }
+
+        public string GeneratePasswordResetToken(int userId)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+                new Claim("typ", "password_reset")
+            };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(Constants.OtpJwtKey)
+            );
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: Constants.JwtIssuer,
+                audience: Constants.JwtAudience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(Constants.OtpJwtExpiryMinutes),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public int ValidatePasswordResetToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var parameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                ValidIssuer = Constants.JwtIssuer,
+                ValidAudience = Constants.JwtAudience,
+
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(Constants.OtpJwtKey)
+                ),
+
+                ClockSkew = TimeSpan.Zero
+            };
+
+            var principal = tokenHandler.ValidateToken(token, parameters, out _);
+
+            // 1️⃣ Validate token purpose
+            var typeClaim = principal.FindFirst("typ");
+            if (typeClaim == null || typeClaim.Value != "password_reset")
+                throw new SecurityTokenException("Invalid token type");
+
+            // 2️⃣ Extract userId correctly
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+                throw new SecurityTokenException("UserId missing");
+
+            return int.Parse(userIdClaim.Value);
+        }
+
     }
 }

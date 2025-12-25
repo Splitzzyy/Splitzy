@@ -36,7 +36,7 @@
     }
     public class SignupRequestDTO
     {
-        public required string Name { get; set; } 
+        public required string Name { get; set; }
         public required string Email { get; set; }
         public required string Password { get; set; }
     }
@@ -44,4 +44,15 @@
     {
         public string IdToken { get; set; }
     }
+    public class ForgetPasswordRequestUser
+    {
+        public string Email { get; set; } = null!;
+    }
+    public class ResetPasswordRequest
+    {
+        public string Token { get; set; } = null!;
+        public string NewPassword { get; set; } = null!;
+    }
+
+
 }
