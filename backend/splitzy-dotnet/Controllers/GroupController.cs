@@ -118,53 +118,68 @@ namespace splitzy_dotnet.Controllers
         {
             try
             {
-                // Fetch users by email
+                var creatorUserId = HttpContext.GetCurrentUserId();
+
+                var creator = await _context.Users
+                    .FirstOrDefaultAsync(u => u.UserId == creatorUserId);
+
+                if (creator == null)
+                    return Unauthorized("Creator not found");
+
+                // Fetch users from emails
                 List<User> users = await FetchUsersByEmails(request);
 
-                // Check for missing emails
-                var foundEmails = users.Select(u => u.Email).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                var missingEmails = request.UserEmails.Where(email => !foundEmails.Contains(email, StringComparer.OrdinalIgnoreCase)).ToList();
+                // Validate missing emails
+                var foundEmails = users.Select(u => u.Email)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                if (missingEmails.Count != 0)
-                    return NotFound($"User(s) not found for email(s): {string.Join(", ", missingEmails)}");
+                var missingEmails = request.UserEmails
+                    .Where(email => !foundEmails.Contains(email))
+                    .ToList();
+
+                if (missingEmails.Any())
+                    return NotFound($"User(s) not found: {string.Join(", ", missingEmails)}");
+
+                // Ensure creator is added
+                if (!users.Any(u => u.UserId == creator.UserId))
+                    users.Add(creator);
 
                 var group = new Group
                 {
                     Name = request.GroupName,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
                 _context.Groups.Add(group);
                 await _context.SaveChangesAsync();
 
-                var groupMembers = users.Select(u => new GroupMember
-                {
-                    GroupId = group.GroupId,
-                    UserId = u.UserId,
-                    JoinedAt = DateTime.UtcNow
-                }).ToList();
+                var groupMembers = users
+                    .DistinctBy(u => u.UserId)
+                    .Select(u => new GroupMember
+                    {
+                        GroupId = group.GroupId,
+                        UserId = u.UserId,
+                        JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                    });
 
                 _context.GroupMembers.AddRange(groupMembers);
                 await _context.SaveChangesAsync();
 
-                var memberDetails = users.Select(u => new
-                {
-                    u.UserId,
-                    u.Name,
-                    u.Email
-                });
-
                 return Ok(new
                 {
-                    GroupId = group.GroupId,
-                    GroupName = group.Name,
-                    CreatedAt = group.CreatedAt,
-                    Members = memberDetails
+                    group.GroupId,
+                    group.Name,
+                    Members = users.Select(u => new
+                    {
+                        u.UserId,
+                        u.Name,
+                        u.Email
+                    })
                 });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error creating group: {ex.Message}");
+                return StatusCode(500, ex.Message);
             }
         }
 

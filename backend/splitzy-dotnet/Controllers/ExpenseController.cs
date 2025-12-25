@@ -61,7 +61,7 @@ namespace splitzy_dotnet.Controllers
                     GroupId = dto.GroupId,
                     PaidByUserId = dto.PaidByUserId,
                     SplitPer = JsonSerializer.Serialize(splitDict),
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
                 _context.Expenses.Add(expense);
@@ -87,7 +87,7 @@ namespace splitzy_dotnet.Controllers
                     Description = dto.Name,
                     ExpenseId = expense.ExpenseId,
                     Amount = dto.Amount,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 });
 
                 await _context.SaveChangesAsync();
@@ -136,7 +136,7 @@ namespace splitzy_dotnet.Controllers
                     Description = expense.Name,
                     ExpenseId = expenseId,
                     Amount = expense.Amount,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 });
 
                 _context.Expenses.Remove(expense);
@@ -212,7 +212,7 @@ namespace splitzy_dotnet.Controllers
                     Description = dto.Name,
                     ExpenseId = expense.ExpenseId,
                     Amount = expense.Amount,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 });
 
                 await _context.SaveChangesAsync();
@@ -269,7 +269,7 @@ namespace splitzy_dotnet.Controllers
                 PaidBy = txn.FromUser,
                 PaidTo = txn.ToUser,
                 Amount = txn.Amount,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             });
 
             _context.Settlements.AddRange(newSettlements);
