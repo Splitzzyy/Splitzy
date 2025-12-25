@@ -13,6 +13,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Constants.Init(builder.Configuration);
+
 #region Configuration
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -26,7 +28,7 @@ builder.Configuration
 builder.Services.AddControllers();
 #endregion
 
-builder.Services.AddScoped<IEmailService, MailService>();
+builder.Services.AddScoped<IEmailService, EMailService>();
 #region Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -120,23 +122,10 @@ builder.Services.AddCors(options =>
 #region Database
 builder.Services.AddDbContext<SplitzyContext>(options =>
 {
-    var pgHost = builder.Configuration["POSTGRES_HOST"];
-    var pgDb = builder.Configuration["POSTGRES_DB"];
-    var pgUser = builder.Configuration["POSTGRES_USER"];
-    var pgPassword = builder.Configuration["POSTGRES_PASSWORD"];
-    var pgPort = builder.Configuration["POSTGRES_PORT"];
+    var connectionString = builder.Configuration["Postgres:ConnectionString"];
 
-    string connectionString;
-
-    if (!string.IsNullOrWhiteSpace(pgHost))
-    {
-        connectionString =
-            $"Host={pgHost};Port={pgPort};Database={pgDb};Username={pgUser};Password={pgPassword}";
-    }
-    else
-    {
-        connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
-    }
+    if (string.IsNullOrWhiteSpace(connectionString))
+        throw new InvalidOperationException("Postgres connection string is missing");
 
     options.UseNpgsql(connectionString);
 });

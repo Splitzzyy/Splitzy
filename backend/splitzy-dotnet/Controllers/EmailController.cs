@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using splitzy_dotnet.DTO;
 using splitzy_dotnet.Services.Interfaces;
 using splitzy_dotnet.Templates;
-using splitzy_dotnet.Models;
 
 namespace splitzy_dotnet.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/email")]
     public class EmailController : ControllerBase

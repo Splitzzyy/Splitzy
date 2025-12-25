@@ -43,7 +43,13 @@ namespace splitzy_dotnet.Templates
                                 margin: 0;
                                 text-align: center;
                             ">
-                                by <strong>Splitzy</strong>
+                                by <a 
+                                    href="https://splitzy.aarshiv.xyz/" 
+                                    target="_blank" 
+                                    style="color:#6b7280; text-decoration:none; font-weight:600;"
+                                >
+                                    Splitzy
+                                </a>
                             </p>
                         </div>
                     </body>

@@ -1,4 +1,4 @@
-namespace splitzy_dotnet.Models
+namespace splitzy_dotnet.DTO
 {
     public record WelcomeRequest(string To, string UserName);
 

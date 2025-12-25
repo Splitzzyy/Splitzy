@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
@@ -19,20 +20,17 @@ namespace splitzy_dotnet.Controllers
     {
         private readonly SplitzyContext _context;
         private readonly IJWTService _jWTService;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
         private readonly IEmailService _emailService;
 
         public AuthController(
             SplitzyContext context,
             IJWTService jWTService,
-            IConfiguration configuration,
             ILogger<AuthController> logger,
             IEmailService emailService)
         {
             _context = context;
             _jWTService = jWTService;
-            _configuration = configuration;
             _logger = logger;
             _emailService = emailService;
 
@@ -184,6 +182,7 @@ namespace splitzy_dotnet.Controllers
                 "Signup successful. UserId={UserId}, Email={Email}",
                 user.UserId,
                 user.Email);
+
             // Send welcome email
             try
             {
@@ -195,6 +194,7 @@ namespace splitzy_dotnet.Controllers
             {
                 _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
             }
+
             return CreatedAtAction(nameof(Signup), new ApiResponse<object>
             {
                 Success = true,
@@ -317,18 +317,19 @@ namespace splitzy_dotnet.Controllers
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
+                // Send welcome email
+                try
+                {
+                    var html = new WelcomeEmailTemplate().Build(payload.Name);
+                    await _emailService.SendAsync(user.Email, "Welcome to Splitzy! 👋", html);
+                    _logger.LogInformation("Welcome email sent to {Email}", payload.Email);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+                }
             }
-            // Send welcome email
-            try
-            {
-                var html = new WelcomeEmailTemplate().Build(user.Name);
-                await _emailService.SendAsync(user.Email, "Welcome to Splitzy! 👋", html);
-                _logger.LogInformation("Welcome email sent to {Email}", user.Email);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
-            }
+
             var token = _jWTService.GenerateToken(user.UserId);
 
             _logger.LogInformation(
@@ -341,6 +342,73 @@ namespace splitzy_dotnet.Controllers
                 Success = true,
                 Message = "Login successful",
                 Data = new { Id = user.UserId, Token = token }
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("forget-password")]
+        public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequestUser request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
+
+            if (user == null)
+                return BadRequest("Email does not exist");
+
+            // Generate reset token
+            var token = _jWTService.GeneratePasswordResetToken(user.UserId);
+
+            var resetLink =
+                $"https://splitzy.aarshiv.xyz/setup-password?token={token}";
+
+            // Send forget email
+            try
+            {
+                var html = new ForgotPasswordTemplate().Build(resetLink);
+                await _emailService.SendAsync(request.Email, "Reset your Splitzy password", html);
+                _logger.LogInformation("Password reset email sent");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+            }
+            return Ok("Password reset link sent to your email");
+        }
+
+        [AllowAnonymous]
+        [HttpPost("verify")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            int userId;
+
+            try
+            {
+                userId = _jWTService.ValidatePasswordResetToken(request.Token);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "User not found"
+                });
+
+            user.PasswordHash = HashingService.HashPassword(request.NewPassword);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Password updated successfully"
             });
         }
     }

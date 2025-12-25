@@ -1,24 +1,15 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using Microsoft.Extensions.Options;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Services.Interfaces;
 
 namespace splitzy_dotnet.Services
 {
-    public class MailService : IEmailService
+    public class EMailService : IEmailService
     {
-        private readonly ILogger<MailService> _logger;
-        public const string HOST = "smtp.gmail.com";
-        public const int PORT = 587;
-        public const string EMAIL = "info.splitzy@gmail.com";
-        public static readonly string Email_Token =
-            Environment.GetEnvironmentVariable("EMAIL_TOKEN")
-                            ?? "";
-        public const string Name = "Splitzy";
-
-
-        public MailService(ILogger<MailService> logger)
+        private readonly ILogger<EMailService> _logger;
+        public EMailService(ILogger<EMailService> logger)
         {
             _logger = logger;
 
@@ -28,7 +19,7 @@ namespace splitzy_dotnet.Services
         {
             var message = new MimeMessage();
 
-            message.From.Add(new MailboxAddress(Name, EMAIL));
+            message.From.Add(new MailboxAddress(Constants.NAME, Constants.Email));
             message.To.Add(MailboxAddress.Parse(to));
             message.Subject = subject;
 
@@ -38,9 +29,9 @@ namespace splitzy_dotnet.Services
 
             try
             {
-                await smtp.ConnectAsync(HOST, PORT, SecureSocketOptions.StartTls);
+                await smtp.ConnectAsync(Constants.HOST, Constants.PORT, SecureSocketOptions.StartTls);
 
-                await smtp.AuthenticateAsync(EMAIL, Email_Token);
+                await smtp.AuthenticateAsync(Constants.Email, Constants.EmailToken);
 
                 await smtp.SendAsync(message);
             }
