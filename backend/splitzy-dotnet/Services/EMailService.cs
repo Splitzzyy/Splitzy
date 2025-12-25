@@ -17,7 +17,7 @@ namespace splitzy_dotnet.Services
 
         public async Task SendAsync(string to, string subject, string html)
         {
-            var message = new MimeMessage();
+            using var message = new MimeMessage();
 
             message.From.Add(new MailboxAddress(Constants.NAME, Constants.Email));
             message.To.Add(MailboxAddress.Parse(to));
