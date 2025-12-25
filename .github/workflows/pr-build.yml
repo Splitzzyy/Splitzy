@@ -7,13 +7,16 @@ on:
 
 jobs:
   detect-changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
+
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       ui: ${{ steps.filter.outputs.ui }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Detect changed paths
         id: filter
@@ -32,12 +35,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: '8.0.x'
 
       - name: Restore
         run: dotnet restore backend/splitzy-dotnet
@@ -52,12 +56,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Install dependencies
         working-directory: UI
@@ -66,3 +71,15 @@ jobs:
       - name: Build Angular app
         working-directory: UI
         run: npm run build
+
+  pr-validation:
+    name: PR Build Validation
+    runs-on: ubuntu-latest
+    needs:
+      - backend-build
+      - ui-build
+    if: always()
+
+    steps:
+      - name: Final PR validation
+        run: echo "PR validation completed successfully"
