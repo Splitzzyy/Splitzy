@@ -22,7 +22,9 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              }
+              },
+              "src/splitzy.png",
+              "src/assets"
             ],
             "styles": ["src/styles.css"],
             "scripts": []
