@@ -1,4 +1,5 @@
-# Splitzy 💰
+
+<img width="1536" height="1024" alt="ChatGPT Image Dec 26, 2025, 02_12_24 PM" src="https://github.com/user-attachments/assets/3fc5f000-7918-4bc9-b418-8dd3a2a20fe8" />
 
 ## Overview
 
