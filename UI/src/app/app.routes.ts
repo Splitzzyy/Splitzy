@@ -1,17 +1,32 @@
 import { Routes, RedirectCommand } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
-import { LoginPageComponent } from './splitz/login-page/login-page.component';
-import { RegisterPageComponent } from './splitz/register-page/register-page.component';
-import { ForgotPasswordComponent } from './splitz/forgot-password/forgot-password.component';
-import { SetupPasswordComponent } from './splitz/setup-password/setup-password.component';
 
 export const routes: Routes = [
-    { path: 'login', component: LoginPageComponent },
-    { path: 'register', component: RegisterPageComponent },
-    { path: 'forgot-password', component: ForgotPasswordComponent },
-    { path: 'setup-password', component: SetupPasswordComponent },
+    {
+        path: 'login',
+        loadComponent: () =>
+            import('./splitz/login-page/login-page.component')
+                .then(m => m.LoginPageComponent),
+    },
+    {
+        path: 'register',
+        loadComponent: () =>
+            import('./splitz/register-page/register-page.component')
+                .then(m => m.RegisterPageComponent),
+    },
+    {
+        path: 'forgot-password',
+        loadComponent: () =>
+            import('./splitz/forgot-password/forgot-password.component')
+                .then(m => m.ForgotPasswordComponent),
+    },
+    {
+        path: 'setup-password',
+        loadComponent: () =>
+            import('./splitz/setup-password/setup-password.component')
+                .then(m => m.SetupPasswordComponent),
+    },
     {
         path: '',
         canActivate: [() => {
@@ -22,25 +37,29 @@ export const routes: Routes = [
             }
             return true;
         }],
-        component: MainLayoutComponent,
+        loadComponent: () =>
+            import('./layout/main-layout/main-layout.component')
+                .then(m => m.MainLayoutComponent),
         children: [
             {
                 path: 'dashboard',
                 loadComponent: () =>
-                    import('./splitz/dashboard/dashboard.component').then(m => m.DashboardComponent),
+                    import('./splitz/dashboard/dashboard.component')
+                        .then(m => m.DashboardComponent),
             },
             {
                 path: 'recent-activity',
                 loadComponent: () =>
-                    import('./splitz/recentactivity/recentactivity.component').then(m => m.RecentactivityComponent),
+                    import('./splitz/recentactivity/recentactivity.component')
+                        .then(m => m.RecentactivityComponent),
             },
             {
                 path: 'group/:groupId',
                 loadComponent: () =>
-                    import('./splitz/dashboard/groups/groups.component').then(m => m.GroupsComponent),
+                    import('./splitz/dashboard/groups/groups.component')
+                        .then(m => m.GroupsComponent),
             },
         ],
     },
-    // Wildcard route - redirect to login for any undefined path
     { path: '**', redirectTo: '/dashboard' },
 ];
