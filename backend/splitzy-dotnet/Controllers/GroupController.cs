@@ -14,10 +14,12 @@ namespace splitzy_dotnet.Controllers
     public class GroupController : ControllerBase
     {
         private readonly SplitzyContext _context;
+        private readonly ILogger<GroupController> _logger;
 
-        public GroupController(SplitzyContext context)
+        public GroupController(SplitzyContext context, ILogger<GroupController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         /// <summary>
@@ -45,7 +47,8 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving groups: {ex.Message}");
+                _logger.LogError($"Exception from GetAllGroupByUser : {ex.Message}");
+                return StatusCode(500, "An error occurred while retrieving groups.");
             }
         }
 
@@ -95,7 +98,8 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error getting summary: {ex.Message}");
+                _logger.LogError($"Exception from GetGroupSummary : {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred while getting the group summary.");
             }
         }
 
@@ -179,7 +183,8 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                _logger.LogError($"Exception from CreateGroup : {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -205,6 +210,13 @@ namespace splitzy_dotnet.Controllers
                 var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == groupId);
                 if (group == null)
                     return NotFound("Group not found.");
+
+                // Ensure the current user is a member of the group before returning overview data
+                var isMember = await _context.GroupMembers
+                    .AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
+                if (!isMember)
+                    return Forbid();
+
                 List<int> members = await GetUserIdsByGroup(groupId);
 
                 var userNameMap = await _context.Users
