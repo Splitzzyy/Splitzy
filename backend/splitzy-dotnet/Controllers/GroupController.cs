@@ -292,7 +292,8 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error getting overview: {ex.Message}");
+                _logger.LogError($"Exception from GetGroupOverview : {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
