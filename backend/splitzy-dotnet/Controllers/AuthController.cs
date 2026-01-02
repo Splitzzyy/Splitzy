@@ -58,7 +58,7 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status401Unauthorized)]
-        public IActionResult Login([FromBody] LoginRequestDTO user)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDTO user)
         {
             if (!ModelState.IsValid)
             {
@@ -70,18 +70,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            if (user == null)
-            {
-                _logger.LogWarning("Login failed: request body is null");
-                return BadRequest(new ApiResponse<string>
-                {
-                    Success = false,
-                    Message = "Invalid request"
-                });
-            }
-
-
-            var loginUser = _context.Users.FirstOrDefault(u => u.Email == user.Email);
+            var loginUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
             if (loginUser == null)
             {
                 _logger.LogWarning("Login failed: Email not found. Email={Email}", user.Email);
@@ -133,7 +122,7 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("signup")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
-        public IActionResult Signup([FromBody] SignupRequestDTO request)
+        public async Task<IActionResult> Signup([FromBody] SignupRequestDTO request)
         {
             if (request == null)
             {
@@ -155,7 +144,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            if (_context.Users.Any(u => u.Email == request.Email))
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
                 _logger.LogWarning("Signup failed: Email already exists. Email={Email}", request.Email);
                 return BadRequest(new ApiResponse<string>
@@ -176,7 +165,7 @@ namespace splitzy_dotnet.Controllers
             };
 
             _context.Users.Add(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation(
                 "Signup successful. UserId={UserId}, Email={Email}",
