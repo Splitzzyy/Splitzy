@@ -45,8 +45,6 @@ namespace splitzy_dotnet.Controllers
                     .Where(gm => gm.UserId == userId)
                     .ToListAsync();
 
-                var groupIds = groupMemberships.Select(gm => gm.GroupId).ToList();
-
                 var expenses = await _context.Expenses
                     .AsNoTracking()
                     .Where(e =>
