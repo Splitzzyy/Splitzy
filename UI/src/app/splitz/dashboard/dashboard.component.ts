@@ -2,6 +2,10 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router'; // <-- Import ActivatedRoute
 import { SplitzService } from '../splitz.service';
+import { ExpenseModalComponent } from './expense-modal/expense-modal.component';
+import { GroupModalComponent } from './group-modal/group-modal.component';
+import { LoaderComponent } from '../loader/loader.component';
+
 export interface Group {
   groupId: number;
   groupName: string;
@@ -16,7 +20,10 @@ export interface OwedFrom {
   selector: 'app-dashboard',
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    ExpenseModalComponent,
+    GroupModalComponent,
+    LoaderComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -31,10 +38,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public owedFrom: OwedFrom[] = [];
   public groups: Group[] = [];
   public userId: number | null = null;
+  public showExpenseModal: boolean = false;
+  public selectedGroupId: number | null = null;
+  public selectedGroupMembers: any[] = [];
+  public showGroupModal: boolean = false;
+  public showLoader: boolean = true;
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute, // <-- Inject ActivatedRoute
+    private route: ActivatedRoute,
     private splitzService: SplitzService
   ) { }
 
@@ -53,12 +65,73 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.owedFrom = data.owedFrom;
       this.groups = data.groupWiseSummary;
       this.userId = data.userId;
+      this.showLoader = false;
+    });
+  }
+
+  openAddExpenseModal(groupId: number): void {
+    this.selectedGroupId = groupId;
+    // Fetch group members for the selected group
+    this.splitzService.onFetchGroupData(groupId).subscribe((data: any) => {
+      console.log('Group data:', data);
+      this.selectedGroupMembers = data.members || [];
+      this.showExpenseModal = true;
+    });
+  }
+
+  closeExpenseModal(): void {
+    this.showExpenseModal = false;
+    this.selectedGroupId = null;
+    this.selectedGroupMembers = [];
+  }
+
+  onExpenseSaved(expense: any): void {
+    console.log('Saving expense:', expense);
+    this.splitzService.onSaveExpense(expense).subscribe({
+      next: (response: any) => {
+        console.log('Expense saved successfully:', response);
+        // Reload dashboard data to reflect the new expense
+        this.onloadDashboardData();
+        this.closeExpenseModal();
+        // Show success message (you can add a toast notification here)
+        alert('Expense added successfully!');
+      },
+      error: (error: any) => {
+        console.error('Error saving expense:', error);
+        alert('Failed to add expense. Please try again.');
+      }
+    });
+  }
+
+  openCreateGroupModal(): void {
+    this.showGroupModal = true;
+  }
+
+  closeGroupModal(): void {
+    this.showGroupModal = false;
+  }
+
+  onGroupSaved(group: any): void {
+    console.log('Creating group:', group);
+    this.splitzService.onCreateGroup(group).subscribe({
+      next: (response: any) => {
+        console.log('Group created successfully:', response);
+        this.closeGroupModal();
+        alert('Group created successfully!');
+        // Reload dashboard data to show new group
+        this.onloadDashboardData();
+      },
+      error: (error: any) => {
+        console.error('Error creating group:', error);
+        alert('Failed to create group. Please try again.');
+      }
     });
   }
 
   navigateToGroup(groupId: number): void {
     this.router.navigate(['/group', this.userId, groupId]);
   }
+
   getCurrentDate(): string {
     return new Date().toLocaleDateString('en-IN', {
       weekday: 'long',

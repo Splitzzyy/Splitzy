@@ -100,6 +100,18 @@ export class SplitzService {
     console.log(`Saving expense to ${url}`);
     return this.http.post<any>(url, expense);
   }
+
+  onCreateGroup(group: any) {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.CREATE_GROUP}`;
+    console.log(`Creating group at ${url}`);
+    const headers = new HttpHeaders({
+      'ngrok-skip-browser-warning': 'true',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    return this.http.post<any>(url, group, { headers });
+  }
+
   getRecentActivity() {
     const url = `${this.BASE_URL}${this.ENDPOINTS.RECENT}`;
     console.log(`Fetching recent activity from ${url}`);
