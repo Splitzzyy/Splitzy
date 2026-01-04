@@ -145,6 +145,8 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<SplitzyContext>("postgres");
 #endregion
 
+builder.Services.AddMiniProfiler();
+
 #region Services
 builder.Services.AddScoped<IJWTService, JWTService>();
 #endregion
@@ -174,9 +176,11 @@ app.UseExceptionHandler(errorApp =>
 #endregion
 
 #region Request Logging 
+#region Request Logging + Response Time
 app.Use(async (context, next) =>
 {
     var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    var sw = System.Diagnostics.Stopwatch.StartNew();
 
     var correlationId =
         context.Request.Headers["X-Correlation-Id"].FirstOrDefault()
@@ -196,13 +200,18 @@ app.Use(async (context, next) =>
 
         await next();
 
+        sw.Stop();
+
         logger.LogInformation(
-            "HTTP {Method} {Path} completed with {StatusCode}",
+            "HTTP {Method} {Path} completed with {StatusCode} in {ElapsedMs} ms",
             context.Request.Method,
             context.Request.Path,
-            context.Response.StatusCode);
+            context.Response.StatusCode,
+            sw.ElapsedMilliseconds);
     }
 });
+#endregion
+
 #endregion
 
 app.UseSwagger();
@@ -215,7 +224,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseMiniProfiler();
 app.MapHealthChecks("/health");
 app.MapControllers();
 

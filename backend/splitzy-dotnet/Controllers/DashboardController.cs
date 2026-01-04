@@ -22,75 +22,106 @@ namespace splitzy_dotnet.Controllers
         /// <summary>
         /// Retrieves dashboard data for a specific user.
         /// </summary>
-        /// <returns>User dashboard summary</returns>
         [HttpGet("dashboard")]
         [ProducesResponseType(typeof(UserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserDTO>> GetDashboard()
         {
-            int userId = HttpContext.GetCurrentUserId();
             try
             {
-                var user = await _context.Users.FindAsync(userId);
-                if (user == null) return NotFound("User not found");
+                int userId = HttpContext.GetCurrentUserId();
+
+                var user = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (user == null)
+                    return NotFound("User not found");
 
                 var groupMemberships = await _context.GroupMembers
-                    .Where(gm => gm.UserId == userId)
+                    .AsNoTracking()
                     .Include(gm => gm.Group)
+                    .Where(gm => gm.UserId == userId)
                     .ToListAsync();
 
-                var totalPaid = await _context.Expenses
-                    .Where(e => e.PaidByUserId == userId)
-                    .SumAsync(e => (decimal?)e.Amount) ?? 0;
+                var expenses = await _context.Expenses
+                    .AsNoTracking()
+                    .Where(e =>
+                        e.PaidByUserId == userId ||
+                        _context.ExpenseSplits.Any(s => s.ExpenseId == e.ExpenseId && s.UserId == userId))
+                    .ToListAsync();
 
-                var youOwe = await _context.ExpenseSplits
+                var expenseIds = expenses.Select(e => e.ExpenseId).ToList();
+
+                var splits = await _context.ExpenseSplits
+                    .AsNoTracking()
+                    .Where(s => expenseIds.Contains(s.ExpenseId))
+                    .ToListAsync();
+
+                var users = await _context.Users
+                    .AsNoTracking()
+                    .ToDictionaryAsync(u => u.UserId, u => u.Name);
+
+                decimal youOwe = splits
                     .Where(s => s.UserId == userId)
-                    .SumAsync(s => (decimal?)s.OwedAmount) ?? 0;
+                    .Sum(s => s.OwedAmount);
 
-                var youAreOwed = await _context.Expenses
+                decimal youAreOwed = expenses
                     .Where(e => e.PaidByUserId == userId)
-                    .Join(_context.ExpenseSplits, e => e.ExpenseId, s => s.ExpenseId, (e, s) => new { s.UserId, s.OwedAmount })
-                    .Where(x => x.UserId != userId)
-                    .SumAsync(x => (decimal?)x.OwedAmount) ?? 0;
+                    .SelectMany(e => splits.Where(s => s.ExpenseId == e.ExpenseId && s.UserId != userId))
+                    .Sum(s => s.OwedAmount);
 
-                var oweTo = await _context.ExpenseSplits
+                var oweTo = splits
                     .Where(s => s.UserId == userId)
-                    .Join(_context.Expenses, s => s.ExpenseId, e => e.ExpenseId, (s, e) => new { s, e })
+                    .Join(expenses,
+                        s => s.ExpenseId,
+                        e => e.ExpenseId,
+                        (s, e) => new { s, e })
                     .Where(x => x.e.PaidByUserId != userId)
                     .GroupBy(x => x.e.PaidByUserId)
                     .Select(g => new PersonAmount
                     {
-                        Name = _context.Users.Where(u => u.UserId == g.Key).Select(u => u.Name).FirstOrDefault() ?? "",
+                        Name = users[g.Key],
                         Amount = g.Sum(x => x.s.OwedAmount)
-                    }).ToListAsync();
+                    })
+                    .ToList();
 
-                var owedFrom = await _context.Expenses
+                var owedFrom = expenses
                     .Where(e => e.PaidByUserId == userId)
-                    .Join(_context.ExpenseSplits, e => e.ExpenseId, s => s.ExpenseId, (e, s) => new { s.UserId, s.OwedAmount })
-                    .Where(x => x.UserId != userId)
-                    .GroupBy(x => x.UserId)
+                    .SelectMany(e => splits.Where(s => s.ExpenseId == e.ExpenseId && s.UserId != userId))
+                    .GroupBy(s => s.UserId)
                     .Select(g => new PersonAmount
                     {
-                        Name = _context.Users.Where(u => u.UserId == g.Key).Select(u => u.Name).FirstOrDefault() ?? "",
+                        Name = users[g.Key],
                         Amount = g.Sum(x => x.OwedAmount)
-                    }).ToListAsync();
+                    })
+                    .ToList();
 
-                var groupWiseSummary = await _context.Groups
-                    .Where(g => groupMemberships.Select(m => m.GroupId).Contains(g.GroupId))
-                    .Select(g => new GroupSummary
+                var groupWiseSummary = groupMemberships.Select(gm =>
+                {
+                    var groupExpenses = expenses.Where(e => e.GroupId == gm.GroupId);
+
+                    var owedInGroup = groupExpenses
+                        .Where(e => e.PaidByUserId == userId)
+                        .SelectMany(e => splits.Where(s => s.ExpenseId == e.ExpenseId && s.UserId != userId))
+                        .Sum(s => s.OwedAmount);
+
+                    var oweInGroup = splits
+                        .Where(s => s.UserId == userId)
+                        .Join(groupExpenses,
+                            s => s.ExpenseId,
+                            e => e.ExpenseId,
+                            (s, e) => s.OwedAmount)
+                        .Sum();
+
+                    return new GroupSummary
                     {
-                        GroupId = g.GroupId,
-                        GroupName = g.Name,
-                        NetBalance =
-                            (_context.Expenses.Where(e => e.GroupId == g.GroupId && e.PaidByUserId == userId)
-                            .Join(_context.ExpenseSplits, e => e.ExpenseId, s => s.ExpenseId, (e, s) => s)
-                            .Where(s => s.UserId != userId).Sum(s => (decimal?)s.OwedAmount) ?? 0)
-                            -
-                            (_context.ExpenseSplits.Where(s => s.UserId == userId)
-                            .Join(_context.Expenses, s => s.ExpenseId, e => e.ExpenseId, (s, e) => new { s, e })
-                            .Where(x => x.e.GroupId == g.GroupId).Sum(x => (decimal?)x.s.OwedAmount) ?? 0)
-                    }).ToListAsync();
+                        GroupId = gm.GroupId,
+                        GroupName = gm.Group.Name,
+                        NetBalance = owedInGroup - oweInGroup
+                    };
+                }).ToList();
 
                 var result = new UserDTO
                 {
@@ -108,7 +139,7 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred while retrieving dashboard: {ex.Message}");
+                return StatusCode(500, $"Dashboard error: {ex.Message}");
             }
         }
 
