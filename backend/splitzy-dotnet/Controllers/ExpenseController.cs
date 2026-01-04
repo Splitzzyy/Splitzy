@@ -36,13 +36,11 @@ namespace splitzy_dotnet.Controllers
                 if (dto == null)
                     return BadRequest("Invalid input");
 
-                var groupExists = await _context.Groups.AnyAsync(g => g.GroupId == dto.GroupId);
-                if (!groupExists)
+                if (!await _context.Groups.AnyAsync(g => g.GroupId == dto.GroupId))
                     return BadRequest("Invalid group");
 
-                var isMember = await _context.GroupMembers
-                    .AnyAsync(gm => gm.GroupId == dto.GroupId && gm.UserId == dto.PaidByUserId);
-                if (!isMember)
+                if (!await _context.GroupMembers.AnyAsync(gm =>
+                        gm.GroupId == dto.GroupId && gm.UserId == dto.PaidByUserId))
                     return BadRequest("Payer must be a member of the group");
 
                 if (dto.SplitDetails == null || dto.SplitDetails.Count == 0)
@@ -52,7 +50,10 @@ namespace splitzy_dotnet.Controllers
                 if (Math.Abs(totalSplit - dto.Amount) > 0.01m)
                     return BadRequest("Split amounts must total to the expense amount");
 
-                var splitDict = dto.SplitDetails.ToDictionary(s => s.UserId, s => s.Amount);
+                // ❗ Remove payer from splits 
+                var validSplits = dto.SplitDetails
+                    .Where(s => s.UserId != dto.PaidByUserId)
+                    .ToList();
 
                 var expense = new Expense
                 {
@@ -60,14 +61,14 @@ namespace splitzy_dotnet.Controllers
                     Amount = dto.Amount,
                     GroupId = dto.GroupId,
                     PaidByUserId = dto.PaidByUserId,
-                    SplitPer = JsonSerializer.Serialize(splitDict),
+                    SplitPer = JsonSerializer.Serialize(dto.SplitDetails),
                     CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
                 _context.Expenses.Add(expense);
                 await _context.SaveChangesAsync();
 
-                var splits = dto.SplitDetails.Select(s => new ExpenseSplit
+                var splits = validSplits.Select(s => new ExpenseSplit
                 {
                     ExpenseId = expense.ExpenseId,
                     UserId = s.UserId,

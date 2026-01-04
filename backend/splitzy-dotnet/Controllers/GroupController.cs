@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
+using splitzy_dotnet.Services.Interfaces;
+using splitzy_dotnet.Templates;
 using static splitzy_dotnet.DTO.GroupDTO;
 
 namespace splitzy_dotnet.Controllers
@@ -15,11 +17,13 @@ namespace splitzy_dotnet.Controllers
     {
         private readonly SplitzyContext _context;
         private readonly ILogger<GroupController> _logger;
+        private readonly IEmailService _emailService;
 
-        public GroupController(SplitzyContext context, ILogger<GroupController> logger)
+        public GroupController(SplitzyContext context, ILogger<GroupController> logger, IEmailService emailService)
         {
             _context = context;
             _logger = logger;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -168,6 +172,23 @@ namespace splitzy_dotnet.Controllers
 
                 _context.GroupMembers.AddRange(groupMembers);
                 await _context.SaveChangesAsync();
+
+                /* 🔔 SEND EMAILS HERE */
+                var emailTasks = users
+                                .Where(u => u.UserId != creator.UserId)
+                                .Select(u =>
+                                {
+                                    var html = new GroupAddedTemplate()
+                                        .Build(u.Name, request.GroupName, creator.Name);
+
+                                    return _emailService.SendAsync(
+                                        u.Email,
+                                        $"You were added to {request.GroupName}",
+                                        html
+                                    );
+                                });
+
+                await Task.WhenAll(emailTasks);
 
                 return Ok(new
                 {
