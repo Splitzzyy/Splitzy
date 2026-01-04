@@ -12,6 +12,7 @@ export const environment = {
         REGISTER: '/api/Auth/signup',
         DASHBOARD: '/api/Dashboard/dashboard',
         GROUP: '/api/Group/GetGroupOverview',
+        CREATE_GROUP: '/api/Group/CreateGroup',
         EXPENSE: '/api/Expense/AddExpense',
         RECENT: '/api/Dashboard/recent',
         FORGOTPASS: '/api/Auth/forget-password',

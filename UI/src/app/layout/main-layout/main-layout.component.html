@@ -91,6 +91,7 @@
                         </div>
                         <div class="btn-glow settle-glow"></div>
                     </button>
+
                     <button
                         class="action-btn bg-red-900 hover:bg-red-700 text-white text-center px-4 py-2 rounded flex items-center gap-2"
                         (click)="logout()">
@@ -113,6 +114,14 @@
 
     <main class="content">
         <app-modal *ngIf="isModalOpen" [type]="modalType" (close)="isModalOpen = false"></app-modal>
+        <app-expense-modal 
+            *ngIf="showExpenseModal"
+            [groupId]="selectedGroupId!"
+            [members]="selectedGroupMembers"
+            [currentUserId]="userIdNumber!"
+            (close)="closeExpenseModal()"
+            (save)="onExpenseSaved($event)">
+        </app-expense-modal>
         <app-loader *ngIf="showLoader"></app-loader>
         <router-outlet *ngIf="!showLoader"></router-outlet>
     </main>

@@ -1,80 +1,130 @@
-<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" (click)="close.emit()">
-  <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" (click)="$event.stopPropagation()">
-    <div class="flex flex-col gap-4">
-      <!-- Header -->
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-xl font-semibold">Add an expense</h3>
-        <button (click)="close.emit()" class="text-gray-400 hover:text-gray-600">×</button>
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50" (click)="closeModal()">
+  <div class="relative w-full max-w-2xl mx-auto p-5 bg-white shadow-lg rounded-lg" (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b pb-4 mb-6">
+      <h3 class="text-2xl font-bold text-gray-900">Add an Expense</h3>
+      <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+    </div>
+
+    <!-- Form Container -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Left Column -->
+      <div class="space-y-6">
+        
+        <!-- Amount Input -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Amount</label>
+          <div class="flex items-center border border-gray-300 rounded-lg px-3 py-2">
+            <span class="text-xl font-semibold text-gray-600">₹</span>
+            <input 
+              type="number" 
+              [(ngModel)]="amount"
+              (ngModelChange)="onMemberToggle()"
+              class="text-2xl w-full border-none focus:ring-0 font-semibold ml-2" 
+              placeholder="0.00"
+              step="0.01"
+              min="0"
+            >
+          </div>
+        </div>
+
+        <!-- Description Input -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+          <input 
+            type="text" 
+            [(ngModel)]="description"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+            placeholder="e.g., Dinner, Coffee, Movie tickets"
+          >
+        </div>
+
+        <!-- Paid By Dropdown -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Paid By</label>
+          <select 
+            [(ngModel)]="paidBy" 
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option [ngValue]="null" disabled>Select who paid</option>
+            <option *ngFor="let member of splitMembers" [ngValue]="member.id">
+              {{member.name}}
+            </option>
+          </select>
+        </div>
+
       </div>
 
-      <!-- Amount Input -->
-      <div class="flex items-center gap-2">
-        <span class="text-xl">₹</span>
-        <input 
-          type="number" 
-          [(ngModel)]="amount"
-          class="text-2xl w-full border-none focus:ring-0 font-semibold" 
-          placeholder="0.00"
-        >
-      </div>
+      <!-- Right Column - Split Details -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-3">Split Between</label>
+        
+        <!-- Select All Checkbox -->
+        <div class="flex items-center gap-2 mb-3 pb-3 border-b border-gray-200">
+          <input 
+            type="checkbox"
+            [(ngModel)]="selectAllChecked"
+            (change)="toggleSelectAll()"
+            class="rounded text-blue-600 w-4 h-4 cursor-pointer"
+            id="selectAll"
+          >
+          <label for="selectAll" class="text-sm font-medium text-gray-700 cursor-pointer">
+            Select All
+          </label>
+        </div>
 
-      <!-- Description -->
-      <input 
-        type="text" 
-        [(ngModel)]="description"
-        class="w-full border-gray-300 rounded-md" 
-        placeholder="Enter description"
-      >
-
-      <!-- Paid By -->
-      <div class="flex items-center gap-2">
-        <span class="text-gray-600">Paid by</span>
-        <select [(ngModel)]="paidBy" class="border-gray-300 rounded-md">
-          <option *ngFor="let member of members" [value]="member.id">
-            {{member.name}}
-          </option>
-        </select>
-      </div>
-
-      <!-- Split Options -->
-      <div class="border rounded-md p-3">
-        <h4 class="font-medium mb-2">Split equally between</h4>
-        <div class="space-y-2">
-          <div *ngFor="let member of members" 
-               class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
+        <!-- Members List -->
+        <div class="space-y-3 max-h-60 overflow-y-auto">
+          <div *ngFor="let member of splitMembers" 
+               class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <div class="flex items-center gap-3 flex-1">
               <input 
                 type="checkbox"
                 [(ngModel)]="member.isSelected"
-                class="rounded text-blue-600"
+                (change)="onMemberToggle()"
+                class="rounded text-blue-600 w-4 h-4 cursor-pointer"
+                [id]="'member-' + member.id"
               >
-              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                {{member.avatarLetter}}
+              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-xs font-semibold text-blue-600">{{member.avatarLetter}}</span>
               </div>
-              <span>{{member.name}}</span>
+              <label [for]="'member-' + member.id" class="text-sm font-medium text-gray-700 cursor-pointer flex-1">
+                {{member.name}}
+              </label>
             </div>
-            <span class="text-gray-600">₹{{getSplitAmount(member)}}</span>
+            <span class="text-sm font-semibold text-blue-600 ml-2">₹{{getSplitAmount(member) | number:'1.2-2'}}</span>
+          </div>
+        </div>
+
+        <!-- Total Split Amount -->
+        <div class="mt-4 pt-3 border-t border-gray-200">
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-semibold text-gray-700">Total to split:</span>
+            <span class="text-lg font-bold text-blue-600">₹{{amount | number:'1.2-2'}}</span>
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex justify-end gap-2">
-        <button 
-          (click)="close.emit()"
-          class="px-4 py-2 border rounded-md hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-        <button 
-          (click)="saveExpense()"
-          [disabled]="!isValid()"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          Save
-        </button>
-        <button (click)="printLogger()"> printlogger </button>
-      </div>
     </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-3 mt-8 pt-6 border-t">
+      <button 
+        (click)="closeModal()"
+        class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+      >
+        Cancel
+      </button>
+      <button 
+        (click)="saveExpense()"
+        [disabled]="!isValid()"
+        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Add Expense
+      </button>
+    </div>
+
   </div>
 </div>
