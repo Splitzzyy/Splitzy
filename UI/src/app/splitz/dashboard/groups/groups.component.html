@@ -173,38 +173,42 @@
                 <div *ngIf="activeTab === 'expenses'">
                     <div class="space-y-4">
                         <!-- Sample Expense Item -->
-                        <ng-container *ngFor="let expense of expenses">
-                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-sm font-medium text-gray-900">{{expense.name}}</h4>
-                                        <p class="text-sm text-gray-500">Paid by {{expense.paidBy}} • {{expense.createdAt}}</p>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-gray-900">₹{{expense.amount}}</p>
-                                    <p class="text-sm text-gray-500">You owe {{expense.youOwe}}</p>
-                                </div>
-                            </div>
-                        </ng-container>
+                         <ng-container *ngIf="expenses && expenses.length; else noExpense">
+                             <ng-container *ngFor="let expense of expenses">
+                                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                     <div class="flex items-center space-x-4">
+                                         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
+                                                 </path>
+                                             </svg>
+                                         </div>
+                                         <div>
+                                             <h4 class="text-sm font-medium text-gray-900">{{expense.name}}</h4>
+                                             <p class="text-sm text-gray-500">Paid by {{expense.paidBy}} • {{expense.createdAt}}</p>
+                                         </div>
+                                     </div>
+                                     <div class="text-right">
+                                         <p class="text-sm font-medium text-gray-900">₹{{expense.amount}}</p>
+                                         <p class="text-sm text-gray-500">You owe {{expense.youOwe}}</p>
+                                     </div>
+                                 </div>
+                             </ng-container>
+                         </ng-container>
 
                         <!-- Add more expense items here -->
-                        <div class="text-center py-8">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No expenses yet</h3>
-                            <p class="mt-1 text-sm text-gray-500">Get started by adding your first expense.</p>
-                        </div>
+                         <ng-template #noExpense>
+                             <div class="text-center py-8">
+                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                 </svg>
+                                 <h3 class="mt-2 text-sm font-medium text-gray-900">No expenses yet</h3>
+                                 <p class="mt-1 text-sm text-gray-500">Get started by adding your first expense.</p>
+                             </div>
+                         </ng-template>
                     </div>
                 </div>
 
@@ -212,40 +216,47 @@
                 <div *ngIf="activeTab === 'balances'">
                     <div class="space-y-4">
                         <!-- Sample Balance Item -->
-                        <ng-container *ngFor="let balance of balanceSummary">
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                    <span class="text-sm font-medium text-green-600">{{balance.name.charAt(0)}}</span>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-900">{{balance.name}}</h4>
-                                    <p class="text-sm text-gray-500">Overall balance</p>
-                                </div>
-                            </div>
-                            <ng-container *ngIf="balance.balance < 0">
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-red-600">Owes {{balance.balance | currency:'INR':'symbol': '1.2-2'}}</p>
-                                </div>
-                            </ng-container>
-                            <ng-container *ngIf="balance.balance >= 0">
-                                <div class="text-right">
-                                    <p class="text-sm font-medium text-green-600">Gets Back {{balance.balance | currency:'INR':'symbol': '1.2-2'}}</p>
-                                </div>
-                            </ng-container>
-                            </div>
-                            </ng-container>
+                         <ng-container *ngIf="balanceSummary && balanceSummary.length; else noBalance">
+                             <ng-container *ngFor="let balance of balanceSummary">
+                                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                     <div class="flex items-center space-x-4">
+                                         <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                             <span class="text-sm font-medium text-green-600">{{balance.name.charAt(0)}}</span>
+                                         </div>
+                                         <div>
+                                             <h4 class="text-sm font-medium text-gray-900">{{balance.name}}</h4>
+                                             <p class="text-sm text-gray-500">Overall balance</p>
+                                         </div>
+                                     </div>
+                                     <ng-container *ngIf="balance.balance < 0">
+                                         <div class="text-right">
+                                             <p class="text-sm font-medium text-red-600">Owes {{balance.balance | currency:'INR':'symbol': '1.2-2'}}
+                                             </p>
+                                         </div>
+                                     </ng-container>
+                                     <ng-container *ngIf="balance.balance >= 0">
+                                         <div class="text-right">
+                                             <p class="text-sm font-medium text-green-600">Gets Back {{balance.balance | currency:'INR':'symbol':
+                                                 '1.2-2'}}</p>
+                                         </div>
+                                     </ng-container>
+                                 </div>
+                             </ng-container>
+                         </ng-container>
 
-                        <div class="text-center py-8">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                                </path>
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">All settled up!</h3>
-                            <p class="mt-1 text-sm text-gray-500">Everyone's balance is zero.</p>
-                        </div>
+                         <ng-template #noBalance>
+                             <div class="text-center py-8">
+                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                     </path>
+                                 </svg>
+                                 <h3 class="mt-2 text-sm font-medium text-gray-900">All settled up!</h3>
+                                 <p class="mt-1 text-sm text-gray-500">Everyone's balance is zero.</p>
+                             </div>
+                         </ng-template>
+
                     </div>
                 </div>
 

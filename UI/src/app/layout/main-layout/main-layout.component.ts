@@ -111,12 +111,13 @@ export class MainLayoutComponent implements OnInit {
   }
 
   onExpenseSaved(expense: any): void {
+    this.showLoader = true;
     console.log('Saving expense:', expense);
     this.spltizService.onSaveExpense(expense).subscribe({
       next: (response: any) => {
+        this.showLoader = false; 
         console.log('Expense saved successfully:', response);
         this.closeExpenseModal();
-        this.spltizService.redirectToDashboard();
         // Show success message
         alert('Expense added successfully!');
       },
