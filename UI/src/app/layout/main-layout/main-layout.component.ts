@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { ModalComponent } from '../../splitz/modal/modal.component';
 import { CommonModule } from '@angular/common';
 import { SplitzService } from '../../splitz/splitz.service';
-import { LoginResponse } from '../../splitz/splitz.model';
 import { LoaderComponent } from '../../splitz/loader/loader.component';
 import { ExpenseModalComponent } from '../../splitz/dashboard/expense-modal/expense-modal.component';
 import { environment } from '../../environments/environment';
@@ -12,7 +10,6 @@ import { environment } from '../../environments/environment';
   selector: 'app-main-layout',
   imports: [
     RouterModule,
-    ModalComponent,
     CommonModule,
     LoaderComponent,
     ExpenseModalComponent
@@ -78,6 +75,7 @@ export class MainLayoutComponent implements OnInit {
 
   openModal(type: 'expense' | 'settle') {
     this.modalType = type;
+    this.showLoader = true;
     
     if (type === 'expense') {
       // Fetch all groups for the expense modal
@@ -101,6 +99,7 @@ export class MainLayoutComponent implements OnInit {
     this.spltizService.onFetchGroupData(groupId).subscribe((data: any) => {
       console.log('Group data:', data);
       this.selectedGroupMembers = data.members || [];
+      this.showLoader = false;
       this.showExpenseModal = true;
     });
   }
@@ -117,6 +116,7 @@ export class MainLayoutComponent implements OnInit {
       next: (response: any) => {
         console.log('Expense saved successfully:', response);
         this.closeExpenseModal();
+        this.spltizService.redirectToDashboard();
         // Show success message
         alert('Expense added successfully!');
       },

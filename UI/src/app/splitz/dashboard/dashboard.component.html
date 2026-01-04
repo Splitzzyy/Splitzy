@@ -1,4 +1,5 @@
-<div class="ounded-2xl p-6 min-h-[85vh] overflow-hidden">
+<app-loader *ngIf="showLoader"></app-loader>
+<div class="ounded-2xl p-6 min-h-[85vh] overflow-hidden" *ngIf="!showLoader">
     <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full">
 
         <!-- Main Content Area (spans 3 columns on xl screens) -->
@@ -192,7 +193,7 @@
                         </div>
                         <h2 class="text-xl font-bold text-purple-800">Groups</h2>
                     </div>
-                    <button
+                    <button (click)="openCreateGroupModal()"
                         class="bg-purple-500 hover:bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors">
                         <i class="fas fa-plus text-xs"></i>
                     </button>

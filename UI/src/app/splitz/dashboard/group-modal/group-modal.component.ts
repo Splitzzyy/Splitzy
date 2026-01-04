@@ -29,6 +29,9 @@ export class GroupModalComponent implements OnInit {
       this.userEmails.splice(index, 1);
     }
   }
+  trackByIndex(index: number): number {
+  return index;
+}
 
   isValid(): boolean {
     // Validate group name is not empty

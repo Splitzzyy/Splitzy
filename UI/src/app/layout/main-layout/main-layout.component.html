@@ -113,9 +113,8 @@
     </nav>
 
     <main class="content">
-        <app-modal *ngIf="isModalOpen" [type]="modalType" (close)="isModalOpen = false"></app-modal>
         <app-expense-modal 
-            *ngIf="showExpenseModal"
+            *ngIf="showExpenseModal && !showLoader"
             [groupId]="selectedGroupId!"
             [members]="selectedGroupMembers"
             [currentUserId]="userIdNumber!"

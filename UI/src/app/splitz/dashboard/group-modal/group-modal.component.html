@@ -35,7 +35,7 @@
 
         <!-- Email Fields -->
         <div class="space-y-3">
-          <div *ngFor="let email of userEmails; let i = index" class="flex items-start gap-2">
+          <div *ngFor="let email of userEmails; let i = index; trackBy: trackByIndex"  class="flex items-start gap-2">
             <div class="flex-1">
               <input 
                 type="email" 

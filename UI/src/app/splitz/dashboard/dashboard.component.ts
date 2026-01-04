@@ -4,6 +4,7 @@ import { Router, RouterModule, ActivatedRoute } from '@angular/router'; // <-- I
 import { SplitzService } from '../splitz.service';
 import { ExpenseModalComponent } from './expense-modal/expense-modal.component';
 import { GroupModalComponent } from './group-modal/group-modal.component';
+import { LoaderComponent } from '../loader/loader.component';
 
 export interface Group {
   groupId: number;
@@ -21,7 +22,8 @@ export interface OwedFrom {
     CommonModule,
     RouterModule,
     ExpenseModalComponent,
-    GroupModalComponent
+    GroupModalComponent,
+    LoaderComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -40,6 +42,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public selectedGroupId: number | null = null;
   public selectedGroupMembers: any[] = [];
   public showGroupModal: boolean = false;
+  public showLoader: boolean = true;
 
   constructor(
     private router: Router,
@@ -62,6 +65,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.owedFrom = data.owedFrom;
       this.groups = data.groupWiseSummary;
       this.userId = data.userId;
+      this.showLoader = false;
     });
   }
 
