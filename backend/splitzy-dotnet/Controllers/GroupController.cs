@@ -173,7 +173,6 @@ namespace splitzy_dotnet.Controllers
 
                 _context.GroupMembers.AddRange(groupMembers);
                 await _context.SaveChangesAsync();
-                // COMMIT transaction only if everything above succeeded
                 await transaction.CommitAsync();
                 /* 🔔 SEND EMAILS HERE */
                 try
