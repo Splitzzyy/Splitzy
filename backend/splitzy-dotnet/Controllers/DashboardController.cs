@@ -232,6 +232,15 @@ namespace splitzy_dotnet.Controllers
             }
         }
 
+        /// <summary>
+        /// Sends a reminder email to a user who owes a payment within a group.
+        /// </summary>
+        /// <remarks>This endpoint validates that the specified users and group exist and that a payment
+        /// is actually owed before sending a reminder email. No email is sent if the debt does not exist or the data is
+        /// invalid.</remarks>
+        /// <param name="request">The reminder request containing the group and user information for the payment reminder. Cannot be null.</param>
+        /// <returns>An IActionResult indicating the outcome of the reminder operation. Returns a success message if the reminder
+        /// is sent; otherwise, returns a message describing why the reminder was not sent.</returns>
         [HttpPost("reminder")]
         public async Task<IActionResult> SendReminder([FromBody] ReminderRequestForPayment request)
         {
