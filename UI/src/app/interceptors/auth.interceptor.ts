@@ -6,18 +6,17 @@ import { SplitzService } from '../splitz/splitz.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const splitzService = inject(SplitzService);
-  
   const token = splitzService.getToken();
-  
-  // Add Authorization header if token exists
-  if (token) {
-    req = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-      }
-    });
+  let headers: { [key: string]: string } = {};
+  if (!(req.body instanceof FormData) && !req.headers.has('Content-Type')) {
+    headers['Content-Type'] = 'application/json';
   }
-
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (Object.keys(headers).length > 0) {
+    req = req.clone({ setHeaders: headers });
+  }
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       console.log('Interceptor caught error:', error.status);

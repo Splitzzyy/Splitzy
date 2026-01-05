@@ -30,3 +30,7 @@ export interface GoogleLoginResponse{
     message: string;
     data: any;
 }
+export interface ResetData {
+    token: string,
+    newPassword: string,
+}

@@ -1,5 +1,26 @@
 <div class="main-layout m-4">
-    <nav class="sidebar rounded-2xl relative overflow-hidden ">
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle lg:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-3 rounded-lg shadow-lg hover:bg-emerald-700 active:scale-95 transition-all duration-200"
+            (click)="toggleMobileMenu()">
+        <svg class="w-6 h-6 transition-transform duration-300" 
+             [class.rotate-90]="mobileMenuOpen"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  [attr.d]="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'"></path>
+        </svg>
+    </button>
+
+    <!-- Overlay for mobile -->
+    <div class="mobile-overlay lg:hidden fixed inset-0 bg-black/50 z-30 transition-opacity"
+         [class.opacity-0]="!mobileMenuOpen"
+         [class.pointer-events-none]="!mobileMenuOpen"
+         [class.opacity-100]="mobileMenuOpen"
+         (click)="toggleMobileMenu()"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar rounded-2xl relative overflow-hidden"
+         [class.sidebar-open]="mobileMenuOpen"
+         [class.sidebar-closed]="!mobileMenuOpen">
         <!-- Animated background gradient -->
         <div class="absolute inset-0 bg-emerald-900"></div>
 
@@ -16,12 +37,10 @@
             <!-- Logo section with enhanced styling -->
             <div class="text-center py-8 border-b border-white/10">
                 <div class="inline-flex items-center gap-3 group cursor-pointer">
-                    <div
-                        class="mx-auto h-16 w-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                    <div class="mx-auto h-16 w-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
                         <i class="fas fa-receipt text-white text-2xl"></i>
                     </div>
-                    <h2
-                        class="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-emerald-300 group-hover:to-white transition-all duration-300">
+                    <h2 class="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-emerald-300 group-hover:to-white transition-all duration-300">
                         Splitz
                     </h2>
                 </div>
@@ -32,13 +51,14 @@
                 <ul class="text-center mt-20 space-y-4 px-6">
                     <li class="nav-item">
                         <a [routerLink]="['/dashboard']" routerLinkActive="active-menu"
-                            [routerLinkActiveOptions]="{ exact: true }" class="nav-link group">
+                            [routerLinkActiveOptions]="{ exact: true }" 
+                            class="nav-link group"
+                            (click)="closeMobileMenu()">
                             <div class="nav-link-content">
                                 <div class="nav-icon">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z">
-                                        </path>
+                                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M8 1v6m8-6v6"></path>
                                     </svg>
@@ -49,7 +69,9 @@
                     </li>
                     <li class="nav-item">
                         <a [routerLink]="['/recent-activity']" routerLinkActive="active-menu"
-                            [routerLinkActiveOptions]="{ exact: true }" class="nav-link group">
+                            [routerLinkActiveOptions]="{ exact: true }" 
+                            class="nav-link group"
+                            (click)="closeMobileMenu()">
                             <div class="nav-link-content">
                                 <div class="nav-icon">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,8 +114,7 @@
                         <div class="btn-glow settle-glow"></div>
                     </button>
 
-                    <button
-                        class="action-btn bg-red-900 hover:bg-red-700 text-white text-center px-4 py-2 rounded flex items-center gap-2"
+                    <button class="action-btn bg-red-900 hover:bg-red-700 text-white text-center px-4 py-2 rounded flex items-center gap-2"
                         (click)="logout()">
                         <div class="btn-content">
                             <div class="btn-icon">
@@ -106,7 +127,6 @@
                             <span class="btn-text">Logout</span>
                         </div>
                     </button>
-
                 </div>
             </div>
         </div>

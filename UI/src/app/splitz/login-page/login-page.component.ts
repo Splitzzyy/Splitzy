@@ -136,11 +136,6 @@ export class LoginPageComponent implements AfterViewInit, OnDestroy {
 
     return '';
   }
-  ssoLogin(): void {
-    this.splitzService.ssoLoginRedirect();
-    // window.open('https://42761f8c7efd.ngrok-free.app/api/Auth/ssologin', '_self')
-
-  }
   ngAfterViewInit(): void {
     // Initialize Google Sign-In
     this.initializeGoogleSignIn();

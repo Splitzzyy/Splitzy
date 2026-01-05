@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from './splitz.model';
+import { GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData } from './splitz.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,17 +20,11 @@ export class SplitzService {
   constructor(private http: HttpClient, private router: Router) { }
 
   login(loginData: LoginRequest): Observable<LoginResponse> {
-    const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true'
-    });
-    return this.http.post<LoginResponse>(`${this.BASE_URL}${this.ENDPOINTS.LOGIN}`, loginData, { headers });
+    return this.http.post<LoginResponse>(`${this.BASE_URL}${this.ENDPOINTS.LOGIN}`, loginData);
   }
 
   register(registerData: RegisterRequest): Observable<RegisterResponse> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-    return this.http.post<RegisterResponse>(`${this.BASE_URL}${this.ENDPOINTS.REGISTER}`, registerData, { headers });
+    return this.http.post<RegisterResponse>(`${this.BASE_URL}${this.ENDPOINTS.REGISTER}`, registerData);
   }
 
   setUserId(userId: number): void {
@@ -57,11 +51,7 @@ export class SplitzService {
 
   logout(): void {
     const url = `${this.BASE_URL}${this.ENDPOINTS.LOGOUT}`;
-    const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true',
-      'Authorization': `Bearer ${this.getToken()}`
-    });
-    this.http.get(url, { headers }).subscribe({
+    this.http.get(url).subscribe({
       next: () => {
         console.log('Logout successful');
       },
@@ -104,21 +94,13 @@ export class SplitzService {
   onCreateGroup(group: any) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.CREATE_GROUP}`;
     console.log(`Creating group at ${url}`);
-    const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true',
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.getToken()}`
-    });
-    return this.http.post<any>(url, group, { headers });
+    return this.http.post<any>(url, group);
   }
 
   getRecentActivity() {
     const url = `${this.BASE_URL}${this.ENDPOINTS.RECENT}`;
     console.log(`Fetching recent activity from ${url}`);
     return this.http.get<any[]>(url);
-  }
-  ssoLoginRedirect() {
-    window.location.href = `${this.BASE_URL}${this.ENDPOINTS.SSOLOGIN}`;
   }
   handleGoogleSignIn(googleResponse: any): void {
     try {
@@ -178,27 +160,16 @@ export class SplitzService {
   }
   onGoogleLogin(request: GoogleLoginRequest) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.GOOGLELOGIN}`;
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-    return this.http.post<any>(url, request, { headers })
+    return this.http.post<any>(url, request)
   }
 
   forgotPassword(email: string): Observable<any> {
     const url = `${this.BASE_URL}${this.ENDPOINTS.FORGOTPASS}`;
-    const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true',
-      'Content-Type': 'application/json'
-    });
-    return this.http.post<any>(url, { email }, { headers });
+    return this.http.post<any>(url, { email });
   }
 
-  setupPassword(resetData: { token: string; newPassword: string }): Observable<any> {
+  setupPassword(resetData: ResetData): Observable<any> {
     const url = `${this.BASE_URL}${this.ENDPOINTS.SETUPPASS}`;
-    const headers = new HttpHeaders({
-      'ngrok-skip-browser-warning': 'true',
-      'Content-Type': 'application/json'
-    });
-    return this.http.post<any>(url, resetData, { headers });
+    return this.http.post<any>(url, resetData);
   }
 }

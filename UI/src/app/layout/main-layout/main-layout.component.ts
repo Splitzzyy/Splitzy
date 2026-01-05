@@ -28,6 +28,7 @@ export class MainLayoutComponent implements OnInit {
   selectedGroupId: number | null = null;
   selectedGroupMembers: any[] = [];
   allGroups: any[] = [];
+  mobileMenuOpen: boolean = false;
 
   constructor(private router: Router, private spltizService: SplitzService) {
   }
@@ -76,6 +77,7 @@ export class MainLayoutComponent implements OnInit {
   openModal(type: 'expense' | 'settle') {
     this.modalType = type;
     this.showLoader = true;
+    this.closeMobileMenu(); 
     
     if (type === 'expense') {
       // Fetch all groups for the expense modal
@@ -144,5 +146,11 @@ export class MainLayoutComponent implements OnInit {
   logout() {
     this.spltizService.logout();
     this.router.navigate(['/login']);
+  }
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+  closeMobileMenu() {
+    this.mobileMenuOpen = false;
   }
 }
