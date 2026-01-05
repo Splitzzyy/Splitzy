@@ -1,4 +1,3 @@
-
 <img width="1536" height="1024" alt="ChatGPT Image Dec 26, 2025, 02_12_24 PM" src="https://github.com/user-attachments/assets/3fc5f000-7918-4bc9-b418-8dd3a2a20fe8" />
 
 ## Overview
@@ -10,7 +9,7 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 - **👥 Group Management**: Create and manage expense groups with multiple participants
 - **💸 Easy Expense Tracking**: Add expenses with customizable splitting options
 - **📊 Smart Calculations**: Automatic calculation of who owes whom and how much
-- **🔄 Multiple Split Types**: 
+- **🔄 Multiple Split Types**:
   - Equal splits
   - Custom amounts
   - Percentage-based splits
@@ -25,9 +24,9 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 
 - **Frontend**: Angular
 - **Backend**: DotNet
-- **Database**: MySQL
+- **Database**: PostgreSQL
 - **Authentication**: OAuth
-- **Deployment**: Vercel
+- **Deployment**: Docker
 
 ## Getting Started
 
@@ -40,16 +39,18 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/shubhamashish33/Splitzy.git
    cd Splitzy
    ```
 
 2. **Install dependencies**
+
    ```bash
    # Install backend dependencies
    npm install
-   
+
    # Install frontend dependencies (if separate)
    cd client
    npm install
@@ -57,28 +58,31 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
    ```
 
 3. **Environment Setup**
+
    ```bash
    # Copy environment template
    cp .env.example .env
-   
+
    # Edit .env with your configuration
    nano .env
    ```
 
 4. **Database Setup**
+
    ```bash
    # Run database migrations
    npm run migrate
-   
+
    # Seed initial data (optional)
    npm run seed
    ```
 
 5. **Start the application**
+
    ```bash
    # Development mode
    npm run dev
-   
+
    # Production mode
    npm run start
    ```
@@ -189,35 +193,6 @@ docker run -p 3000:3000 splitzy
 2. Build the application: `npm run build`
 3. Start the production server: `npm run start`
 
-## Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Database
-DATABASE_URL=your_database_url
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=splitzy
-DB_USER=your_username
-DB_PASSWORD=your_password
-
-# Authentication
-JWT_SECRET=your_jwt_secret
-SESSION_SECRET=your_session_secret
-
-# Email (for notifications)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-
-# Application
-NODE_ENV=development
-PORT=3000
-CLIENT_URL=http://localhost:3000
-```
-
 ## Roadmap
 
 - [ ] Mobile app (React Native/Flutter)
@@ -242,8 +217,8 @@ A: Yes, we use industry-standard encryption and security practices to protect yo
 
 ## Support
 
-- 🐛 Issues: [GitHub Issues](https://github.com/shubhamashish33/Splitzy/issues)
-- 📚 Documentation: [Wiki](https://github.com/shubhamashish33/Splitzy/wiki)
+- 🐛 Issues: [GitHub Issues](https://github.com/Splitzzyy/Splitzy/issues)
+- 📚 Documentation: [Wiki](https://github.com/Splitzzyy/Splitzy/wiki)
 
 ## License
 

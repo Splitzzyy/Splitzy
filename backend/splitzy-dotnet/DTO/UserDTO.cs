@@ -54,5 +54,11 @@
         public string NewPassword { get; set; } = null!;
     }
 
+    public class ReminderRequestForPayment
+    {
+        public int GroupId { get; set; }
+        public int OwedUserId { get; set; }   // who owes money
+        public int OwedToUserId { get; set; } // who will receive
+    }
 
 }
