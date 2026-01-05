@@ -23,125 +23,88 @@ namespace splitzy_dotnet.Controllers
         /// Retrieves dashboard data for a specific user.
         /// </summary>
         [HttpGet("dashboard")]
-        [ProducesResponseType(typeof(UserDTO), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<UserDTO>> GetDashboard()
         {
-            try
+            int userId = HttpContext.GetCurrentUserId();
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (user == null)
+                return NotFound("User not found");
+
+            var groupMemberships = await _context.GroupMembers
+                .AsNoTracking()
+                .Include(gm => gm.Group)
+                .Where(gm => gm.UserId == userId)
+                .ToListAsync();
+
+            var balances = await _context.GroupBalances
+                .AsNoTracking()
+                .Where(b => b.UserId == userId)
+                .ToListAsync();
+
+            var users = await _context.Users
+                .AsNoTracking()
+                .ToDictionaryAsync(u => u.UserId, u => u.Name);
+
+            decimal totalBalance = balances.Sum(b => b.NetBalance);
+
+            decimal youAreOwed = balances
+                .Where(b => b.NetBalance > 0)
+                .Sum(b => b.NetBalance);
+
+            decimal youOwe = balances
+                .Where(b => b.NetBalance < 0)
+                .Sum(b => Math.Abs(b.NetBalance));
+
+            var oweTo = new List<PersonAmount>();
+            var owedFrom = new List<PersonAmount>();
+
+            var allGroupBalances = await _context.GroupBalances
+                .AsNoTracking()
+                .ToListAsync();
+
+            foreach (var group in allGroupBalances.GroupBy(b => b.GroupId))
             {
-                int userId = HttpContext.GetCurrentUserId();
+                var netMap = group.ToDictionary(b => b.UserId, b => b.NetBalance);
+                var settlements = ExpenseSimplifier.Simplify(netMap);
 
-                var user = await _context.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.UserId == userId);
-
-                if (user == null)
-                    return NotFound("User not found");
-
-                var groupMemberships = await _context.GroupMembers
-                    .AsNoTracking()
-                    .Include(gm => gm.Group)
-                    .Where(gm => gm.UserId == userId)
-                    .ToListAsync();
-
-                var expenses = await _context.Expenses
-                    .AsNoTracking()
-                    .Where(e =>
-                        e.PaidByUserId == userId ||
-                        _context.ExpenseSplits.Any(s => s.ExpenseId == e.ExpenseId && s.UserId == userId))
-                    .ToListAsync();
-
-                var expenseIds = expenses.Select(e => e.ExpenseId).ToList();
-
-                var splits = await _context.ExpenseSplits
-                    .AsNoTracking()
-                    .Where(s => expenseIds.Contains(s.ExpenseId))
-                    .ToListAsync();
-
-                var users = await _context.Users
-                    .AsNoTracking()
-                    .ToDictionaryAsync(u => u.UserId, u => u.Name);
-
-                decimal youOwe = splits
-                    .Where(s => s.UserId == userId)
-                    .Sum(s => s.OwedAmount);
-
-                decimal youAreOwed = expenses
-                    .Where(e => e.PaidByUserId == userId)
-                    .SelectMany(e => splits.Where(s => s.ExpenseId == e.ExpenseId && s.UserId != userId))
-                    .Sum(s => s.OwedAmount);
-
-                var oweTo = splits
-                    .Where(s => s.UserId == userId)
-                    .Join(expenses,
-                        s => s.ExpenseId,
-                        e => e.ExpenseId,
-                        (s, e) => new { s, e })
-                    .Where(x => x.e.PaidByUserId != userId)
-                    .GroupBy(x => x.e.PaidByUserId)
-                    .Select(g => new PersonAmount
-                    {
-                        Name = users[g.Key],
-                        Amount = g.Sum(x => x.s.OwedAmount)
-                    })
-                    .ToList();
-
-                var owedFrom = expenses
-                    .Where(e => e.PaidByUserId == userId)
-                    .SelectMany(e => splits.Where(s => s.ExpenseId == e.ExpenseId && s.UserId != userId))
-                    .GroupBy(s => s.UserId)
-                    .Select(g => new PersonAmount
-                    {
-                        Name = users[g.Key],
-                        Amount = g.Sum(x => x.OwedAmount)
-                    })
-                    .ToList();
-
-                var groupWiseSummary = groupMemberships.Select(gm =>
+                foreach (var s in settlements)
                 {
-                    var groupExpenses = expenses.Where(e => e.GroupId == gm.GroupId);
+                    if (s.FromUser == userId)
+                        oweTo.Add(new PersonAmount { Name = users[s.ToUser], Amount = s.Amount });
+                    else if (s.ToUser == userId)
+                        owedFrom.Add(new PersonAmount { Name = users[s.FromUser], Amount = s.Amount });
+                }
+            }
 
-                    var owedInGroup = groupExpenses
-                        .Where(e => e.PaidByUserId == userId)
-                        .SelectMany(e => splits.Where(s => s.ExpenseId == e.ExpenseId && s.UserId != userId))
-                        .Sum(s => s.OwedAmount);
-
-                    var oweInGroup = splits
-                        .Where(s => s.UserId == userId)
-                        .Join(groupExpenses,
-                            s => s.ExpenseId,
-                            e => e.ExpenseId,
-                            (s, e) => s.OwedAmount)
-                        .Sum();
-
-                    return new GroupSummary
+            var groupWiseSummary = balances
+                .Join(groupMemberships,
+                    b => b.GroupId,
+                    gm => gm.GroupId,
+                    (b, gm) => new GroupSummary
                     {
                         GroupId = gm.GroupId,
                         GroupName = gm.Group.Name,
-                        NetBalance = owedInGroup - oweInGroup
-                    };
-                }).ToList();
+                        NetBalance = b.NetBalance
+                    })
+                .ToList();
 
-                var result = new UserDTO
-                {
-                    UserId = user.UserId,
-                    UserName = user.Name,
-                    TotalBalance = youAreOwed - youOwe,
-                    YouOwe = youOwe,
-                    YouAreOwed = youAreOwed,
-                    OweTo = oweTo,
-                    OwedFrom = owedFrom,
-                    GroupWiseSummary = groupWiseSummary
-                };
-
-                return Ok(result);
-            }
-            catch (Exception ex)
+            return Ok(new UserDTO
             {
-                return StatusCode(500, $"Dashboard error: {ex.Message}");
-            }
+                UserId = user.UserId,
+                UserName = user.Name,
+                TotalBalance = totalBalance,
+                YouOwe = youOwe,
+                YouAreOwed = youAreOwed,
+                OweTo = oweTo,
+                OwedFrom = owedFrom,
+                GroupWiseSummary = groupWiseSummary
+            });
         }
+
 
         /// <summary>
         /// Gets recent activity (expenses and logs) for a specific user.
