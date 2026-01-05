@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace splitzy_dotnet.Models;
 
@@ -29,8 +27,37 @@ public partial class SplitzyContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public DbSet<GroupBalance> GroupBalances { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<GroupBalance>(entity =>
+        {
+            entity.ToTable("group_balances");
+
+            entity.HasKey(e => new { e.GroupId, e.UserId })
+                  .HasName("group_balances_pkey");
+
+            entity.Property(e => e.GroupId)
+                  .HasColumnName("group_id");
+
+            entity.Property(e => e.UserId)
+                  .HasColumnName("user_id");
+
+            entity.Property(e => e.NetBalance)
+                  .HasPrecision(10, 2)
+                  .HasColumnName("net_balance");
+
+            entity.HasOne(e => e.Group)
+                  .WithMany()
+                  .HasForeignKey(e => e.GroupId)
+                  .HasConstraintName("group_balances_group_id_fkey");
+
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .HasConstraintName("group_balances_user_id_fkey");
+        });
         modelBuilder.Entity<ActivityLog>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("activity_log_pkey");

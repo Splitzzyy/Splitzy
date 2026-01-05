@@ -223,6 +223,32 @@ app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var exceptionHandler =
+            context.Features.Get<IExceptionHandlerFeature>();
+
+        if (exceptionHandler != null)
+        {
+            var ex = exceptionHandler.Error;
+
+            var response = new
+            {
+                message = "Something went wrong",
+                detail = ex.Message // hide in prod if needed
+            };
+
+            await context.Response.WriteAsJsonAsync(response);
+        }
+    });
+});
+
 app.UseAuthorization();
 app.UseMiniProfiler();
 app.MapHealthChecks("/health");

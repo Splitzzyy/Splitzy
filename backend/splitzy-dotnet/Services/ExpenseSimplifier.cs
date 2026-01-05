@@ -1,36 +1,39 @@
 ﻿using splitzy_dotnet.DTO;
 
-namespace splitzy_dotnet.Services
+public static class ExpenseSimplifier
 {
-    public class ExpenseSimplifier
+    public static List<ExpensesDTO> Simplify(Dictionary<int, decimal> netBalances)
     {
-        public static List<ExpensesDTO> Simplify(Dictionary<int, decimal> netBalances)
+        var result = new List<ExpensesDTO>();
+
+        while (true)
         {
-            List<ExpensesDTO> result = [];
+            var creditor = netBalances
+                .Where(x => x.Value > 0.01m)
+                .OrderByDescending(x => x.Value)
+                .FirstOrDefault();
 
-            while (true)
+            var debtor = netBalances
+                .Where(x => x.Value < -0.01m)
+                .OrderBy(x => x.Value)
+                .FirstOrDefault();
+
+            if (creditor.Key == 0 || debtor.Key == 0)
+                break;
+
+            var amount = Math.Min(creditor.Value, -debtor.Value);
+
+            netBalances[creditor.Key] -= amount;
+            netBalances[debtor.Key] += amount;
+
+            result.Add(new ExpensesDTO
             {
-                var maxCreditor = netBalances.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
-                var maxDebtor = netBalances.Aggregate((l, r) => l.Value < r.Value ? l : r).Key;
-
-                // Break if all balances are settled
-                if (netBalances.Values.All(v => Math.Abs(v) <= 0.01m))
-                    break;
-
-                var amount = Math.Min(-netBalances[maxDebtor], netBalances[maxCreditor]);
-
-                netBalances[maxCreditor] -= amount;
-                netBalances[maxDebtor] += amount;
-
-                result.Add(new ExpensesDTO
-                {
-                    FromUser = maxDebtor,
-                    ToUser = maxCreditor,
-                    Amount = Math.Round(amount, 2)
-                });
-            }
-
-            return result;
+                FromUser = debtor.Key,
+                ToUser = creditor.Key,
+                Amount = Math.Round(amount, 2)
+            });
         }
+
+        return result;
     }
 }
