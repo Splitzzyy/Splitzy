@@ -124,6 +124,7 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> CreateGroup([FromBody] CreateGroupRequest request)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var creatorUserId = HttpContext.GetCurrentUserId();
@@ -172,7 +173,8 @@ namespace splitzy_dotnet.Controllers
 
                 _context.GroupMembers.AddRange(groupMembers);
                 await _context.SaveChangesAsync();
-
+                // COMMIT transaction only if everything above succeeded
+                await transaction.CommitAsync();
                 /* 🔔 SEND EMAILS HERE */
                 try
                 {
@@ -211,6 +213,7 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError($"Exception from CreateGroup : {ex.Message}");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
