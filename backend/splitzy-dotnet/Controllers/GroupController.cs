@@ -124,6 +124,7 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> CreateGroup([FromBody] CreateGroupRequest request)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 var creatorUserId = HttpContext.GetCurrentUserId();
@@ -172,23 +173,31 @@ namespace splitzy_dotnet.Controllers
 
                 _context.GroupMembers.AddRange(groupMembers);
                 await _context.SaveChangesAsync();
-
+                // COMMIT transaction only if everything above succeeded
+                await transaction.CommitAsync();
                 /* 🔔 SEND EMAILS HERE */
-                var emailTasks = users
-                                .Where(u => u.UserId != creator.UserId)
-                                .Select(u =>
-                                {
-                                    var html = new GroupAddedTemplate()
-                                        .Build(u.Name, request.GroupName, creator.Name);
+                try
+                {
+                    var emailTasks = users
+                        .Where(u => u.UserId != creator.UserId)
+                        .Select(u =>
+                        {
+                            var html = new GroupAddedTemplate()
+                                .Build(u.Name, request.GroupName, creator.Name);
 
                                     return _emailService.SendAsync(
                                         u.Email,
                                         $"You were added to {request.GroupName}",
                                         html
                                     );
-                                });
+                        });
 
-                await Task.WhenAll(emailTasks);
+                    await Task.WhenAll(emailTasks);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Group created, but emails failed: {ex.Message}");
+                }
 
                 return Ok(new
                 {
@@ -204,6 +213,7 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError($"Exception from CreateGroup : {ex.Message}");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
