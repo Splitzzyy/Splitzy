@@ -174,21 +174,28 @@ namespace splitzy_dotnet.Controllers
                 await _context.SaveChangesAsync();
 
                 /* 🔔 SEND EMAILS HERE */
-                var emailTasks = users
-                                .Where(u => u.UserId != creator.UserId)
-                                .Select(u =>
-                                {
-                                    var html = new GroupAddedTemplate()
-                                        .Build(u.Name, request.GroupName, creator.Name);
+                try
+                {
+                    var emailTasks = users
+                        .Where(u => u.UserId != creator.UserId)
+                        .Select(u =>
+                        {
+                            var html = new GroupAddedTemplate()
+                                .Build(u.Name, request.GroupName, creator.Name);
 
                                     return _emailService.SendAsync(
                                         u.Email,
                                         $"You were added to {request.GroupName}",
                                         html
                                     );
-                                });
+                        });
 
-                await Task.WhenAll(emailTasks);
+                    await Task.WhenAll(emailTasks);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Group created, but emails failed: {ex.Message}");
+                }
 
                 return Ok(new
                 {
