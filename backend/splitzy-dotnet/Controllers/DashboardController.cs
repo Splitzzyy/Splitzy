@@ -80,17 +80,20 @@ namespace splitzy_dotnet.Controllers
                 }
             }
 
-            var groupWiseSummary = balances
-                .Join(groupMemberships,
-                    b => b.GroupId,
-                    gm => gm.GroupId,
-                    (b, gm) => new GroupSummary
-                    {
-                        GroupId = gm.GroupId,
-                        GroupName = gm.Group.Name,
-                        NetBalance = b.NetBalance
-                    })
-                .ToList();
+            var groupWiseSummary = groupMemberships
+                                        .Select(gm =>
+                                        {
+                                            var balance = balances
+                                                .FirstOrDefault(b => b.GroupId == gm.GroupId);
+
+                                            return new GroupSummary
+                                            {
+                                                GroupId = gm.GroupId,
+                                                GroupName = gm.Group.Name,
+                                                NetBalance = balance?.NetBalance ?? 0
+                                            };
+                                        })
+                                        .ToList();
 
             return Ok(new UserDTO
             {
