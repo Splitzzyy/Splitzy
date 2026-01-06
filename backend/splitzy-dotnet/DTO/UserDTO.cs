@@ -61,4 +61,9 @@
         public int OwedToUserId { get; set; } // who will receive
     }
 
+    public class AddUsersToGroupRequest
+    {
+        public List<string> UserEmails { get; set; } = new();
+    }
+
 }
