@@ -34,18 +34,26 @@ namespace splitzy_dotnet.Controllers
             if (balances.Count != 2)
                 return BadRequest("Invalid users");
 
-            var payer = balances.Single(b => b.UserId == dto.PaidByUserId);
-            var receiver = balances.Single(b => b.UserId == dto.PaidToUserId);
+            var payer = balances.Single(b => b.UserId == dto.PaidByUserId); // owes
+            var receiver = balances.Single(b => b.UserId == dto.PaidToUserId); // owed
 
-            // validations
-            if (payer.NetBalance < dto.Amount)
-                return BadRequest($"You can only settle up to {payer.NetBalance}");
+            // ✅ VALIDATIONS
+            if (payer.NetBalance >= 0)
+                return BadRequest("Payer does not owe money");
 
-            if (receiver.NetBalance < dto.Amount)
-                return BadRequest($"Receiver balance is only {receiver.NetBalance}");
+            if (receiver.NetBalance <= 0)
+                return BadRequest("Receiver is not owed money");
 
-            // ✅ UPDATE GROUP_BALANCES (THIS WAS THE MISSING LOGIC YOU EXPECTED)
-            payer.NetBalance -= dto.Amount;
+            var maxAllowed = Math.Min(
+                Math.Abs(payer.NetBalance),
+                receiver.NetBalance
+            );
+
+            if (dto.Amount > maxAllowed)
+                return BadRequest($"Maximum allowed is {maxAllowed}");
+
+            // ✅ UPDATE BALANCES
+            payer.NetBalance += dto.Amount;
             receiver.NetBalance -= dto.Amount;
 
             _context.Settlements.Add(new Settlement
@@ -54,17 +62,7 @@ namespace splitzy_dotnet.Controllers
                 PaidBy = dto.PaidByUserId,
                 PaidTo = dto.PaidToUserId,
                 Amount = dto.Amount,
-                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-            });
-
-            _context.ActivityLogs.Add(new ActivityLog
-            {
-                GroupId = dto.GroupId,
-                UserId = dto.PaidByUserId,
-                ActionType = "SettleUp",
-                Description = $"Paid {dto.Amount}",
-                Amount = dto.Amount,
-                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                CreatedAt = DateTime.UtcNow
             });
 
             await _context.SaveChangesAsync();
@@ -77,7 +75,6 @@ namespace splitzy_dotnet.Controllers
                 amount = dto.Amount
             });
         }
-
 
 
     }

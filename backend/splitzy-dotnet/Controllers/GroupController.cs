@@ -184,11 +184,11 @@ namespace splitzy_dotnet.Controllers
                             var html = new GroupAddedTemplate()
                                 .Build(u.Name, request.GroupName, creator.Name);
 
-                                    return _emailService.SendAsync(
-                                        u.Email,
-                                        $"You were added to {request.GroupName}",
-                                        html
-                                    );
+                            return _emailService.SendAsync(
+                                u.Email,
+                                $"You were added to {request.GroupName}",
+                                html
+                            );
                         });
 
                     await Task.WhenAll(emailTasks);
@@ -272,7 +272,7 @@ namespace splitzy_dotnet.Controllers
                         netBalances[exp.PaidByUserId] += exp.Amount;
                 }
 
-                decimal groupBalance = netBalances.Sum(x => x.Value);
+                decimal groupBalance = allExpenses.Sum(e => e.Amount);
                 decimal youOwe = netBalances[userId] < 0 ? Math.Abs(netBalances[userId]) : 0;
                 decimal youAreOwed = netBalances[userId] > 0 ? netBalances[userId] : 0;
 
