@@ -69,7 +69,7 @@ export class GroupsComponent implements OnInit {
       this.groupData = {
         id: data.groupId,
         name: data.name,
-        balance: data.balances?.totalBalance ?? data.groupBalance ?? 0,
+        balance: data.groupBalance ?? 0,
         description: '',
         memberCount: data.membersCount,
         createdDate: data.created
