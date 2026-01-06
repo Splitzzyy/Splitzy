@@ -64,7 +64,7 @@ namespace splitzy_dotnet.Controllers
                 PaidBy = dto.PaidByUserId,
                 PaidTo = dto.PaidToUserId,
                 Amount = dto.Amount,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             });
 
             // activity log
@@ -75,7 +75,7 @@ namespace splitzy_dotnet.Controllers
                 ActionType = "SettleUp",
                 Description = $"Paid {dto.Amount}",
                 Amount = dto.Amount,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             });
 
             await _context.SaveChangesAsync();
