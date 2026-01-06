@@ -45,7 +45,6 @@ namespace splitzy_dotnet.Controllers
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
-            // Create expense
             var expense = new Expense
             {
                 Name = dto.Name,
@@ -59,19 +58,15 @@ namespace splitzy_dotnet.Controllers
             _context.Expenses.Add(expense);
             await _context.SaveChangesAsync();
 
-            // Expense splits
             _context.ExpenseSplits.AddRange(
-                dto.SplitDetails
-                    .Where(s => s.UserId != dto.PaidByUserId)
-                    .Select(s => new ExpenseSplit
-                    {
-                        ExpenseId = expense.ExpenseId,
-                        UserId = s.UserId,
-                        OwedAmount = s.Amount
-                    })
+                dto.SplitDetails.Select(s => new ExpenseSplit
+                {
+                    ExpenseId = expense.ExpenseId,
+                    UserId = s.UserId,
+                    OwedAmount = s.Amount
+                })
             );
 
-            // Ensure balances exist
             var affectedUserIds = dto.SplitDetails
                 .Select(s => s.UserId)
                 .Append(dto.PaidByUserId)
@@ -80,17 +75,16 @@ namespace splitzy_dotnet.Controllers
 
             var balances = await EnsureBalances(dto.GroupId, affectedUserIds);
 
-            // Update balances
-            balances.Single(b => b.UserId == dto.PaidByUserId)
-                    .NetBalance += dto.Amount;
-
-            foreach (var split in dto.SplitDetails.Where(s => s.UserId != dto.PaidByUserId))
+            foreach (var split in dto.SplitDetails)
             {
                 balances.Single(b => b.UserId == split.UserId)
                         .NetBalance -= split.Amount;
             }
 
-            // Activity log
+            // Payer always gets credited with full amount paid
+            balances.Single(b => b.UserId == dto.PaidByUserId)
+                    .NetBalance += dto.Amount;
+
             _context.ActivityLogs.Add(new ActivityLog
             {
                 GroupId = dto.GroupId,
@@ -111,6 +105,7 @@ namespace splitzy_dotnet.Controllers
                 expenseId = expense.ExpenseId
             });
         }
+
 
         /// <summary>
         /// Delete Expense

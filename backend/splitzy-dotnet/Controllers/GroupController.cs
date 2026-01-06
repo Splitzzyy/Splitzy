@@ -115,44 +115,43 @@ namespace splitzy_dotnet.Controllers
                                 .FirstOrDefaultAsync(g => g.GroupId == groupId);
         }
 
-        /// <summary>
-        /// Creates a new group and adds users as members.
-        /// </summary>
         [HttpPost("CreateGroup")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> CreateGroup([FromBody] CreateGroupRequest request)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            var creatorUserId = HttpContext.GetCurrentUserId();
+
+            var requestedEmails = request.UserEmails?
+                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList() ?? new List<string>();
+
+            var users = await _context.Users
+                .Where(u => u.UserId == creatorUserId || requestedEmails.Contains(u.Email))
+                .ToListAsync();
+
+            var creator = users.FirstOrDefault(u => u.UserId == creatorUserId);
+            if (creator == null)
+                return Unauthorized("Creator not found");
+
+            var foundEmails = users
+                .Where(u => u.Email != null)
+                .Select(u => u.Email)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var missingEmails = requestedEmails
+                .Where(e => !foundEmails.Contains(e))
+                .ToList();
+
+            if (missingEmails.Any())
+                return NotFound($"User(s) not found: {string.Join(", ", missingEmails)}");
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+
             try
             {
-                var creatorUserId = HttpContext.GetCurrentUserId();
-
-                var creator = await _context.Users
-                    .FirstOrDefaultAsync(u => u.UserId == creatorUserId);
-
-                if (creator == null)
-                    return Unauthorized("Creator not found");
-
-                // Fetch users from emails
-                List<User> users = await FetchUsersByEmails(request);
-
-                // Validate missing emails
-                var foundEmails = users.Select(u => u.Email)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                var missingEmails = request.UserEmails
-                    .Where(email => !foundEmails.Contains(email))
-                    .ToList();
-
-                if (missingEmails.Any())
-                    return NotFound($"User(s) not found: {string.Join(", ", missingEmails)}");
-
-                // Ensure creator is added
-                if (!users.Any(u => u.UserId == creator.UserId))
-                    users.Add(creator);
-
                 var group = new Group
                 {
                     Name = request.GroupName,
@@ -160,43 +159,46 @@ namespace splitzy_dotnet.Controllers
                 };
 
                 _context.Groups.Add(group);
-                await _context.SaveChangesAsync();
 
                 var groupMembers = users
                     .DistinctBy(u => u.UserId)
                     .Select(u => new GroupMember
                     {
-                        GroupId = group.GroupId,
+                        Group = group,
                         UserId = u.UserId,
                         JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                     });
 
                 _context.GroupMembers.AddRange(groupMembers);
+
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                /* 🔔 SEND EMAILS HERE */
-                try
-                {
-                    var emailTasks = users
-                        .Where(u => u.UserId != creator.UserId)
-                        .Select(u =>
-                        {
-                            var html = new GroupAddedTemplate()
-                                .Build(u.Name, request.GroupName, creator.Name);
+                await tx.CommitAsync();
 
-                            return _emailService.SendAsync(
-                                u.Email,
-                                $"You were added to {request.GroupName}",
-                                html
-                            );
-                        });
-
-                    await Task.WhenAll(emailTasks);
-                }
-                catch (Exception ex)
+                _ = Task.Run(async () =>
                 {
-                    _logger.LogError($"Group created, but emails failed: {ex.Message}");
-                }
+                    try
+                    {
+                        var emailTasks = users
+                            .Where(u => u.UserId != creator.UserId)
+                            .Select(u =>
+                            {
+                                var html = new GroupAddedTemplate()
+                                    .Build(u.Name, request.GroupName, creator.Name);
+
+                                return _emailService.SendAsync(
+                                    u.Email,
+                                    $"You were added to {request.GroupName}",
+                                    html
+                                );
+                            });
+
+                        await Task.WhenAll(emailTasks);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send group emails");
+                    }
+                });
 
                 return Ok(new
                 {
@@ -212,11 +214,12 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                _logger.LogError($"Exception from CreateGroup : {ex.Message}");
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Exception from CreateGroup");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
+
 
         private async Task<List<User>> FetchUsersByEmails(CreateGroupRequest request)
         {
@@ -235,46 +238,57 @@ namespace splitzy_dotnet.Controllers
         public async Task<ActionResult> GetGroupOverview(int groupId)
         {
             int userId = HttpContext.GetCurrentUserId();
+
             try
             {
+                // 1️⃣ Group validation
                 var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == groupId);
                 if (group == null)
                     return NotFound("Group not found.");
 
-                // Ensure the current user is a member of the group before returning overview data
                 var isMember = await _context.GroupMembers
                     .AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
                 if (!isMember)
                     return Forbid();
 
-                List<int> members = await GetUserIdsByGroup(groupId);
+                // 2️⃣ Members
+                var members = await _context.GroupMembers
+                    .Where(gm => gm.GroupId == groupId)
+                    .Select(gm => gm.UserId)
+                    .ToListAsync();
 
+                // 3️⃣ User maps
                 var userNameMap = await _context.Users
                     .Where(u => members.Contains(u.UserId))
                     .ToDictionaryAsync(u => u.UserId, u => u.Name);
 
+                var userDetailsMap = await _context.Users
+                    .Where(u => members.Contains(u.UserId))
+                    .ToDictionaryAsync(
+                        u => u.UserId,
+                        u => new { u.Name, u.Email });
+
+                // 4️⃣ 🔥 SINGLE SOURCE OF TRUTH — BALANCES
+                var balances = await _context.GroupBalances
+                    .Where(b => b.GroupId == groupId)
+                    .ToDictionaryAsync(b => b.UserId, b => b.NetBalance);
+
+                // Ensure all members exist
+                foreach (var memberId in members)
+                {
+                    if (!balances.ContainsKey(memberId))
+                        balances[memberId] = 0;
+                }
+
+                var userBalance = balances[userId];
+                decimal youOwe = userBalance < 0 ? Math.Abs(userBalance) : 0;
+                decimal youAreOwed = userBalance > 0 ? userBalance : 0;
+
+                // 5️⃣ Expenses (history only)
                 var allExpenses = await _context.Expenses
                     .Where(e => e.GroupId == groupId)
                     .Include(e => e.ExpenseSplits)
                     .ToListAsync();
-
-                var netBalances = members.ToDictionary(id => id, id => 0.0m);
-
-                foreach (var exp in allExpenses)
-                {
-                    foreach (var split in exp.ExpenseSplits)
-                    {
-                        if (netBalances.ContainsKey(split.UserId))
-                            netBalances[split.UserId] -= split.OwedAmount;
-                    }
-
-                    if (netBalances.ContainsKey(exp.PaidByUserId))
-                        netBalances[exp.PaidByUserId] += exp.Amount;
-                }
-
-                decimal groupBalance = allExpenses.Sum(e => e.Amount);
-                decimal youOwe = netBalances[userId] < 0 ? Math.Abs(netBalances[userId]) : 0;
-                decimal youAreOwed = netBalances[userId] > 0 ? netBalances[userId] : 0;
 
                 var expenses = allExpenses.Select(e => new
                 {
@@ -283,19 +297,22 @@ namespace splitzy_dotnet.Controllers
                     e.Amount,
                     PaidBy = userNameMap[e.PaidByUserId],
                     CreatedAt = e.CreatedAt?.ToString("MMM dd") ?? string.Empty,
-                    YouOwe = e.ExpenseSplits.FirstOrDefault(s => s.UserId == userId)?.OwedAmount ?? 0
+                    YouOwe = e.ExpenseSplits
+                        .FirstOrDefault(s => s.UserId == userId)?.OwedAmount ?? 0
                 });
 
-                var allUserSummaries = netBalances.Select(kvp => new
+                // 6️⃣ User summaries (UPDATED after settlement)
+                var userSummaries = balances.Select(b => new
                 {
-                    UserId = kvp.Key,
-                    Name = userNameMap[kvp.Key],
-                    Balance = Math.Round(kvp.Value, 2),
+                    UserId = b.Key,
+                    Name = userNameMap[b.Key],
+                    Balance = Math.Round(b.Value, 2)
                 });
 
-                var userDetailsMap = await _context.Users
-                    .Where(u => members.Contains(u.UserId))
-                    .ToDictionaryAsync(u => u.UserId, u => new { u.Name, u.Email });
+                // 7️⃣ Group balance (sum of positives == sum of abs negatives)
+                var groupBalance = balances.Values
+                    .Where(v => v > 0)
+                    .Sum(v => v);
 
                 return Ok(new
                 {
@@ -307,25 +324,26 @@ namespace splitzy_dotnet.Controllers
                     Expenses = expenses,
                     Balances = new
                     {
-                        TotalBalance = Math.Round(netBalances[userId], 2),
+                        TotalBalance = Math.Round(userBalance, 2),
                         YouOwe = Math.Round(youOwe, 2),
                         YouAreOwed = Math.Round(youAreOwed, 2)
                     },
-                    Members = userDetailsMap.Select(kvp => new
+                    Members = userDetailsMap.Select(m => new
                     {
-                        MemberId = kvp.Key,
-                        MemberName = kvp.Value.Name,
-                        MemberEmail = kvp.Value.Email
+                        MemberId = m.Key,
+                        MemberName = m.Value.Name,
+                        MemberEmail = m.Value.Email
                     }),
-                    UserSummaries = allUserSummaries
+                    UserSummaries = userSummaries
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Exception from GetGroupOverview : {ex.Message}");
+                _logger.LogError(ex, "Exception from GetGroupOverview");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
+
 
         private async Task<List<int>> GetUserIdsByGroup(int groupId)
         {
