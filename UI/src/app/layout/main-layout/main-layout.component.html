@@ -87,7 +87,7 @@
 
                 <!-- Action buttons with enhanced styling -->
                 <div class="flex-end flex flex-col gap-4 mt-8 px-6 pb-8">
-                    <button class="action-btn bg-gradient-to-br from-orange-500 to-red-500 expense-btn group"
+                    <!-- <button class="action-btn bg-gradient-to-br from-orange-500 to-red-500 expense-btn group"
                         (click)="openModal('expense')">
                         <div class="btn-content">
                             <div class="btn-icon">
@@ -99,9 +99,9 @@
                             <span class="btn-text">Add an expense</span>
                         </div>
                         <div class="btn-glow expense-glow"></div>
-                    </button>
+                    </button> -->
 
-                    <button class="action-btn settle-btn group" (click)="openModal('settle')">
+                    <!-- <button class="action-btn settle-btn group" (click)="openModal('settle')">
                         <div class="btn-content">
                             <div class="btn-icon">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +112,7 @@
                             <span class="btn-text">Settle Up</span>
                         </div>
                         <div class="btn-glow settle-glow"></div>
-                    </button>
+                    </button> -->
 
                     <button class="action-btn bg-red-900 hover:bg-red-700 text-white text-center px-4 py-2 rounded flex items-center gap-2"
                         (click)="logout()">
@@ -133,7 +133,7 @@
     </nav>
 
     <main class="content">
-        <app-expense-modal 
+        <!-- <app-expense-modal 
             *ngIf="showExpenseModal && !showLoader"
             [groupId]="selectedGroupId!"
             [members]="selectedGroupMembers"
@@ -141,6 +141,15 @@
             (close)="closeExpenseModal()"
             (save)="onExpenseSaved($event)">
         </app-expense-modal>
+
+        <app-settleup
+            *ngIf="showSettleModal && !showLoader"
+        [groupId]="selectedGroupId!"
+        [members]="selectedGroupMembers"
+        [currentUserId]="userIdNumber"
+        (close)="closeSettleModal()"
+        (save)="onSettleUpSaved($event)">
+        </app-settleup> -->
         <app-loader *ngIf="showLoader"></app-loader>
         <router-outlet *ngIf="!showLoader"></router-outlet>
     </main>

@@ -16,5 +16,6 @@ export const environment = {
         RECENT: '/api/Dashboard/recent',
         FORGOTPASS: '/api/Auth/forget-password',
         SETUPPASS: '/api/Auth/verify',
+        SETTLEUP: '/settle-up',
     }
 };

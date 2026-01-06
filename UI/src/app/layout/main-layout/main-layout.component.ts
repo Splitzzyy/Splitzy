@@ -3,7 +3,6 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SplitzService } from '../../splitz/splitz.service';
 import { LoaderComponent } from '../../splitz/loader/loader.component';
-import { ExpenseModalComponent } from '../../splitz/dashboard/expense-modal/expense-modal.component';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -12,7 +11,6 @@ import { environment } from '../../environments/environment';
     RouterModule,
     CommonModule,
     LoaderComponent,
-    ExpenseModalComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
@@ -21,7 +19,7 @@ export class MainLayoutComponent implements OnInit {
   isModalOpen: boolean = false;
   modalType: 'expense' | 'settle' = 'expense';
   userId: string | null = null;
-  userIdNumber: number | null = null;
+  userIdNumber: any = null;
   token: string | null = null;
   showLoader: boolean = true;
   showExpenseModal: boolean = false;
@@ -29,10 +27,11 @@ export class MainLayoutComponent implements OnInit {
   selectedGroupMembers: any[] = [];
   allGroups: any[] = [];
   mobileMenuOpen: boolean = false;
+  showSettleModal: boolean = false;
 
   constructor(private router: Router, private spltizService: SplitzService) {
   }
-  
+
   ngOnInit(): void {
     this.userId = localStorage.getItem('userId');
     if (this.userId) {
@@ -50,7 +49,7 @@ export class MainLayoutComponent implements OnInit {
       this.spltizService.setUserId(Number(localUserId));
       this.userIdNumber = Number(localUserId);
       // no token for local development
-      try { this.spltizService.setToken(''); } catch {}
+      try { this.spltizService.setToken(''); } catch { }
       this.userId = localUserId;
       this.token = '';
       this.router.navigate(['/dashboard']);
@@ -76,10 +75,9 @@ export class MainLayoutComponent implements OnInit {
 
   openModal(type: 'expense' | 'settle') {
     this.modalType = type;
-    this.showLoader = true;
-    this.closeMobileMenu(); 
-    
+    this.closeMobileMenu();
     if (type === 'expense') {
+      this.showLoader = true;
       // Fetch all groups for the expense modal
       this.spltizService.onFetchDashboardData().subscribe((data: any) => {
         this.allGroups = data.groupWiseSummary || [];
@@ -90,7 +88,10 @@ export class MainLayoutComponent implements OnInit {
           alert('No groups available. Please create a group first.');
         }
       });
-    } else {
+    } else if (type === 'settle') {
+      this.showSettleModal = true;
+    }
+    else {
       this.isModalOpen = true;
     }
   }
@@ -112,12 +113,23 @@ export class MainLayoutComponent implements OnInit {
     this.selectedGroupMembers = [];
   }
 
+  closeSettleModal() {
+    this.showSettleModal = false;
+  }
+
+  onSettleUpSaved(settleData: any) {
+    console.log('Settle up data:', settleData);
+    // Send to your API here
+    // this.yourService.settleUp(settleData).subscribe(...)
+    this.closeSettleModal();
+  }
+
   onExpenseSaved(expense: any): void {
     this.showLoader = true;
     console.log('Saving expense:', expense);
     this.spltizService.onSaveExpense(expense).subscribe({
       next: (response: any) => {
-        this.showLoader = false; 
+        this.showLoader = false;
         console.log('Expense saved successfully:', response);
         this.closeExpenseModal();
         // Show success message

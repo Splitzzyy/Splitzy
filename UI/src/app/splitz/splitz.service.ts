@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData } from './splitz.model';
+import { GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest } from './splitz.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +16,7 @@ export class SplitzService {
   private tokenSubject = new BehaviorSubject<string | null>(null);
   public userId$ = this.userIdSubject.asObservable();
   public token$ = this.tokenSubject.asObservable();
+  private groupWiseSummary: any;
 
   constructor(private http: HttpClient, private router: Router) { }
 
@@ -171,5 +172,9 @@ export class SplitzService {
   setupPassword(resetData: ResetData): Observable<any> {
     const url = `${this.BASE_URL}${this.ENDPOINTS.SETUPPASS}`;
     return this.http.post<any>(url, resetData);
+  }
+  onSettleExpense(request: SettleUpRequest) {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.SETTLEUP}`;
+    return this.http.post<any>(url, request);
   }
 }
