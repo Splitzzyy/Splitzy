@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SplitzService } from '../splitz.service';
-import { CommonModule } from '@angular/common';
+
 import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterRequest } from '../splitz.model';
 
 
 @Component({
   selector: 'app-register-page',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './register-page.component.html',
   styleUrl: './register-page.component.css'
 })

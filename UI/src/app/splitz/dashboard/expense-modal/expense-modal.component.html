@@ -1,13 +1,13 @@
 <div class="modal-overlay" (click)="closeModal()">
   <div class="modal-container" (click)="$event.stopPropagation()">
-    
+
     <!-- Header -->
     <div class="modal-header">
       <div class="header-content">
         <div class="icon-wrapper">
           <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 4v16m8-8H4"></path>
+            d="M12 4v16m8-8H4"></path>
           </svg>
         </div>
         <h2 class="title">Add an Expense</h2>
@@ -25,158 +25,162 @@
 
         <!-- Left Column -->
         <div class="left-column">
-          
+
           <!-- Amount Input -->
           <div class="form-group">
             <label class="label">
               <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               Amount
             </label>
             <div class="input-wrapper">
               <span class="currency-symbol">₹</span>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 [(ngModel)]="amount"
                 (ngModelChange)="onMemberToggle()"
-                class="input-field-amount" 
+                class="input-field-amount"
                 placeholder="0.00"
                 step="0.01"
                 min="0"
-              >
-            </div>
-          </div>
-
-          <!-- Description Input -->
-          <div class="form-group">
-            <label class="label">
-              <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 6h16M4 12h16m-7 6h7"></path>
-              </svg>
-              Description
-            </label>
-            <input 
-              type="text" 
-              [(ngModel)]="description"
-              class="input-field" 
-              placeholder="e.g., Dinner, Coffee, Movie tickets"
-            >
-          </div>
-
-          <!-- Paid By Dropdown -->
-          <div class="form-group">
-            <label class="label">
-              <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
-              Paid By
-            </label>
-            <div class="select-wrapper">
-              <select 
-                [(ngModel)]="paidBy" 
-                class="select-field"
-              >
-                <option [ngValue]="null" disabled>Select who paid</option>
-                <option *ngFor="let member of splitMembers" [ngValue]="member.id">
-                  {{member.name}}
-                </option>
-              </select>
-              <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Right Column - Split Details -->
-        <div class="right-column">
-          <label class="label mb-3">
-            <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
-            Split Between
-          </label>
-          
-          <!-- Select All Checkbox -->
-          <div class="select-all-wrapper">
-            <input 
-              type="checkbox"
-              [(ngModel)]="selectAllChecked"
-              (change)="toggleSelectAll()"
-              class="checkbox"
-              id="selectAll"
-            >
-            <label for="selectAll" class="checkbox-label">
-              Select All
-            </label>
-          </div>
-
-          <!-- Members List -->
-          <div class="members-list">
-            <div *ngFor="let member of splitMembers" class="member-card">
-              <div class="member-info">
-                <input 
-                  type="checkbox"
-                  [(ngModel)]="member.isSelected"
-                  (change)="onMemberToggle()"
-                  class="checkbox"
-                  [id]="'member-' + member.id"
                 >
-                <div class="avatar" [style.background]="getAvatarColor(member.avatarLetter)">
-                  <span class="avatar-text">{{member.avatarLetter}}</span>
-                </div>
-                <label [for]="'member-' + member.id" class="member-name">
-                  {{member.name}}
-                </label>
               </div>
-              <span class="split-amount">₹{{getSplitAmount(member) | number:'1.2-2'}}</span>
             </div>
-          </div>
 
-          <!-- Total Split Amount -->
-          <div class="total-card">
-            <div class="total-content">
-              <svg class="total-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-              </svg>
-              <div class="total-text">
-                <span class="total-label">Total to split:</span>
-                <span class="total-amount">₹{{amount | number:'1.2-2'}}</span>
+            <!-- Description Input -->
+            <div class="form-group">
+              <label class="label">
+                <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+                Description
+              </label>
+              <input
+                type="text"
+                [(ngModel)]="description"
+                class="input-field"
+                placeholder="e.g., Dinner, Coffee, Movie tickets"
+                >
               </div>
+
+              <!-- Paid By Dropdown -->
+              <div class="form-group">
+                <label class="label">
+                  <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                  Paid By
+                </label>
+                <div class="select-wrapper">
+                  <select
+                    [(ngModel)]="paidBy"
+                    class="select-field"
+                    >
+                    <option [ngValue]="null" disabled>Select who paid</option>
+                    @for (member of splitMembers; track member) {
+                      <option [ngValue]="member.id">
+                        {{member.name}}
+                      </option>
+                    }
+                  </select>
+                  <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Right Column - Split Details -->
+            <div class="right-column">
+              <label class="label mb-3">
+                <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Split Between
+              </label>
+
+              <!-- Select All Checkbox -->
+              <div class="select-all-wrapper">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="selectAllChecked"
+                  (change)="toggleSelectAll()"
+                  class="checkbox"
+                  id="selectAll"
+                  >
+                  <label for="selectAll" class="checkbox-label">
+                    Select All
+                  </label>
+                </div>
+
+                <!-- Members List -->
+                <div class="members-list">
+                  @for (member of splitMembers; track member) {
+                    <div class="member-card">
+                      <div class="member-info">
+                        <input
+                          type="checkbox"
+                          [(ngModel)]="member.isSelected"
+                          (change)="onMemberToggle()"
+                          class="checkbox"
+                          [id]="'member-' + member.id"
+                          >
+                          <div class="avatar" [style.background]="getAvatarColor(member.avatarLetter)">
+                            <span class="avatar-text">{{member.avatarLetter}}</span>
+                          </div>
+                          <label [for]="'member-' + member.id" class="member-name">
+                            {{member.name}}
+                          </label>
+                        </div>
+                        <span class="split-amount">₹{{getSplitAmount(member) | number:'1.2-2'}}</span>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Total Split Amount -->
+                  <div class="total-card">
+                    <div class="total-content">
+                      <svg class="total-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                      </svg>
+                      <div class="total-text">
+                        <span class="total-label">Total to split:</span>
+                        <span class="total-amount">₹{{amount | number:'1.2-2'}}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="action-buttons">
+                <button
+                  (click)="closeModal()"
+                  class="btn btn-cancel"
+                  >
+                  Cancel
+                </button>
+                <button
+                  (click)="saveExpense()"
+                  [disabled]="!isValid()"
+                  class="btn btn-submit"
+                  >
+                  <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Add Expense
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
-
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <button 
-          (click)="closeModal()"
-          class="btn btn-cancel"
-        >
-          Cancel
-        </button>
-        <button 
-          (click)="saveExpense()"
-          [disabled]="!isValid()"
-          class="btn btn-submit"
-        >
-          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 4v16m8-8H4"></path>
-          </svg>
-          Add Expense
-        </button>
-      </div>
-
-    </div>
-  </div>
-</div>

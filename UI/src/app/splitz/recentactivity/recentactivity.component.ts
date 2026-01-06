@@ -12,7 +12,7 @@ interface ActivityItem {
   groupName: string;
   createdAt: string;
   impact: {
-    type: 'get_back' | 'owe';
+    type: 'get_back' | 'owe' | 'info';
     amount: number;
   };
 }

@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-group-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './group-modal.component.html',
   styleUrls: ['./group-modal.component.css']
 })

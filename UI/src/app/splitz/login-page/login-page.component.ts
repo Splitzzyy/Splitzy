@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SplitzService } from '../splitz.service';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { LoaderComponent } from '../loader/loader.component';
 import { LoginRequest, LoginResponse } from '../splitz.model';
 import { environment } from '../../environments/environment';
@@ -13,7 +13,7 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, LoaderComponent],
+  imports: [ReactiveFormsModule, LoaderComponent],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css'
 })

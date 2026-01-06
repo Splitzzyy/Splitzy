@@ -1,61 +1,65 @@
 <div class="max-w-4xl mx-auto p-6">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">Recent activity</h2>
-        </div>
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-xl font-semibold text-gray-900">Recent activity</h2>
+    </div>
 
-        <div class="divide-y divide-gray-100">
-            <div *ngFor="let activity of activityData; trackBy: trackByIndex"
-                class="p-6 hover:bg-gray-50 transition-colors cursor-pointer">
-
-                <div class="flex items-start space-x-4">
-                    <!-- Icon -->
-                    <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <i [class]="getExpenseIcon(activity.expenseName) + ' text-emerald-600'"></i>
-                    </div>
-
-                    <!-- Content -->
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-sm text-gray-900">
-                                    <span class="font-medium">{{ activity.actor }}</span>
-                                    <span class="text-gray-600"> {{ activity.action }} "</span>
-                                    <span class="font-medium">{{ activity.expenseName }}</span>
-                                    <span class="text-gray-600">" in "</span>
-                                    <span class="font-medium">{{ activity.groupName }}</span>
-                                    <span class="text-gray-600">".</span>
-                                </p>
-
-                                <div class="mt-2 flex items-center space-x-4">
+    <div class="divide-y divide-gray-100">
+      @for (activity of activityData; track trackByIndex($index, activity)) {
+        <div
+          class="p-6 hover:bg-gray-50 transition-colors cursor-pointer">
+          <div class="flex items-start space-x-4">
+            <!-- Icon -->
+            <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <i [class]="getExpenseIcon(activity.expenseName) + ' text-emerald-600'"></i>
+            </div>
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm text-gray-900">
+                    <span class="font-medium">{{ activity.actor }}</span>
+                    <span class="text-gray-600"> {{ activity.action }} "</span>
+                    <span class="font-medium">{{ activity.expenseName }}</span>
+                    <span class="text-gray-600">" in "</span>
+                    <span class="font-medium">{{ activity.groupName }}</span>
+                    <span class="text-gray-600">".</span>
+                  </p>
+                  <div class="mt-2 flex items-center space-x-4">
                                     <span [ngClass]="{
                       'text-emerald-600': activity.impact.type === 'get_back',
-                      'text-red-600': activity.impact.type === 'owe'
+                      'text-red-600': activity.impact.type === 'owe',
+                      'text-gray-600': activity.impact.type === 'info'
                     }" class="font-semibold">
-                                        <ng-container *ngIf="activity.impact.type === 'get_back'">
-                                            You get back ₹{{ activity.impact.amount | number:'1.2-2' }}
-                                        </ng-container>
-                                        <ng-container *ngIf="activity.impact.type === 'owe'">
-                                            You owe ₹{{ activity.impact.amount | number:'1.2-2' }}
-                                        </ng-container>
-                                    </span>
-                                </div>
-
-                                <p class="text-xs text-gray-500 mt-1">
-                                    {{ formatDate(activity.createdAt) }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                      @if (activity.impact.type === 'get_back') {
+                        You get back ₹{{ activity.impact.amount | number:'1.2-2' }}
+                      }
+                      @if (activity.impact.type === 'owe') {
+                        You owe ₹{{ activity.impact.amount | number:'1.2-2' }}
+                      }
+                      @if (activity.impact.type === 'info') {
+                        You settled up ₹{{ activity.impact.amount | number:'1.2-2' }}
+                      }
+                    </span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">
+                    {{ formatDate(activity.createdAt) }}
+                  </p>
                 </div>
+              </div>
             </div>
-
-            <!-- Empty state -->
-            <div *ngIf="activityData.length === 0" class="p-12 text-center">
-                <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
-                <p class="text-gray-500">Start by adding an expense to see activity here.</p>
-            </div>
+          </div>
         </div>
+      }
+
+      <!-- Empty state -->
+      @if (activityData.length === 0) {
+        <div class="p-12 text-center">
+          <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
+          <p class="text-gray-500">Start by adding an expense to see activity here.</p>
+        </div>
+      }
     </div>
+  </div>
 </div>

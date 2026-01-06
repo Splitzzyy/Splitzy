@@ -1,156 +1,160 @@
 <div class="main-layout m-4">
-    <!-- Mobile Menu Toggle Button -->
-    <button class="mobile-menu-toggle lg:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-3 rounded-lg shadow-lg hover:bg-emerald-700 active:scale-95 transition-all duration-200"
-            (click)="toggleMobileMenu()">
-        <svg class="w-6 h-6 transition-transform duration-300" 
-             [class.rotate-90]="mobileMenuOpen"
-             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  [attr.d]="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'"></path>
-        </svg>
-    </button>
+  <!-- Mobile Menu Toggle Button -->
+  <button class="mobile-menu-toggle lg:hidden fixed top-4 left-4 z-50 bg-emerald-600 text-white p-3 rounded-lg shadow-lg hover:bg-emerald-700 active:scale-95 transition-all duration-200"
+    (click)="toggleMobileMenu()">
+    <svg class="w-6 h-6 transition-transform duration-300"
+      [class.rotate-90]="mobileMenuOpen"
+      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      [attr.d]="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'"></path>
+    </svg>
+  </button>
 
-    <!-- Overlay for mobile -->
-    <div class="mobile-overlay lg:hidden fixed inset-0 bg-black/50 z-30 transition-opacity"
-         [class.opacity-0]="!mobileMenuOpen"
-         [class.pointer-events-none]="!mobileMenuOpen"
-         [class.opacity-100]="mobileMenuOpen"
-         (click)="toggleMobileMenu()"></div>
+  <!-- Overlay for mobile -->
+  <div class="mobile-overlay lg:hidden fixed inset-0 bg-black/50 z-30 transition-opacity"
+    [class.opacity-0]="!mobileMenuOpen"
+    [class.pointer-events-none]="!mobileMenuOpen"
+    [class.opacity-100]="mobileMenuOpen"
+  (click)="toggleMobileMenu()"></div>
 
-    <!-- Sidebar -->
-    <nav class="sidebar rounded-2xl relative overflow-hidden"
-         [class.sidebar-open]="mobileMenuOpen"
-         [class.sidebar-closed]="!mobileMenuOpen">
-        <!-- Animated background gradient -->
-        <div class="absolute inset-0 bg-emerald-900"></div>
+  <!-- Sidebar -->
+  <nav class="sidebar rounded-2xl relative overflow-hidden"
+    [class.sidebar-open]="mobileMenuOpen"
+    [class.sidebar-closed]="!mobileMenuOpen">
+    <!-- Animated background gradient -->
+    <div class="absolute inset-0 bg-emerald-900"></div>
 
-        <!-- Floating particles effect -->
-        <div class="absolute inset-0 overflow-hidden">
-            <div class="particle particle-1"></div>
-            <div class="particle particle-2"></div>
-            <div class="particle particle-3"></div>
-            <div class="particle particle-4"></div>
-            <div class="particle particle-5"></div>
+    <!-- Floating particles effect -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="particle particle-1"></div>
+      <div class="particle particle-2"></div>
+      <div class="particle particle-3"></div>
+      <div class="particle particle-4"></div>
+      <div class="particle particle-5"></div>
+    </div>
+
+    <div class="relative z-10">
+      <!-- Logo section with enhanced styling -->
+      <div class="text-center py-8 border-b border-white/10">
+        <div class="inline-flex items-center gap-3 group cursor-pointer">
+          <div class="mx-auto h-16 w-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+            <i class="fas fa-receipt text-white text-2xl"></i>
+          </div>
+          <h2 class="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-emerald-300 group-hover:to-white transition-all duration-300">
+            Splitz
+          </h2>
         </div>
+      </div>
 
-        <div class="relative z-10">
-            <!-- Logo section with enhanced styling -->
-            <div class="text-center py-8 border-b border-white/10">
-                <div class="inline-flex items-center gap-3 group cursor-pointer">
-                    <div class="mx-auto h-16 w-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-                        <i class="fas fa-receipt text-white text-2xl"></i>
-                    </div>
-                    <h2 class="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-emerald-300 group-hover:to-white transition-all duration-300">
-                        Splitz
-                    </h2>
+      <div class="flex flex-col justify-between min-h-[calc(80vh-2rem)]">
+        <!-- Navigation menu with enhanced styling -->
+        <ul class="text-center mt-20 space-y-4 px-6">
+          <li class="nav-item">
+            <a [routerLink]="['/dashboard']" routerLinkActive="active-menu"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="nav-link group"
+              (click)="closeMobileMenu()">
+              <div class="nav-link-content">
+                <div class="nav-icon">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 1v6m8-6v6"></path>
+                  </svg>
                 </div>
-            </div>
-
-            <div class="flex flex-col justify-between min-h-[calc(80vh-2rem)]">
-                <!-- Navigation menu with enhanced styling -->
-                <ul class="text-center mt-20 space-y-4 px-6">
-                    <li class="nav-item">
-                        <a [routerLink]="['/dashboard']" routerLinkActive="active-menu"
-                            [routerLinkActiveOptions]="{ exact: true }" 
-                            class="nav-link group"
-                            (click)="closeMobileMenu()">
-                            <div class="nav-link-content">
-                                <div class="nav-icon">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 1v6m8-6v6"></path>
-                                    </svg>
-                                </div>
-                                <span class="nav-text">Dashboard</span>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a [routerLink]="['/recent-activity']" routerLinkActive="active-menu"
-                            [routerLinkActiveOptions]="{ exact: true }" 
-                            class="nav-link group"
-                            (click)="closeMobileMenu()">
-                            <div class="nav-link-content">
-                                <div class="nav-icon">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <span class="nav-text">Recent Activity</span>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Action buttons with enhanced styling -->
-                <div class="flex-end flex flex-col gap-4 mt-8 px-6 pb-8">
-                    <!-- <button class="action-btn bg-gradient-to-br from-orange-500 to-red-500 expense-btn group"
-                        (click)="openModal('expense')">
-                        <div class="btn-content">
-                            <div class="btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 4v16m8-8H4"></path>
-                                </svg>
-                            </div>
-                            <span class="btn-text">Add an expense</span>
-                        </div>
-                        <div class="btn-glow expense-glow"></div>
-                    </button> -->
-
-                    <!-- <button class="action-btn settle-btn group" (click)="openModal('settle')">
-                        <div class="btn-content">
-                            <div class="btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <span class="btn-text">Settle Up</span>
-                        </div>
-                        <div class="btn-glow settle-glow"></div>
-                    </button> -->
-
-                    <button class="action-btn bg-red-900 hover:bg-red-700 text-white text-center px-4 py-2 rounded flex items-center gap-2"
-                        (click)="logout()">
-                        <div class="btn-content">
-                            <div class="btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
-                                </svg>
-                            </div>
-                            <span class="btn-text">Logout</span>
-                        </div>
-                    </button>
+                <span class="nav-text">Dashboard</span>
+              </div>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a [routerLink]="['/recent-activity']" routerLinkActive="active-menu"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="nav-link group"
+              (click)="closeMobileMenu()">
+              <div class="nav-link-content">
+                <div class="nav-icon">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
                 </div>
+                <span class="nav-text">Recent Activity</span>
+              </div>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Action buttons with enhanced styling -->
+        <div class="flex-end flex flex-col gap-4 mt-8 px-6 pb-8">
+          <!-- <button class="action-btn bg-gradient-to-br from-orange-500 to-red-500 expense-btn group"
+          (click)="openModal('expense')">
+          <div class="btn-content">
+            <div class="btn-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 4v16m8-8H4"></path>
+              </svg>
             </div>
+            <span class="btn-text">Add an expense</span>
+          </div>
+          <div class="btn-glow expense-glow"></div>
+        </button> -->
+
+        <!-- <button class="action-btn settle-btn group" (click)="openModal('settle')">
+        <div class="btn-content">
+          <div class="btn-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <span class="btn-text">Settle Up</span>
         </div>
-    </nav>
+        <div class="btn-glow settle-glow"></div>
+      </button> -->
 
-    <main class="content">
-        <!-- <app-expense-modal 
-            *ngIf="showExpenseModal && !showLoader"
-            [groupId]="selectedGroupId!"
-            [members]="selectedGroupMembers"
-            [currentUserId]="userIdNumber!"
-            (close)="closeExpenseModal()"
-            (save)="onExpenseSaved($event)">
-        </app-expense-modal>
+      <button class="action-btn bg-red-900 hover:bg-red-700 text-white text-center px-4 py-2 rounded flex items-center gap-2"
+        (click)="logout()">
+        <div class="btn-content">
+          <div class="btn-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+              </svg>
+            </div>
+            <span class="btn-text">Logout</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
 
-        <app-settleup
-            *ngIf="showSettleModal && !showLoader"
-        [groupId]="selectedGroupId!"
-        [members]="selectedGroupMembers"
-        [currentUserId]="userIdNumber"
-        (close)="closeSettleModal()"
-        (save)="onSettleUpSaved($event)">
-        </app-settleup> -->
-        <app-loader *ngIf="showLoader"></app-loader>
-        <router-outlet *ngIf="!showLoader"></router-outlet>
-    </main>
+<main class="content">
+  <!-- <app-expense-modal
+  *ngIf="showExpenseModal && !showLoader"
+  [groupId]="selectedGroupId!"
+  [members]="selectedGroupMembers"
+  [currentUserId]="userIdNumber!"
+  (close)="closeExpenseModal()"
+  (save)="onExpenseSaved($event)">
+</app-expense-modal>
+
+<app-settleup
+  *ngIf="showSettleModal && !showLoader"
+  [groupId]="selectedGroupId!"
+  [members]="selectedGroupMembers"
+  [currentUserId]="userIdNumber"
+  (close)="closeSettleModal()"
+  (save)="onSettleUpSaved($event)">
+</app-settleup> -->
+@if (showLoader) {
+  <app-loader></app-loader>
+}
+@if (!showLoader) {
+  <router-outlet></router-outlet>
+}
+</main>
 </div>
