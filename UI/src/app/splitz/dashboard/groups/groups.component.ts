@@ -143,16 +143,25 @@ export class GroupsComponent implements OnInit {
     });
   }
   onSettleUpSaved(expense: any) {
-    this.showSettleModal = false;
     this.splitzService.onSettleExpense(expense).subscribe({
-      next: (response) => {
-        console.log('Settle Up successfully', response);
+      next: (response: any) => {
+        if (response?.success) {
+          console.log('Settle up successful:', response);
 
-        this.fetchGroupData(this.groupId);
+          // close modal only on success
+          this.showSettleModal = false;
+
+          // refresh group/dashboard data
+          this.fetchGroupData(this.groupId);
+        } else {
+          // business failure (still HTTP 200)
+          console.error('Settle up failed:', response?.message);
+        }
       },
       error: (error) => {
-        console.error('Error settling up expense: ', error);
+        // HTTP or unexpected error
+        console.error('Error settling up expense:', error);
       }
-    })
+    });
   }
 }
