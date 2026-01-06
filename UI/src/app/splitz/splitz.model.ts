@@ -30,3 +30,14 @@ export interface GoogleLoginResponse{
     message: string;
     data: any;
 }
+export interface ResetData {
+    token: string,
+    newPassword: string,
+}
+
+export interface SettleUpRequest {
+  groupId: number;
+  paidByUserId: number;
+  paidToUserId: number;
+  amount: number;
+}

@@ -54,7 +54,7 @@ export const routes: Routes = [
                         .then(m => m.RecentactivityComponent),
             },
             {
-                path: 'group/:groupId',
+                path: 'group/:userId/:groupId',
                 loadComponent: () =>
                     import('./splitz/dashboard/groups/groups.component')
                         .then(m => m.GroupsComponent),

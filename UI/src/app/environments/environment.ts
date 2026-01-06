@@ -4,7 +4,6 @@ export const environment = {
     googleClientId: '181191664943-7db5glvs01ifeno7o78kotd9ujv910db.apps.googleusercontent.com',
     bypassAuthOnLocalhost: false,
     endpoints: {
-        SSOLOGIN: '/api/Auth/ssologin',
         GOOGLELOGIN: '/api/Auth/google-login',
         SECURE: '/api/Auth/secure',
         LOGIN: '/api/Auth/login',
@@ -17,5 +16,6 @@ export const environment = {
         RECENT: '/api/Dashboard/recent',
         FORGOTPASS: '/api/Auth/forget-password',
         SETUPPASS: '/api/Auth/verify',
+        SETTLEUP: '/settle-up',
     }
 };

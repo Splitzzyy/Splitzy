@@ -4,6 +4,7 @@ import { CommonModule, Location } from '@angular/common';
 import { SplitzService } from '../../splitz.service';
 import { firstValueFrom } from 'rxjs';
 import { ExpenseModalComponent } from '../expense-modal/expense-modal.component';
+import { SettleupComponent } from '../settleup/settleup.component';
 
 export interface Group {
   id: number;
@@ -18,7 +19,8 @@ export interface Group {
   selector: 'app-groups',
   imports: [
     CommonModule,
-    ExpenseModalComponent
+    ExpenseModalComponent,
+    SettleupComponent
   ],
   templateUrl: './groups.component.html',
   styleUrls: ['./groups.component.css']
@@ -31,7 +33,8 @@ export class GroupsComponent implements OnInit {
   expenses: any[] = [];
   members: any[] = [];
   balanceSummary: any[] = [];
-  showExpenseModal = false;
+  showExpenseModal: boolean = false;
+  showSettleModal: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -121,9 +124,12 @@ export class GroupsComponent implements OnInit {
     this.showExpenseModal = true;
   }
 
+  openSettleModal() {
+    this.showSettleModal = true;
+  }
+
   handleExpenseSave(expense: any) {
-    console.log('New expense:', expense);
-    // TODO: Call your service to save the expense
+    console.log('New expense:', expense)
     this.showExpenseModal = false;
     this.splitzService.onSaveExpense(expense).subscribe({
       next: (response) => {
@@ -135,5 +141,18 @@ export class GroupsComponent implements OnInit {
         console.error('Error saving expense:', error);
       }
     });
+  }
+  onSettleUpSaved(expense: any) {
+    this.showSettleModal = false;
+    this.splitzService.onSettleExpense(expense).subscribe({
+      next: (response) => {
+        console.log('Settle Up successfully', response);
+
+        this.fetchGroupData(this.groupId);
+      },
+      error: (error) => {
+        console.error('Error settling up expense: ', error);
+      }
+    })
   }
 }
