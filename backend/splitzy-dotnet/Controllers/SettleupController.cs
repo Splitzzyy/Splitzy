@@ -26,7 +26,6 @@ namespace splitzy_dotnet.Controllers
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
-            // fetch balances
             var balances = await _context.GroupBalances
                 .Where(b => b.GroupId == dto.GroupId &&
                        (b.UserId == dto.PaidByUserId || b.UserId == dto.PaidToUserId))
@@ -39,25 +38,16 @@ namespace splitzy_dotnet.Controllers
             var receiver = balances.Single(b => b.UserId == dto.PaidToUserId);
 
             // validations
-            if (payer.NetBalance >= 0)
-                return BadRequest("Payer does not owe money");
+            if (payer.NetBalance < dto.Amount)
+                return BadRequest($"You can only settle up to {payer.NetBalance}");
 
-            if (receiver.NetBalance <= 0)
-                return BadRequest("Receiver is not owed money");
+            if (receiver.NetBalance < dto.Amount)
+                return BadRequest($"Receiver balance is only {receiver.NetBalance}");
 
-            var maxAllowed = Math.Min(
-                Math.Abs(payer.NetBalance),
-                receiver.NetBalance
-            );
-
-            if (dto.Amount > maxAllowed)
-                return BadRequest($"Maximum allowed is {maxAllowed}");
-
-            // update balances
-            payer.NetBalance += dto.Amount;
+            // ✅ UPDATE GROUP_BALANCES (THIS WAS THE MISSING LOGIC YOU EXPECTED)
+            payer.NetBalance -= dto.Amount;
             receiver.NetBalance -= dto.Amount;
 
-            // record settlement
             _context.Settlements.Add(new Settlement
             {
                 GroupId = dto.GroupId,
@@ -67,7 +57,6 @@ namespace splitzy_dotnet.Controllers
                 CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             });
 
-            // activity log
             _context.ActivityLogs.Add(new ActivityLog
             {
                 GroupId = dto.GroupId,
@@ -88,6 +77,8 @@ namespace splitzy_dotnet.Controllers
                 amount = dto.Amount
             });
         }
+
+
 
     }
 }
