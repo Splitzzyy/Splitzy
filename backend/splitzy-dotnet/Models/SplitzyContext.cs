@@ -210,14 +210,16 @@ public partial class SplitzyContext : DbContext
                 .HasForeignKey(d => d.GroupId)
                 .HasConstraintName("settlements_group_id_fkey");
 
-            entity.HasOne(d => d.PaidByNavigation).WithMany(p => p.SettlementPaidByNavigations)
+            entity.HasOne(d => d.PaidByNavigation)
+                .WithMany(p => p.SettlementPaidByNavigations)
                 .HasForeignKey(d => d.PaidBy)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("settlements_paid_by_fkey");
 
-            entity.HasOne(d => d.PaidToNavigation).WithMany(p => p.SettlementPaidToNavigations)
+            entity.HasOne(d => d.PaidToNavigation)
+                .WithMany(p => p.SettlementPaidToNavigations)
                 .HasForeignKey(d => d.PaidTo)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("settlements_paid_to_fkey");
         });
 
