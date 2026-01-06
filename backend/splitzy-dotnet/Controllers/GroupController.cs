@@ -260,18 +260,17 @@ namespace splitzy_dotnet.Controllers
 
                 var netBalances = members.ToDictionary(id => id, id => 0.0m);
 
-                var balances = await _context.GroupBalances
-                                    .Where(b => b.GroupId == groupId)
-                                    .Join(_context.Users,
-                                        b => b.UserId,
-                                        u => u.UserId,
-                                        (b, u) => new
-                                        {
-                                            u.UserId,
-                                            u.Name,
-                                            Balance = Math.Round(b.NetBalance, 2)
-                                        })
-                                    .ToListAsync();
+                foreach (var exp in allExpenses)
+                {
+                    foreach (var split in exp.ExpenseSplits)
+                    {
+                        if (netBalances.ContainsKey(split.UserId))
+                            netBalances[split.UserId] -= split.OwedAmount;
+                    }
+
+                    if (netBalances.ContainsKey(exp.PaidByUserId))
+                        netBalances[exp.PaidByUserId] += exp.Amount;
+                }
 
                 decimal groupBalance = allExpenses.Sum(e => e.Amount);
                 decimal youOwe = netBalances[userId] < 0 ? Math.Abs(netBalances[userId]) : 0;
