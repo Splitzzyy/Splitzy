@@ -220,14 +220,6 @@ namespace splitzy_dotnet.Controllers
             }
         }
 
-
-        private async Task<List<User>> FetchUsersByEmails(CreateGroupRequest request)
-        {
-            return await _context.Users
-                                .Where(u => request.UserEmails.Contains(u.Email))
-                                .ToListAsync();
-        }
-
         /// <summary>
         /// Gets group overview for a user including balances and expenses.
         /// </summary>
@@ -344,13 +336,158 @@ namespace splitzy_dotnet.Controllers
             }
         }
 
-
-        private async Task<List<int>> GetUserIdsByGroup(int groupId)
+        /// <summary>
+        /// Adds users to an existing group.
+        /// </summary>
+        /// <param name="groupId">Group ID</param>
+        /// <param name="request">Request containing emails to add</param>
+        /// <returns>Updated group with members</returns>
+        [HttpPost("AddUsersToGroup/{groupId}")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> AddUsersToGroup(int groupId, [FromBody] AddUsersToGroupRequest request)
         {
-            return await _context.GroupMembers
-                                .Where(gm => gm.GroupId == groupId)
-                                .Select(gm => gm.UserId)
-                                .ToListAsync();
+            int userId = HttpContext.GetCurrentUserId();
+
+            try
+            {
+                // Validate group exists
+                var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == groupId);
+                if (group == null)
+                    return NotFound("Group not found.");
+
+                // Verify current user is a member (authorization)
+                var isCurrentUserMember = await _context.GroupMembers
+                    .AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
+                if (!isCurrentUserMember)
+                    return Forbid();
+
+                // Get current user details for email notification
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+                if (currentUser == null)
+                    return Unauthorized("Current user not found");
+
+                // Normalize and validate emails
+                var requestedEmails = request.UserEmails?
+                    .Where(e => !string.IsNullOrWhiteSpace(e))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList() ?? new List<string>();
+
+                if (!requestedEmails.Any())
+                    return BadRequest("At least one email is required.");
+
+                // Fetch users by email
+                var usersToAdd = await _context.Users
+                    .Where(u => requestedEmails.Contains(u.Email))
+                    .ToListAsync();
+
+                //Check for missing emails
+                var foundEmails = usersToAdd
+                    .Where(u => u.Email != null)
+                    .Select(u => u.Email)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var missingEmails = requestedEmails
+                    .Where(e => !foundEmails.Contains(e))
+                    .ToList();
+
+                if (missingEmails.Any())
+                    return NotFound($"User(s) not found: {string.Join(", ", missingEmails)}");
+
+                // Get existing members to avoid duplicates
+                var existingMembers = await _context.GroupMembers
+                    .Where(gm => gm.GroupId == groupId)
+                    .Select(gm => gm.UserId)
+                    .ToListAsync();
+
+                // Filter out users already in the group
+                var newUsers = usersToAdd
+                    .Where(u => !existingMembers.Contains(u.UserId))
+                    .ToList();
+
+                if (!newUsers.Any())
+                    return BadRequest("All provided users are already members of this group.");
+
+                using var tx = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    var newGroupMembers = newUsers.Select(u => new GroupMember
+                    {
+                        GroupId = groupId,
+                        UserId = u.UserId,
+                        JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                    });
+
+                    _context.GroupMembers.AddRange(newGroupMembers);
+                    await _context.SaveChangesAsync();
+
+                    var newBalances = newUsers.Select(u => new GroupBalance
+                    {
+                        GroupId = groupId,
+                        UserId = u.UserId,
+                        NetBalance = 0
+                    });
+
+                    _context.GroupBalances.AddRange(newBalances);
+                    await _context.SaveChangesAsync();
+
+                    await tx.CommitAsync();
+
+                    _logger.LogInformation("Users added to group {GroupId}: {UserIds}", groupId, string.Join(", ", newUsers.Select(u => u.UserId)));
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var emailTasks = newUsers.Select(u =>
+                            {
+                                var html = new GroupAddedTemplate()
+                                    .Build(u.Name, group.Name, currentUser.Name);
+
+                                return _emailService.SendAsync(
+                                    u.Email,
+                                    $"You were added to {group.Name}",
+                                    html
+                                );
+                            });
+
+                            await Task.WhenAll(emailTasks);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to send group invitation emails for group {GroupId}", groupId);
+                        }
+                    });
+
+                    return Ok(new
+                    {
+                        group.GroupId,
+                        group.Name,
+                        Message = $"Successfully added {newUsers.Count} user(s) to the group.",
+                        AddedUsers = newUsers.Select(u => new
+                        {
+                            u.UserId,
+                            u.Name,
+                            u.Email
+                        }),
+                        TotalMembers = existingMembers.Count + newUsers.Count
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await tx.RollbackAsync();
+                    _logger.LogError(ex, "Exception while adding users to group {GroupId}", groupId);
+                    return StatusCode(500, "An unexpected error occurred while adding users.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception from AddUsersToGroup");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
+            }
         }
     }
 }
