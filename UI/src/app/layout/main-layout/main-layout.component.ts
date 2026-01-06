@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { SplitzService } from '../../splitz/splitz.service';
 import { LoaderComponent } from '../../splitz/loader/loader.component';
 import { environment } from '../../environments/environment';
@@ -9,9 +9,8 @@ import { environment } from '../../environments/environment';
   selector: 'app-main-layout',
   imports: [
     RouterModule,
-    CommonModule,
-    LoaderComponent,
-  ],
+    LoaderComponent
+],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.css'
 })

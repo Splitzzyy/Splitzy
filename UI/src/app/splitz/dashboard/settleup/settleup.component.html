@@ -1,119 +1,123 @@
 <div class="modal-overlay" (click)="onClose()">
-      <div class="modal-container" (click)="$event.stopPropagation()">
-        <!-- Header -->
-        <div class="modal-header">
-          <div class="header-content">
-            <div class="icon-wrapper">
-              <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-            <h2 class="title">Settle Up</h2>
-          </div>
-          <button class="close-btn" (click)="onClose()">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="icon-wrapper">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <h2 class="title">Settle Up</h2>
+      </div>
+      <button class="close-btn" (click)="onClose()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <form (ngSubmit)="onSubmit()">
+        <!-- Payer Selection -->
+        <div class="form-group">
+          <label class="label">
+            <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
-          </button>
+            Who is paying?
+          </label>
+          <div class="select-wrapper">
+            <select
+              [(ngModel)]="settleUpData.paidByUserId"
+              name="paidBy"
+              class="select-field"
+              required>
+              <option value="" disabled selected>Select payer</option>
+              @for (member of members; track member) {
+                <option [value]="member.memberId">
+                  {{ member.memberName }}
+                </option>
+              }
+            </select>
+            <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
         </div>
 
-        <!-- Body -->
-        <div class="modal-body">
-          <form (ngSubmit)="onSubmit()">
-            <!-- Payer Selection -->
-            <div class="form-group">
-              <label class="label">
-                <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                Who is paying?
-              </label>
-              <div class="select-wrapper">
-                <select 
-                  [(ngModel)]="settleUpData.paidByUserId" 
-                  name="paidBy"
-                  class="select-field"
-                  required>
-                  <option value="" disabled selected>Select payer</option>
-                  <option *ngFor="let member of members" [value]="member.memberId">
-                    {{ member.memberName }}
-                  </option>
-                </select>
-                <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
+        <!-- Arrow Indicator -->
+        <div class="arrow-container">
+          <div class="arrow-circle">
+            <svg class="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+          </div>
+        </div>
 
-            <!-- Arrow Indicator -->
-            <div class="arrow-container">
-              <div class="arrow-circle">
-                <svg class="arrow-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                </svg>
-              </div>
-            </div>
+        <!-- Payee Selection -->
+        <div class="form-group">
+          <label class="label">
+            <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            Who is receiving?
+          </label>
+          <div class="select-wrapper">
+            <select
+              [(ngModel)]="settleUpData.paidToUserId"
+              name="paidTo"
+              class="select-field"
+              [disabled]="!settleUpData.paidByUserId"
+              required>
+              <option value="" disabled selected>Select receiver</option>
+              @for (member of filteredReceivers; track member) {
+                <option
+                  [value]="member.memberId">
+                  {{ member.memberName }}
+                </option>
+              }
+            </select>
+            <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
 
-            <!-- Payee Selection -->
-            <div class="form-group">
-              <label class="label">
-                <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                Who is receiving?
-              </label>
-              <div class="select-wrapper">
-                <select 
-                  [(ngModel)]="settleUpData.paidToUserId" 
-                  name="paidTo"
-                  class="select-field"
-                  [disabled]="!settleUpData.paidByUserId"
-                  required>
-                  <option value="" disabled selected>Select receiver</option>
-                  <option 
-                    *ngFor="let member of filteredReceivers" 
-                    [value]="member.memberId">
-                    {{ member.memberName }}
-                  </option>
-                </select>
-                <svg class="select-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
+        <!-- Amount Input -->
+        <div class="form-group">
+          <label class="label">
+            <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Amount
+          </label>
+          <div class="input-wrapper">
+            <span class="currency-symbol">₹</span>
+            <input
+              type="number"
+              [(ngModel)]="settleUpData.amount"
+              name="amount"
+              class="input-field"
+              placeholder="0.00"
+              step="0.01"
+              min="0.01"
+              required>
             </div>
+          </div>
 
-            <!-- Amount Input -->
-            <div class="form-group">
-              <label class="label">
-                <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                Amount
-              </label>
-              <div class="input-wrapper">
-                <span class="currency-symbol">₹</span>
-                <input 
-                  type="number" 
-                  [(ngModel)]="settleUpData.amount" 
-                  name="amount"
-                  class="input-field"
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0.01"
-                  required>
-              </div>
-            </div>
-
-            <!-- Summary Card -->
-            <div class="summary-card" *ngIf="settleUpData.paidByUserId && settleUpData.paidToUserId && settleUpData.amount">
+          <!-- Summary Card -->
+          @if (settleUpData.paidByUserId && settleUpData.paidToUserId && settleUpData.amount) {
+            <div class="summary-card">
               <div class="summary-content">
                 <svg class="summary-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <div class="summary-text">
                   <span class="summary-name">{{ getPayerName() }}</span>
@@ -124,33 +128,36 @@
                 </div>
               </div>
             </div>
+          }
 
-            <!-- Error Message -->
-            <div class="error-message" *ngIf="errorMessage">
+          <!-- Error Message -->
+          @if (errorMessage) {
+            <div class="error-message">
               <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               {{ errorMessage }}
             </div>
+          }
 
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-              <button type="button" class="btn btn-cancel" (click)="onClose()">
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                class="btn btn-submit"
-                [disabled]="!isFormValid()">
-                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 13l4 4L19 7"></path>
-                </svg>
-                Settle Up
-              </button>
-            </div>
-          </form>
-        </div>
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button type="button" class="btn btn-cancel" (click)="onClose()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn-submit"
+              [disabled]="!isFormValid()">
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 13l4 4L19 7"></path>
+              </svg>
+              Settle Up
+            </button>
+          </div>
+        </form>
       </div>
     </div>
+  </div>

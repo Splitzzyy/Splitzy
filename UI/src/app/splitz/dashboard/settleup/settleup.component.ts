@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { SettleUpRequest } from '../../splitz.model';
 
@@ -13,9 +13,8 @@ interface Member {
 @Component({
   selector: 'app-settleup',
   imports: [
-    CommonModule,
     FormsModule
-  ],
+],
   templateUrl: './settleup.component.html',
   styleUrl: './settleup.component.css',
 })

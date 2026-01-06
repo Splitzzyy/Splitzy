@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 import { LoaderComponent } from '../loader/loader.component';
 import { SplitzService } from '../splitz.service';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -8,7 +8,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-setup-password',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, LoaderComponent],
+  imports: [ReactiveFormsModule, LoaderComponent],
   templateUrl: './setup-password.component.html',
   styleUrl: './setup-password.component.css'
 })

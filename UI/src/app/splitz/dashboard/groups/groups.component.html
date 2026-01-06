@@ -1,357 +1,367 @@
 <div class="min-h-screen bg-gray-50">
-    <!-- Header Section -->
-    <div class="bg-white shadow-sm border-b">
+  <!-- Header Section -->
+  <div class="bg-white shadow-sm border-b">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between py-3 sm:h-16">
-            <!-- Back Button and Title -->
-            <div class=" flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0 pl-2">
-                <button (click)="goBack()"
-                    class="inline-flex items-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200 flex-shrink-0"
-                    aria-label="Go back">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
-                        </path>
-                    </svg>
-                </button>
-                <div class="min-w-0 flex-1">
-                    <h1 class="text-lg sm:text-2xl font-bold text-gray-900 truncate" *ngIf="groupData">{{ groupData.name }}</h1>
-                    <h1 class="text-lg sm:text-2xl font-bold text-gray-900" *ngIf="!groupData">Group Details</h1>
-                    <p class="text-xs sm:text-sm text-gray-500" *ngIf="groupData && groupData.memberCount">
-                        {{ groupData.memberCount }} members
-                    </p>
-                </div>
-            </div>
-
-            <!-- Action Buttons - Desktop Only -->
-            <div class="hidden lg:flex items-center space-x-3">
-                <button (click)="openSettleModal()"
-                    class="inline-flex gap-2 items-center px-4 py-2 border settle-btn rounded-md shadow-sm text-sm font-medium text-white transition-colors duration-200">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span>Settle Up</span>
-                </button>
-                <button (click)="openExpenseModal()"
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Add Expense
-                </button>
-                <button
-                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
-                        </path>
-                    </svg>
-                    Add Member
-                </button>
-            </div>
-
-            <!-- Mobile Action Buttons (Add Expense & Add Member only) -->
-            <div class="flex lg:hidden items-center space-x-2">
-                <button (click)="openExpenseModal()"
-                    class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
-                    aria-label="Add expense">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                </button>
-                <button
-                    class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
-                    aria-label="Add member">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
-                        </path>
-                    </svg>
-                </button>
-            </div>
+      <div class="flex items-center justify-between py-3 sm:h-16">
+        <!-- Back Button and Title -->
+        <div class=" flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0 pl-2">
+          <button (click)="goBack()"
+            class="inline-flex items-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200 flex-shrink-0"
+            aria-label="Go back">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+              </path>
+            </svg>
+          </button>
+          <div class="min-w-0 flex-1">
+            @if (groupData) {
+              <h1 class="text-lg sm:text-2xl font-bold text-gray-900 truncate">{{ groupData.name }}</h1>
+            }
+            @if (!groupData) {
+              <h1 class="text-lg sm:text-2xl font-bold text-gray-900">Group Details</h1>
+            }
+            @if (groupData && groupData.memberCount) {
+              <p class="text-xs sm:text-sm text-gray-500">
+                {{ groupData.memberCount }} members
+              </p>
+            }
+          </div>
         </div>
-    </div>
-</div>
 
-<!-- Floating Settle Up Button - Mobile Only -->
-<button (click)="openSettleModal()"
+        <!-- Action Buttons - Desktop Only -->
+        <div class="hidden lg:flex items-center space-x-3">
+          <button (click)="openSettleModal()"
+            class="inline-flex gap-2 items-center px-4 py-2 border settle-btn rounded-md shadow-sm text-sm font-medium text-white transition-colors duration-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Settle Up</span>
+          </button>
+          <button (click)="openExpenseModal()"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Add Expense
+          </button>
+          <button
+            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+              </path>
+            </svg>
+            Add Member
+          </button>
+        </div>
+
+        <!-- Mobile Action Buttons (Add Expense & Add Member only) -->
+        <div class="flex lg:hidden items-center space-x-2">
+          <button (click)="openExpenseModal()"
+            class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+            aria-label="Add expense">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+          </button>
+          <button
+            class="inline-flex items-center p-2 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+            aria-label="Add member">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+              </path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Settle Up Button - Mobile Only -->
+  <button (click)="openSettleModal()"
     class="lg:hidden fixed bottom-6 right-6 inline-flex gap-2 items-center px-5 py-3 settle-btn rounded-full shadow-lg text-sm font-medium text-white transition-all duration-200 hover:shadow-xl z-50"
     aria-label="Settle up">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
     <span>Settle Up</span>
-</button>
+  </button>
 
-    <!-- Loading State -->
-    <div *ngIf="!groupData && groupId" class="flex justify-center items-center h-64">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  <!-- Loading State -->
+  @if (!groupData && groupId) {
+    <div class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
     </div>
+  }
 
-    <!-- Error State -->
-    <div *ngIf="!groupData && !groupId" class="flex justify-center items-center h-64">
-        <div class="text-center">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
-                </path>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">Group not found</h3>
-            <p class="mt-1 text-sm text-gray-500">The group you're looking for doesn't exist.</p>
-        </div>
+  <!-- Error State -->
+  @if (!groupData && !groupId) {
+    <div class="flex justify-center items-center h-64">
+      <div class="text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
+          </path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Group not found</h3>
+        <p class="mt-1 text-sm text-gray-500">The group you're looking for doesn't exist.</p>
+      </div>
     </div>
+  }
 
-    <!-- Main Content -->
-    <div *ngIf="groupData" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        <!-- Group Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Total Balance Card -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Group Balance</p>
-                        <p class="text-2xl font-semibold" [class.text-green-600]="groupData.balance > 0"
-                            [class.text-red-600]="groupData.balance < 0"
-                            [class.text-gray-900]="groupData.balance === 0">
-                            {{ groupData.balance | currency:'INR':'symbol':'1.2-2' }}
-                        </p>
-                    </div>
-                </div>
+  <!-- Main Content -->
+  @if (groupData) {
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Group Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Total Balance Card -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
+                  </path>
+                </svg>
+              </div>
             </div>
-
-            <!-- Members Card -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Members</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ groupData.memberCount || 0 }}</p>
-                    </div>
-                </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Group Balance</p>
+              <p class="text-2xl font-semibold" [class.text-green-600]="groupData.balance > 0"
+                [class.text-red-600]="groupData.balance < 0"
+                [class.text-gray-900]="groupData.balance === 0">
+                {{ groupData.balance | currency:'INR':'symbol':'1.2-2' }}
+              </p>
             </div>
-
-            <!-- Created Date Card -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500">Created</p>
-                        <p class="text-2xl font-semibold text-gray-900">
-                            {{ groupData.createdDate | date:'MMM d' }}
-                        </p>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
-
-        <!-- Group Description -->
-        <div *ngIf="groupData.description" class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
-            <p class="text-gray-600">{{ groupData.description }}</p>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="bg-white rounded-lg shadow-sm mb-8">
-            <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-                    <button (click)="activeTab = 'expenses'" [class.border-blue-500]="activeTab === 'expenses'"
-                        [class.text-blue-600]="activeTab === 'expenses'"
-                        [class.border-transparent]="activeTab !== 'expenses'"
-                        [class.text-gray-500]="activeTab !== 'expenses'"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
-                        Expenses
-                    </button>
-                    <button (click)="activeTab = 'balances'" [class.border-blue-500]="activeTab === 'balances'"
-                        [class.text-blue-600]="activeTab === 'balances'"
-                        [class.border-transparent]="activeTab !== 'balances'"
-                        [class.text-gray-500]="activeTab !== 'balances'"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
-                        Balances
-                    </button>
-                    <button (click)="activeTab = 'members'" [class.border-blue-500]="activeTab === 'members'"
-                        [class.text-blue-600]="activeTab === 'members'"
-                        [class.border-transparent]="activeTab !== 'members'"
-                        [class.text-gray-500]="activeTab !== 'members'"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
-                        Members
-                    </button>
-                </nav>
+        <!-- Members Card -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                  </path>
+                </svg>
+              </div>
             </div>
-
-            <!-- Tab Content -->
-            <div class="p-6">
-                <!-- Expenses Tab -->
-                <div *ngIf="activeTab === 'expenses'">
-                    <div class="space-y-4">
-                        <!-- Sample Expense Item -->
-                         <ng-container *ngIf="expenses && expenses.length; else noExpense">
-                             <ng-container *ngFor="let expense of expenses">
-                                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                     <div class="flex items-center space-x-4">
-                                         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                             <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                                                 </path>
-                                             </svg>
-                                         </div>
-                                         <div>
-                                             <h4 class="text-sm font-medium text-gray-900">{{expense.name}}</h4>
-                                             <p class="text-sm text-gray-500">Paid by {{expense.paidBy}} • {{expense.createdAt}}</p>
-                                         </div>
-                                     </div>
-                                     <div class="text-right">
-                                         <p class="text-sm font-medium text-gray-900">₹{{expense.amount}}</p>
-                                         <p class="text-sm text-gray-500">You owe {{expense.youOwe}}</p>
-                                     </div>
-                                 </div>
-                             </ng-container>
-                         </ng-container>
-
-                        <!-- Add more expense items here -->
-                         <ng-template #noExpense>
-                             <div class="text-center py-8">
-                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                 </svg>
-                                 <h3 class="mt-2 text-sm font-medium text-gray-900">No expenses yet</h3>
-                                 <p class="mt-1 text-sm text-gray-500">Get started by adding your first expense.</p>
-                             </div>
-                         </ng-template>
-                    </div>
-                </div>
-
-                <!-- Balances Tab -->
-                <div *ngIf="activeTab === 'balances'">
-                    <div class="space-y-4">
-                        <!-- Sample Balance Item -->
-                         <ng-container *ngIf="balanceSummary && balanceSummary.length; else noBalance">
-                             <ng-container *ngFor="let balance of balanceSummary">
-                                 <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                     <div class="flex items-center space-x-4">
-                                         <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                             <span class="text-sm font-medium text-green-600">{{balance.name.charAt(0)}}</span>
-                                         </div>
-                                         <div>
-                                             <h4 class="text-sm font-medium text-gray-900">{{balance.name}}</h4>
-                                             <p class="text-sm text-gray-500">Overall balance</p>
-                                         </div>
-                                     </div>
-                                     <ng-container *ngIf="balance.balance < 0">
-                                         <div class="text-right">
-                                             <p class="text-sm font-medium text-red-600">Owes {{balance.balance | currency:'INR':'symbol': '1.2-2'}}
-                                             </p>
-                                         </div>
-                                     </ng-container>
-                                     <ng-container *ngIf="balance.balance >= 0">
-                                         <div class="text-right">
-                                             <p class="text-sm font-medium text-green-600">Gets Back {{balance.balance | currency:'INR':'symbol':
-                                                 '1.2-2'}}</p>
-                                         </div>
-                                     </ng-container>
-                                 </div>
-                             </ng-container>
-                         </ng-container>
-
-                         <ng-template #noBalance>
-                             <div class="text-center py-8">
-                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24">
-                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                         d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                                     </path>
-                                 </svg>
-                                 <h3 class="mt-2 text-sm font-medium text-gray-900">All settled up!</h3>
-                                 <p class="mt-1 text-sm text-gray-500">Everyone's balance is zero.</p>
-                             </div>
-                         </ng-template>
-
-                    </div>
-                </div>
-
-                <!-- Members Tab -->
-                <div *ngIf="activeTab === 'members'">
-                    <div class="space-y-4">
-                        <!-- Sample Member Item -->
-                        <ng-container *ngFor="let member of members">
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                    <span class="text-sm font-medium text-purple-600">{{member.memberName.charAt(0)}}</span>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-900">{{member.memberName}}</h4>
-                                    <p class="text-sm text-gray-500">{{member.memberEmail}}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    Active
-                                </span>
-                                <button class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
-                                        </path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        </ng-container>
-
-                        <div class="text-center py-8">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
-                                </path>
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">Invite more members</h3>
-                            <p class="mt-1 text-sm text-gray-500">Add friends to start splitting expenses.</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Members</p>
+              <p class="text-2xl font-semibold text-gray-900">{{ groupData.memberCount || 0 }}</p>
             </div>
+          </div>
         </div>
+        <!-- Created Date Card -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                  </path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Created</p>
+              <p class="text-2xl font-semibold text-gray-900">
+                {{ groupData.createdDate | date:'MMM d' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Group Description -->
+      @if (groupData.description) {
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
+          <p class="text-gray-600">{{ groupData.description }}</p>
+        </div>
+      }
+      <!-- Navigation Tabs -->
+      <div class="bg-white rounded-lg shadow-sm mb-8">
+        <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+            <button (click)="activeTab = 'expenses'" [class.border-blue-500]="activeTab === 'expenses'"
+              [class.text-blue-600]="activeTab === 'expenses'"
+              [class.border-transparent]="activeTab !== 'expenses'"
+              [class.text-gray-500]="activeTab !== 'expenses'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
+              Expenses
+            </button>
+            <button (click)="activeTab = 'balances'" [class.border-blue-500]="activeTab === 'balances'"
+              [class.text-blue-600]="activeTab === 'balances'"
+              [class.border-transparent]="activeTab !== 'balances'"
+              [class.text-gray-500]="activeTab !== 'balances'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
+              Balances
+            </button>
+            <button (click)="activeTab = 'members'" [class.border-blue-500]="activeTab === 'members'"
+              [class.text-blue-600]="activeTab === 'members'"
+              [class.border-transparent]="activeTab !== 'members'"
+              [class.text-gray-500]="activeTab !== 'members'"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm hover:text-gray-700 hover:border-gray-300 transition-colors duration-200">
+              Members
+            </button>
+          </nav>
+        </div>
+        <!-- Tab Content -->
+        <div class="p-6">
+          <!-- Expenses Tab -->
+          @if (activeTab === 'expenses') {
+            <div>
+              <div class="space-y-4">
+                <!-- Sample Expense Item -->
+                @if (expenses && expenses.length) {
+                  @for (expense of expenses; track expense) {
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
+                            </path>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 class="text-sm font-medium text-gray-900">{{expense.name}}</h4>
+                          <p class="text-sm text-gray-500">Paid by {{expense.paidBy}} • {{expense.createdAt}}</p>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-sm font-medium text-gray-900">₹{{expense.amount}}</p>
+                        <p class="text-sm text-gray-500">You owe {{expense.youOwe}}</p>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No expenses yet</h3>
+                    <p class="mt-1 text-sm text-gray-500">Get started by adding your first expense.</p>
+                  </div>
+                }
+                <!-- Add more expense items here -->
+              </div>
+            </div>
+          }
+          <!-- Balances Tab -->
+          @if (activeTab === 'balances') {
+            <div>
+              <div class="space-y-4">
+                <!-- Sample Balance Item -->
+                @if (balanceSummary && balanceSummary.length) {
+                  @for (balance of balanceSummary; track balance) {
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <span class="text-sm font-medium text-green-600">{{balance.name.charAt(0)}}</span>
+                        </div>
+                        <div>
+                          <h4 class="text-sm font-medium text-gray-900">{{balance.name}}</h4>
+                          <p class="text-sm text-gray-500">Overall balance</p>
+                        </div>
+                      </div>
+                      @if (balance.balance < 0) {
+                        <div class="text-right">
+                          <p class="text-sm font-medium text-red-600">Owes {{balance.balance | currency:'INR':'symbol': '1.2-2'}}
+                          </p>
+                        </div>
+                      }
+                      @if (balance.balance >= 0) {
+                        <div class="text-right">
+                          <p class="text-sm font-medium text-green-600">Gets Back {{balance.balance | currency:'INR':'symbol':
+                          '1.2-2'}}</p>
+                        </div>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                      </path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">All settled up!</h3>
+                    <p class="mt-1 text-sm text-gray-500">Everyone's balance is zero.</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          <!-- Members Tab -->
+          @if (activeTab === 'members') {
+            <div>
+              <div class="space-y-4">
+                <!-- Sample Member Item -->
+                @for (member of members; track member) {
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                      <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <span class="text-sm font-medium text-purple-600">{{member.memberName.charAt(0)}}</span>
+                      </div>
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-900">{{member.memberName}}</h4>
+                        <p class="text-sm text-gray-500">{{member.memberEmail}}</p>
+                      </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Active
+                      </span>
+                      <button class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
+                          </path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                }
+                <div class="text-center py-8">
+                  <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+                    </path>
+                  </svg>
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">Invite more members</h3>
+                  <p class="mt-1 text-sm text-gray-500">Add friends to start splitting expenses.</p>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
     </div>
+  }
 
-    <!-- Expense Modal Component -->
-    <app-expense-modal *ngIf="showExpenseModal" [groupId]="groupId" [members]="members" (close)="showExpenseModal = false"
-        (save)="handleExpenseSave($event)"></app-expense-modal>
-    
-    <app-settleup *ngIf="showSettleModal" [groupId]="groupId" [members]="members"
-        [currentUserId]="userId" (close)="showSettleModal = false" (save)="onSettleUpSaved($event)">
+  <!-- Expense Modal Component -->
+  @if (showExpenseModal) {
+    <app-expense-modal [groupId]="groupId" [members]="members" (close)="showExpenseModal = false"
+    (save)="handleExpenseSave($event)"></app-expense-modal>
+  }
+
+  @if (showSettleModal) {
+    <app-settleup [groupId]="groupId" [members]="members"
+      [currentUserId]="userId" (close)="showSettleModal = false" (save)="onSettleUpSaved($event)">
     </app-settleup>
+  }
 </div>

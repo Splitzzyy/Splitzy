@@ -1,13 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-modal',
   imports: [
-    FormsModule,
-    CommonModule
-  ],
+    FormsModule
+],
   templateUrl: './modal.component.html',
   styleUrl: './modal.component.css'
 })
