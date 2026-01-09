@@ -57,7 +57,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   onloadDashboardData() {
     this.userEmail = localStorage.getItem('userEmail') ?? '';
-    debugger;
     this.splitzService.onFetchDashboardData().subscribe((data: any) => {
       console.log(data);
       this.userName = data.userName;

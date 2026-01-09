@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, map, Observable } from 'rxjs';
+import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 import { GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest } from './splitz.model';
 
@@ -52,21 +52,24 @@ export class SplitzService {
 
   logout(): void {
     const url = `${this.BASE_URL}${this.ENDPOINTS.LOGOUT}`;
-    this.http.get(url).subscribe({
-      next: () => {
-        console.log('Logout successful');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('token');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('googleToken');
-        this.userIdSubject.next(null);
-        this.router.navigate(['/login']);
-      },
-      error: (error) => {
-        console.error('Logout failed', error);
-      }
+    this.http.get(url).pipe(
+      finalize(() => {
+        this.clearLocalSession();
+      })
+    ).subscribe({
+      next: () => console.log('Logout API call successful'),
+      error: (err) => console.error('Logout API call failed', err)
     });
+  }
+
+  private clearLocalSession(): void {
+    localStorage.removeItem('userId');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('googleToken');
+    this.userIdSubject.next(null);
+    this.router.navigate(['/login']);
   }
 
   isLoggedIn(): boolean {
