@@ -78,6 +78,7 @@ export class MainLayoutComponent implements OnInit {
     if (type === 'expense') {
       this.showLoader = true;
       // Fetch all groups for the expense modal
+      debugger;
       this.spltizService.onFetchDashboardData().subscribe((data: any) => {
         this.allGroups = data.groupWiseSummary || [];
         if (this.allGroups.length > 0) {
@@ -141,13 +142,6 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
-  navigateToDashboard() {
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      this.router.navigate(['/dashboard']);
-    }
-  }
-
   navigateToRecentActivity() {
     const userId = localStorage.getItem('userId');
     if (userId) {
@@ -156,7 +150,6 @@ export class MainLayoutComponent implements OnInit {
   }
   logout() {
     this.spltizService.logout();
-    this.router.navigate(['/login']);
   }
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;

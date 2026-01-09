@@ -55,18 +55,18 @@ export class SplitzService {
     this.http.get(url).subscribe({
       next: () => {
         console.log('Logout successful');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('googleToken');
+        this.userIdSubject.next(null);
+        this.router.navigate(['/login']);
       },
       error: (error) => {
         console.error('Logout failed', error);
       }
     });
-    localStorage.removeItem('userId');
-    localStorage.removeItem('token');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('googleToken');
-    this.userIdSubject.next(null);
-    this.router.navigate(['/login']);
   }
 
   isLoggedIn(): boolean {
