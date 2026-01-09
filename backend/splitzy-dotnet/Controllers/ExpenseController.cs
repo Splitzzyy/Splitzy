@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using System.Text.Json;
 
@@ -48,7 +49,7 @@ namespace splitzy_dotnet.Controllers
             var expense = new Expense
             {
                 Name = dto.Name,
-                Amount = dto.Amount,
+                Amount = Helper.Normalize(dto.Amount),
                 GroupId = dto.GroupId,
                 PaidByUserId = dto.PaidByUserId,
                 SplitPer = JsonSerializer.Serialize(dto.SplitDetails),
@@ -63,7 +64,7 @@ namespace splitzy_dotnet.Controllers
                 {
                     ExpenseId = expense.ExpenseId,
                     UserId = s.UserId,
-                    OwedAmount = s.Amount
+                    OwedAmount = Helper.Normalize(s.Amount)
                 })
             );
 
@@ -77,13 +78,12 @@ namespace splitzy_dotnet.Controllers
 
             foreach (var split in dto.SplitDetails)
             {
-                balances.Single(b => b.UserId == split.UserId)
-                        .NetBalance -= split.Amount;
+                var balance = balances.Single(b => b.UserId == split.UserId);
+                balance.NetBalance = Helper.Normalize(balance.NetBalance - split.Amount);
             }
 
-            // Payer always gets credited with full amount paid
-            balances.Single(b => b.UserId == dto.PaidByUserId)
-                    .NetBalance += dto.Amount;
+            var payer = balances.Single(b => b.UserId == dto.PaidByUserId);
+            payer.NetBalance = Helper.Normalize(payer.NetBalance + dto.Amount);
 
             _context.ActivityLogs.Add(new ActivityLog
             {
@@ -92,7 +92,7 @@ namespace splitzy_dotnet.Controllers
                 ActionType = "AddExpense",
                 Description = dto.Name,
                 ExpenseId = expense.ExpenseId,
-                Amount = dto.Amount,
+                Amount = expense.Amount,
                 CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             });
 
@@ -132,14 +132,13 @@ namespace splitzy_dotnet.Controllers
 
             var balances = await EnsureBalances(expense.GroupId, affectedUserIds);
 
-            // reverse balances
-            balances.Single(b => b.UserId == expense.PaidByUserId)
-                    .NetBalance -= expense.Amount;
+            var payer = balances.Single(b => b.UserId == expense.PaidByUserId);
+            payer.NetBalance = Helper.Normalize(payer.NetBalance - expense.Amount);
 
             foreach (var split in expense.ExpenseSplits)
             {
-                balances.Single(b => b.UserId == split.UserId)
-                        .NetBalance += split.OwedAmount;
+                var balance = balances.Single(b => b.UserId == split.UserId);
+                balance.NetBalance = Helper.Normalize(balance.NetBalance + split.OwedAmount);
             }
 
             _context.ExpenseSplits.RemoveRange(expense.ExpenseSplits);
@@ -198,41 +197,37 @@ namespace splitzy_dotnet.Controllers
 
             var balances = await EnsureBalances(dto.GroupId, affectedUserIds);
 
-            // reverse old
-            balances.Single(b => b.UserId == expense.PaidByUserId)
-                    .NetBalance -= expense.Amount;
+            var oldPayer = balances.Single(b => b.UserId == expense.PaidByUserId);
+            oldPayer.NetBalance = Helper.Normalize(oldPayer.NetBalance - expense.Amount);
 
             foreach (var split in expense.ExpenseSplits)
             {
-                balances.Single(b => b.UserId == split.UserId)
-                        .NetBalance += split.OwedAmount;
+                var balance = balances.Single(b => b.UserId == split.UserId);
+                balance.NetBalance = Helper.Normalize(balance.NetBalance + split.OwedAmount);
             }
 
-            // apply new
-            balances.Single(b => b.UserId == dto.PaidByUserId)
-                    .NetBalance += dto.Amount;
+            var newPayer = balances.Single(b => b.UserId == dto.PaidByUserId);
+            newPayer.NetBalance = Helper.Normalize(newPayer.NetBalance + dto.Amount);
 
-            foreach (var split in dto.SplitDetails.Where(s => s.UserId != dto.PaidByUserId))
+            foreach (var split in dto.SplitDetails)
             {
-                balances.Single(b => b.UserId == split.UserId)
-                        .NetBalance -= split.Amount;
+                var balance = balances.Single(b => b.UserId == split.UserId);
+                balance.NetBalance = Helper.Normalize(balance.NetBalance - split.Amount);
             }
 
             expense.Name = dto.Name;
-            expense.Amount = dto.Amount;
+            expense.Amount = Helper.Normalize(dto.Amount);
             expense.PaidByUserId = dto.PaidByUserId;
             expense.SplitPer = JsonSerializer.Serialize(dto.SplitDetails);
 
             _context.ExpenseSplits.RemoveRange(expense.ExpenseSplits);
             _context.ExpenseSplits.AddRange(
-                dto.SplitDetails
-                    .Where(s => s.UserId != dto.PaidByUserId)
-                    .Select(s => new ExpenseSplit
-                    {
-                        ExpenseId = expense.ExpenseId,
-                        UserId = s.UserId,
-                        OwedAmount = s.Amount
-                    })
+                dto.SplitDetails.Select(s => new ExpenseSplit
+                {
+                    ExpenseId = expense.ExpenseId,
+                    UserId = s.UserId,
+                    OwedAmount = Helper.Normalize(s.Amount)
+                })
             );
 
             _context.ActivityLogs.Add(new ActivityLog
