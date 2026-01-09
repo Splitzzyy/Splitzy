@@ -1,154 +1,695 @@
-.overflow-y-auto::-webkit-scrollbar {
-    width: 6px;
-}
+ .dashboard-container {
+     padding: 1.5rem;
+     min-height: 85vh;
+ }
 
-.overflow-y-auto::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 3px;
-}
+ .dashboard-grid {
+     display: grid;
+     grid-template-columns: 1fr;
+     gap: 1.5rem;
+     height: 100%;
+ }
 
-.overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
-}
+ /* Main Content */
+ .main-content {
+     display: flex;
+     flex-direction: column;
+     gap: 1.5rem;
+ }
 
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
+ /* Welcome Card */
+ .welcome-card {
+     background: white;
+     border-radius: 1rem;
+     padding: 1.5rem;
+     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+     border: 1px solid #f3f4f6;
+ }
 
-/* Custom gradient animations */
-.bg-gradient-to-br {
-    background-size: 200% 200%;
-    animation: gradientShift 6s ease infinite;
-}
+ .welcome-content {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     flex-wrap: wrap;
+     gap: 1rem;
+ }
 
-@keyframes gradientShift {
-    0% {
-        background-position: 0% 50%;
-    }
+ .welcome-title {
+     font-size: 1.5rem;
+     font-weight: 700;
+     color: #111827;
+     margin: 0 0 0.25rem 0;
+ }
 
-    50% {
-        background-position: 100% 50%;
-    }
+ .welcome-subtitle {
+     color: #6b7280;
+     font-size: 0.875rem;
+ }
 
-    100% {
-        background-position: 0% 50%;
-    }
-}
+ .last-updated {
+     display: flex;
+     flex-direction: column;
+     align-items: flex-end;
+ }
 
-/* Card hover effects */
-.transform:hover {
-    transform: translateY(-2px);
-}
+ .update-label {
+     font-size: 0.75rem;
+     color: #9ca3af;
+ }
 
-/* Loading shimmer effect for empty states */
-.shimmer {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-}
+ .update-date {
+     font-size: 0.875rem;
+     font-weight: 500;
+     color: #374151;
+ }
 
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
+ /* Balance Cards */
+ .balance-cards-grid {
+     display: grid;
+     grid-template-columns: 1fr;
+     gap: 1.5rem;
+ }
 
-    100% {
-        background-position: 200% 0;
-    }
-}
+ .balance-card {
+     border-radius: 1rem;
+     padding: 1.5rem;
+     color: white;
+     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+     transition: all 0.3s ease;
+ }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .grid-cols-1.md\\:grid-cols-3 {
-        gap: 1rem;
-    }
+ .balance-card:hover {
+     transform: translateY(-4px);
+     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+ }
 
-    .text-2xl.md\\:text-3xl {
-        font-size: 1.5rem;
-    }
+ .balance-card-dark {
+     background: linear-gradient(135deg, #475569 0%, #334155 100%);
+ }
 
-    .p-6 {
-        padding: 1rem;
-    }
-}
+ .balance-card-red {
+     background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
+ }
 
-/* Enhanced button styles */
-button {
-    transition: all 0.2s ease;
-}
+ .balance-card-green {
+     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+ }
 
-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+ .balance-card-content {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     margin-bottom: 1rem;
+ }
 
-button:active {
-    transform: translateY(0);
-}
+ .balance-icon-wrapper {
+     padding: 0.75rem;
+     border-radius: 0.75rem;
+ }
 
-/* Group card animations */
-.group:hover .w-12 {
-    transform: scale(1.05);
-}
+ .balance-icon-dark {
+     background: rgba(255, 255, 255, 0.2);
+ }
 
-/* Balance card pulse effect for zero balances */
-.balance-zero {
-    animation: pulse 2s infinite;
-}
+ .balance-icon-red {
+     background: rgba(255, 255, 255, 0.2);
+ }
 
-@keyframes pulse {
+ .balance-icon-green {
+     background: rgba(255, 255, 255, 0.2);
+ }
 
-    0%,
-    100% {
-        opacity: 1;
-    }
+ .balance-icon {
+     width: 1.5rem;
+     height: 1.5rem;
+ }
 
-    50% {
-        opacity: 0.8;
-    }
-}
+ .balance-info {
+     display: flex;
+     flex-direction: column;
+     align-items: flex-end;
+ }
 
-/* Status indicators */
-.status-indicator {
-    position: relative;
-    display: inline-block;
-}
+ .balance-label {
+     font-size: 0.75rem;
+     text-transform: uppercase;
+     letter-spacing: 0.05em;
+     opacity: 0.9;
+     margin-bottom: 0.25rem;
+ }
 
-.status-indicator::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: -8px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
+ .balance-amount {
+     font-size: 1.875rem;
+     font-weight: 700;
+ }
 
-/* Improved focus states for accessibility */
-button:focus,
-a:focus {
-    outline: 2px solid #8b5cf6;
-    outline-offset: 2px;
-}
+ .balance-footer {
+     display: flex;
+     align-items: center;
+     gap: 0.5rem;
+     font-size: 0.875rem;
+     opacity: 0.9;
+ }
 
-/* Dark mode support */
-/* @media (prefers-color-scheme: dark) {
-    .bg-white {
-        background-color: #22223b;
-        color: white;
-    }
+ .footer-icon {
+     width: 1rem;
+     height: 1rem;
+ }
 
-    .text-gray-900 {
-        color: #f9fafb;
-    }
+ /* Debts and Credits */
+ .debts-credits-grid {
+     display: grid;
+     grid-template-columns: 1fr;
+     gap: 1.5rem;
+ }
 
-    .text-gray-600 {
-        color: #d1d5db;
-    }
+ .debt-card {
+     background: white;
+     border-radius: 1rem;
+     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+     border: 1px solid #f3f4f6;
+     overflow: hidden;
+ }
 
-    .border-gray-100 {
-        border-color: #22223b;
-    }
-} */
+ .debt-header {
+     padding: 1.5rem;
+     border-bottom: 1px solid;
+ }
+
+ .debt-header-red {
+     background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+     border-bottom-color: #fca5a5;
+ }
+
+ .debt-header-green {
+     background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+     border-bottom-color: #6ee7b7;
+ }
+
+ .debt-header-content {
+     display: flex;
+     align-items: center;
+     gap: 0.75rem;
+ }
+
+ .debt-icon-wrapper {
+     padding: 0.5rem;
+     border-radius: 0.5rem;
+ }
+
+ .debt-icon-red {
+     background: #dc2626;
+ }
+
+ .debt-icon-green {
+     background: #10b981;
+ }
+
+ .debt-icon {
+     width: 1.25rem;
+     height: 1.25rem;
+     color: white;
+ }
+
+ .debt-title {
+     font-size: 1.25rem;
+     font-weight: 700;
+     margin: 0;
+ }
+
+ .debt-header-red .debt-title {
+     color: #991b1b;
+ }
+
+ .debt-header-green .debt-title {
+     color: #065f46;
+ }
+
+ .debt-body {
+     padding: 1.5rem;
+     max-height: 400px;
+     overflow-y: auto;
+ }
+
+ .debt-list {
+     display: flex;
+     flex-direction: column;
+     gap: 0.75rem;
+ }
+
+ .person-card {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     padding: 1rem;
+     background: #f9fafb;
+     border: 2px solid transparent;
+     border-radius: 0.75rem;
+     transition: all 0.2s;
+ }
+
+ .person-card:hover {
+     background: #f3f4f6;
+ }
+
+ .person-card-red:hover {
+     border-color: #fecaca;
+ }
+
+ .person-card-green:hover {
+     border-color: #a7f3d0;
+ }
+
+ .person-info {
+     display: flex;
+     align-items: center;
+     gap: 0.75rem;
+ }
+
+ .person-avatar {
+     width: 2.5rem;
+     height: 2.5rem;
+     border-radius: 50%;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-weight: 700;
+     font-size: 0.875rem;
+     color: white;
+     flex-shrink: 0;
+ }
+
+ .person-avatar-red {
+     background: #dc2626;
+ }
+
+ .person-avatar-green {
+     background: #10b981;
+ }
+
+ .person-details {
+     display: flex;
+     flex-direction: column;
+ }
+
+ .person-name {
+     font-size: 1rem;
+     font-weight: 600;
+     color: #111827;
+ }
+
+ .person-status {
+     font-size: 0.875rem;
+     color: #6b7280;
+ }
+
+ .person-amount-section {
+     display: flex;
+     flex-direction: column;
+     align-items: flex-end;
+     gap: 0.25rem;
+ }
+
+ .person-amount {
+     font-size: 1rem;
+     font-weight: 700;
+ }
+
+ .person-amount-red {
+     color: #dc2626;
+ }
+
+ .person-amount-green {
+     color: #10b981;
+ }
+
+ .person-action {
+     font-size: 0.75rem;
+     font-weight: 500;
+     background: none;
+     border: none;
+     cursor: pointer;
+     padding: 0;
+     transition: opacity 0.2s;
+ }
+
+ .person-action:hover {
+     opacity: 0.7;
+ }
+
+ .person-action-red {
+     color: #dc2626;
+ }
+
+ .person-action-green {
+     color: #10b981;
+ }
+
+ /* Empty State */
+ .empty-state {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     padding: 3rem 1rem;
+ }
+
+ .empty-icon {
+     font-size: 4rem;
+     margin-bottom: 1rem;
+ }
+
+ .empty-title {
+     font-size: 1.125rem;
+     font-weight: 600;
+     color: #6b7280;
+     margin-bottom: 0.5rem;
+ }
+
+ .empty-subtitle {
+     font-size: 0.875rem;
+     color: #9ca3af;
+     margin-bottom: 1rem;
+ }
+
+ /* Groups Sidebar */
+ .groups-sidebar {
+     background: white;
+     border-radius: 1rem;
+     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+     border: 1px solid #f3f4f6;
+     overflow: hidden;
+     display: flex;
+     flex-direction: column;
+ }
+
+ .groups-header {
+     background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+     padding: 1.5rem;
+     border-bottom: 1px solid #d8b4fe;
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+ }
+
+ .groups-header-content {
+     display: flex;
+     align-items: center;
+     gap: 0.75rem;
+ }
+
+ .groups-icon-wrapper {
+     background: #a855f7;
+     padding: 0.5rem;
+     border-radius: 0.5rem;
+ }
+
+ .groups-icon {
+     width: 1.25rem;
+     height: 1.25rem;
+     color: white;
+ }
+
+ .groups-title {
+     font-size: 1.25rem;
+     font-weight: 700;
+     color: #581c87;
+     margin: 0;
+ }
+
+ .add-group-btn {
+     background: #a855f7;
+     color: white;
+     border: none;
+     border-radius: 50%;
+     width: 2rem;
+     height: 2rem;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     cursor: pointer;
+     transition: all 0.2s;
+ }
+
+ .add-group-btn:hover {
+     background: #9333ea;
+     transform: scale(1.05);
+ }
+
+ .groups-body {
+     padding: 1.5rem;
+     overflow-y: auto;
+     flex: 1;
+ }
+
+ .groups-list {
+     display: flex;
+     flex-direction: column;
+     gap: 0.75rem;
+ }
+
+ .group-card {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     padding: 1rem;
+     background: #f9fafb;
+     border: 2px solid transparent;
+     border-radius: 0.75rem;
+     transition: all 0.2s;
+ }
+
+ .group-card:hover {
+     background: #f3e8ff;
+     border-color: #e9d5ff;
+     box-shadow: 0 2px 4px rgba(168, 85, 247, 0.1);
+ }
+
+ .group-link {
+     display: flex;
+     align-items: center;
+     gap: 0.75rem;
+     flex: 1;
+     text-decoration: none;
+     min-width: 0;
+ }
+
+ .group-icon-wrapper {
+     width: 3rem;
+     height: 3rem;
+     background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+     border-radius: 0.75rem;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     flex-shrink: 0;
+     transition: transform 0.2s;
+ }
+
+ .group-card:hover .group-icon-wrapper {
+     transform: scale(1.05);
+ }
+
+ .group-icon {
+     width: 1.25rem;
+     height: 1.25rem;
+     color: white;
+ }
+
+ .group-info {
+     display: flex;
+     flex-direction: column;
+     min-width: 0;
+ }
+
+ .group-name {
+     font-size: 1rem;
+     font-weight: 600;
+     color: #111827;
+     transition: color 0.2s;
+     white-space: nowrap;
+     overflow: hidden;
+     text-overflow: ellipsis;
+ }
+
+ .group-card:hover .group-name {
+     color: #7c3aed;
+ }
+
+ .group-status {
+     font-size: 0.875rem;
+     color: #6b7280;
+ }
+
+ .group-actions {
+     display: flex;
+     align-items: center;
+     gap: 0.75rem;
+     flex-shrink: 0;
+ }
+
+ .group-balance {
+     display: flex;
+     flex-direction: column;
+     align-items: flex-end;
+ }
+
+ .group-amount {
+     font-size: 1rem;
+     font-weight: 700;
+ }
+
+ .amount-positive {
+     color: #10b981;
+ }
+
+ .amount-negative {
+     color: #dc2626;
+ }
+
+ .amount-neutral {
+     color: #6b7280;
+ }
+
+ .add-expense-btn {
+     background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
+     color: white;
+     border: none;
+     border-radius: 50%;
+     width: 2rem;
+     height: 2rem;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     cursor: pointer;
+     transition: all 0.2s;
+     flex-shrink: 0;
+ }
+
+ .add-expense-btn:hover {
+     transform: scale(1.1);
+     box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3);
+ }
+
+ .create-group-btn {
+     background: #a855f7;
+     color: white;
+     border: none;
+     padding: 0.75rem 1.5rem;
+     border-radius: 0.5rem;
+     font-size: 0.875rem;
+     font-weight: 600;
+     cursor: pointer;
+     transition: all 0.2s;
+ }
+
+ .create-group-btn:hover {
+     background: #9333ea;
+     transform: translateY(-1px);
+ }
+
+ /* Scrollbar Styling */
+ .debt-body::-webkit-scrollbar,
+ .groups-body::-webkit-scrollbar {
+     width: 6px;
+ }
+
+ .debt-body::-webkit-scrollbar-track,
+ .groups-body::-webkit-scrollbar-track {
+     background: #f3f4f6;
+     border-radius: 3px;
+ }
+
+ .debt-body::-webkit-scrollbar-thumb,
+ .groups-body::-webkit-scrollbar-thumb {
+     background: #d1d5db;
+     border-radius: 3px;
+ }
+
+ .debt-body::-webkit-scrollbar-thumb:hover,
+ .groups-body::-webkit-scrollbar-thumb:hover {
+     background: #9ca3af;
+ }
+
+ /* Responsive Design */
+ @media (min-width: 768px) {
+     .balance-cards-grid {
+         grid-template-columns: repeat(3, 1fr);
+     }
+
+     .debts-credits-grid {
+         grid-template-columns: repeat(2, 1fr);
+     }
+
+     .welcome-title {
+         font-size: 1.875rem;
+     }
+
+     .balance-amount {
+         font-size: 2.25rem;
+     }
+ }
+
+ @media (min-width: 1280px) {
+     .dashboard-grid {
+         grid-template-columns: 2fr 1fr;
+     }
+
+     .groups-sidebar {
+         position: sticky;
+         top: 1.5rem;
+         max-height: calc(100vh - 3rem);
+     }
+
+     .groups-body {
+         max-height: 500px;
+     }
+ }
+
+ @media (max-width: 767px) {
+     .dashboard-container {
+         padding: 0rem;
+     }
+
+     .welcome-card {
+         padding: 1rem;
+     }
+
+     .welcome-content {
+         flex-direction: column;
+         align-items: flex-start;
+     }
+
+     .last-updated {
+         align-items: flex-start;
+     }
+
+     .balance-card {
+         padding: 1rem;
+     }
+
+     .balance-amount {
+         font-size: 1.5rem;
+     }
+
+     .debt-header,
+     .debt-body {
+         padding: 1rem;
+     }
+
+     .groups-header,
+     .groups-body {
+         padding: 1rem;
+     }
+
+     .person-card {
+         flex-direction: column;
+         align-items: flex-start;
+         gap: 0.75rem;
+     }
+
+     .person-amount-section {
+         align-items: flex-start;
+         width: 100%;
+     }
+ }

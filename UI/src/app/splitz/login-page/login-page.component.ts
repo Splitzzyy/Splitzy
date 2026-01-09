@@ -83,6 +83,7 @@ export class LoginPageComponent implements AfterViewInit, OnDestroy {
               // Store user ID in service and session
               this.showLoader = false;
               this.splitzService.setUserId(response.data.id);
+              localStorage.setItem('userEmail', loginData.email);
 
               // Store token if provided
               if (response.data.token) {

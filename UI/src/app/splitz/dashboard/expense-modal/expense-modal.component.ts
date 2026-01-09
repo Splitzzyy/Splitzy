@@ -51,7 +51,6 @@ export class ExpenseModalComponent implements OnInit {
   }
 
   toggleSelectAll() {
-    this.selectAllChecked = !this.selectAllChecked;
     this.splitMembers.forEach(member => {
       member.isSelected = this.selectAllChecked;
     });
