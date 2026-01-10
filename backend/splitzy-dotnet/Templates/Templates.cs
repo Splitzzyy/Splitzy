@@ -1,12 +1,12 @@
 
 namespace splitzy_dotnet.Templates
 {
-// --- Welcome Email Template ---
-public class WelcomeEmailTemplate : EmailTemplateBase
-{
-    public string Build(string userName)
+    // --- Welcome Email Template ---
+    public class WelcomeEmailTemplate : EmailTemplateBase
     {
-        var body = $"""
+        public string Build(string userName)
+        {
+            var body = $"""
             <p style="font-size:16px; margin:0 0 12px 0;">
                 Hey <strong>{userName}</strong> 👋
             </p>
@@ -29,9 +29,9 @@ public class WelcomeEmailTemplate : EmailTemplateBase
             </p>
         """;
 
-        return Layout("Welcome to Splitzy!", body);
+            return Layout("Welcome to Splitzy!", body);
+        }
     }
-}
 
     // --- Reminder Email Template ---
     public class ReminderTemplate : EmailTemplateBase
@@ -91,4 +91,31 @@ public class WelcomeEmailTemplate : EmailTemplateBase
             return Layout("🔒 Reset Your Password", body);
         }
     }
+        // --- Group Invitation (New User) Template ---
+        public class GroupInvitationTemplate : EmailTemplateBase
+        {
+            private const string SignupUrl = "https://splitzy.aarshiv.xyz/register";
+
+            public string Build(string inviterName, string groupName)
+            {
+                var body = $"""
+                <p>Hi,</p>
+                <p><strong>{inviterName}</strong> has asked you to join the group <strong>{groupName}</strong>.</p>
+                <p>To view the expenses, check your balance, and settle up, please create an account.</p>
+                
+                <p style="margin: 25px 0;">
+                    <a href="{SignupUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                        Accept Invite & Sign Up
+                    </a>
+                </p>
+                
+                <p style="font-size: 0.9em; color: #555;">
+                    If the button above doesn't work, click this link to join:<br>
+                    <a href="{SignupUrl}">{SignupUrl}</a>
+                </p>
+            """;
+
+                return Layout($"You've been added to {groupName}", body);
+            }
+        }    
 }

@@ -62,5 +62,14 @@ namespace splitzy_dotnet.Controllers
             await _emailService.SendAsync(request.To, "Reset your Splitzy password", html);
             return Ok("Password reset email sent.");
         }
+
+        // 5. SEND GROUP INVITATION
+        [HttpPost("send-invite")]
+        public async Task<IActionResult> SendGroupInvite([FromBody] GroupInvitationRequest request)
+        {
+            var html = new GroupInvitationTemplate().Build(request.InviterName, request.GroupName);
+            await _emailService.SendAsync(request.To, $"You've been invited to join {request.GroupName}", html);
+            return Ok("Invitation email sent.");
+        }
     }
 }
