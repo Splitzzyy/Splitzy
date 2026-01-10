@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { ExpenseModalComponent } from '../expense-modal/expense-modal.component';
 import { SettleupComponent } from '../settleup/settleup.component';
 import { AddMemberModalComponent } from '../add-member-modal/add-member-modal.component';
+import { LoaderComponent } from '../../loader/loader.component';
 
 export interface Group {
   id: number;
@@ -22,7 +23,8 @@ export interface Group {
     CommonModule,
     ExpenseModalComponent,
     SettleupComponent,
-    AddMemberModalComponent
+    AddMemberModalComponent,
+    LoaderComponent
   ],
   templateUrl: './groups.component.html',
   styleUrls: ['./groups.component.css']

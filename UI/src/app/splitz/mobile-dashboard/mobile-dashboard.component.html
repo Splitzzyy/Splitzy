@@ -1,12 +1,12 @@
 <!-- Mobile Dashboard -->
-<div class="lg:hidden bg-gray-50 min-h-screen pb-20">
+<div class="lg:hidden bg-white min-h-screen pb-20">
 
     <!-- Header -->
-    <div class="bg-gradient-to-br from-emerald-600 to-emerald-700 text-white p-4 rounded-b-3xl shadow-lg">
+    <div class="bg-gradient-to-br pt-10 from-emerald-600 to-emerald-700 text-white p-4 rounded-b-3xl shadow-lg">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h1 class="text-xl font-bold">Hi, {{userName}}! 👋</h1>
-                <p class="text-emerald-100 text-sm">{{ getCurrentDate() }}</p>
+                <p class="text-emerald-100 opacity-75 text-sm">{{ userEmail }}</p>
             </div>
         </div>
 
@@ -20,7 +20,7 @@
     <!-- Quick Stats -->
     <div class="px-4 py-6 grid grid-cols-2 gap-3">
         <!-- You Owe Card -->
-        <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white shadow-lg active:scale-95 transition-transform"
+        <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white shadow-lg active:scale-95 transition-transform select-none"
             (click)="navigateToDebts('owe')">
             <div class="flex items-center gap-2 mb-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,7 +39,7 @@
         </div>
 
         <!-- You Are Owed Card -->
-        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-lg active:scale-95 transition-transform"
+        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-lg active:scale-95 transition-transform select-none"
             (click)="navigateToDebts('owed')">
             <div class="flex items-center gap-2 mb-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -22,6 +22,7 @@ export class MobileDashboardComponent {
   @Input() oweTo: any[] = [];
   @Input() owedFrom: any[] = [];
   @Input() userId: number | null = null;
+  @Input() userEmail!: string;
 
   @Output() createGroup = new EventEmitter<void>();
   @Output() addExpense = new EventEmitter<number>();
