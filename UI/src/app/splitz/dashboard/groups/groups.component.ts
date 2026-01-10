@@ -6,7 +6,6 @@ import { firstValueFrom } from 'rxjs';
 import { ExpenseModalComponent } from '../expense-modal/expense-modal.component';
 import { SettleupComponent } from '../settleup/settleup.component';
 import { AddMemberModalComponent } from '../add-member-modal/add-member-modal.component';
-import { AddMembersRequest } from '../../splitz.model';
 
 export interface Group {
   id: number;
