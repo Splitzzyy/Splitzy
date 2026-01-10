@@ -5,6 +5,7 @@ import { SplitzService } from '../splitz.service';
 import { ExpenseModalComponent } from './expense-modal/expense-modal.component';
 import { GroupModalComponent } from './group-modal/group-modal.component';
 import { LoaderComponent } from '../loader/loader.component';
+import { MobileDashboardComponent } from '../mobile-dashboard/mobile-dashboard.component';
 
 export interface Group {
   groupId: number;
@@ -23,7 +24,8 @@ export interface OwedFrom {
     RouterModule,
     ExpenseModalComponent,
     GroupModalComponent,
-    LoaderComponent
+    LoaderComponent,
+    MobileDashboardComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'

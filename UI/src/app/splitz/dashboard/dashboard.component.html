@@ -2,46 +2,59 @@
   <app-loader></app-loader>
 }
 @if (!showLoader) {
-  <div class="dashboard-container">
-    <div class="dashboard-grid">
+  <!-- Mobile Dashboard -->
+  <app-mobile-dashboard 
+    class="lg:hidden"
+    [userName]="userName"
+    [totalBalance]="totalBalance"
+    [youOwe]="youOwe"
+    [youAreOwed]="youAreOwed"
+    [groups]="groups"
+    [oweTo]="oweTo"
+    [owedFrom]="owedFrom"
+    [userId]="userId"
+    (createGroup)="openCreateGroupModal()"
+    (addExpense)="openAddExpenseModal($event)">
+  </app-mobile-dashboard>
+
+  <!-- Desktop Dashboard -->
+  <div class="hidden lg:block p-6 min-h-[85vh]">
+    <div class="grid grid-cols-4 gap-6 h-full">
       
-      <!-- Main Content Area -->
-      <div class="main-content">
+      <!-- Main Content (3 columns) -->
+      <div class="col-span-3 space-y-6">
         
         <!-- Welcome Header -->
-        <div class="welcome-card">
-          <div class="welcome-content">
-            <div class="welcome-text">
-              <h1 class="welcome-title">Welcome {{userName}}! 👋</h1>
-              <p class="welcome-subtitle">Here's your expense overview</p>
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900 mb-1">Welcome {{userName}}! 👋</h1>
+              <p class="text-gray-600">Here's your expense overview</p>
             </div>
-            <div class="last-updated">
-              <span class="update-label">Last updated</span>
-              <span class="update-date">{{ getCurrentDate() }}</span>
-              <span class="update-label">{{ userEmail }}</span>
+            <div class="text-right">
+              <p class="text-sm text-gray-500">Last updated</p>
+              <p class="text-sm font-medium text-gray-900">{{ getCurrentDate() }}</p>
             </div>
           </div>
         </div>
 
         <!-- Balance Cards -->
-        <div class="balance-cards-grid">
-          
-          <!-- Total Balance Card -->
-          <div class="balance-card balance-card-dark">
-            <div class="balance-card-content">
-              <div class="balance-icon-wrapper balance-icon-dark">
-                <svg class="balance-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="grid grid-cols-3 gap-6">
+          <div class="bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+            <div class="flex items-center justify-between mb-4">
+              <div class="bg-white/20 rounded-lg p-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                 </svg>
               </div>
-              <div class="balance-info">
-                <span class="balance-label">Total Balance</span>
-                <span class="balance-amount">{{ totalBalance | currency:'INR':'symbol': '1.2-2' }}</span>
+              <div class="text-right">
+                <div class="text-xs uppercase tracking-wide opacity-80 mb-1">Total Balance</div>
+                <div class="text-3xl font-bold">{{ totalBalance | currency:'INR':'symbol': '1.2-2' }}</div>
               </div>
             </div>
-            <div class="balance-footer">
-              <svg class="footer-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center text-sm opacity-90">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
               </svg>
@@ -49,22 +62,20 @@
             </div>
           </div>
 
-          <!-- You Owe Card -->
-          <div class="balance-card balance-card-red">
-            <div class="balance-card-content">
-              <div class="balance-icon-wrapper balance-icon-red">
-                <svg class="balance-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+          <div class="bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+            <div class="flex items-center justify-between mb-4">
+              <div class="bg-white/20 rounded-lg p-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
                 </svg>
               </div>
-              <div class="balance-info">
-                <span class="balance-label">You Owe</span>
-                <span class="balance-amount">{{ youOwe | currency:'INR':'symbol': '1.2-2' }}</span>
+              <div class="text-right">
+                <div class="text-xs uppercase tracking-wide opacity-80 mb-1">You Owe</div>
+                <div class="text-3xl font-bold">{{ youOwe | currency:'INR':'symbol': '1.2-2' }}</div>
               </div>
             </div>
-            <div class="balance-footer">
-              <svg class="footer-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center text-sm opacity-90">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
@@ -72,22 +83,20 @@
             </div>
           </div>
 
-          <!-- You Are Owed Card -->
-          <div class="balance-card balance-card-green">
-            <div class="balance-card-content">
-              <div class="balance-icon-wrapper balance-icon-green">
-                <svg class="balance-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          <div class="bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+            <div class="flex items-center justify-between mb-4">
+              <div class="bg-white/20 rounded-lg p-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                 </svg>
               </div>
-              <div class="balance-info">
-                <span class="balance-label">You Are Owed</span>
-                <span class="balance-amount">{{ youAreOwed | currency:'INR':'symbol': '1.2-2' }}</span>
+              <div class="text-right">
+                <div class="text-xs uppercase tracking-wide opacity-80 mb-1">You Are Owed</div>
+                <div class="text-3xl font-bold">{{ youAreOwed | currency:'INR':'symbol': '1.2-2' }}</div>
               </div>
             </div>
-            <div class="balance-footer">
-              <svg class="footer-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center text-sm opacity-90">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
@@ -96,100 +105,87 @@
           </div>
         </div>
 
-        <!-- Debts and Credits Section -->
-        <div class="debts-credits-grid">
-          
-          <!-- You Owe Section -->
-          <div class="debt-card">
-            <div class="debt-header debt-header-red">
-              <div class="debt-header-content">
-                <div class="debt-icon-wrapper debt-icon-red">
-                  <svg class="debt-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+        <!-- Debts Section -->
+        <div class="grid grid-cols-2 gap-6">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-red-50 to-red-100 p-6 border-b border-red-200">
+              <div class="flex items-center">
+                <div class="bg-red-500 rounded-full p-2 mr-3">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
                   </svg>
                 </div>
-                <h2 class="debt-title">You Owe</h2>
+                <h2 class="text-xl font-bold text-red-800">You Owe</h2>
               </div>
             </div>
-            <div class="debt-body">
+            <div class="p-6 max-h-80 overflow-y-auto">
               @if (oweTo && oweTo.length) {
-                <div class="debt-list">
-                  @for (person of oweTo; track trackByPersonName($index, person)) {
-                    <div class="person-card person-card-red">
-                      <div class="person-info">
-                        <div class="person-avatar person-avatar-red">
-                          <span>{{ getInitials(person.name) }}</span>
+                <div class="space-y-3">
+                  @for (person of oweTo; track person.name) {
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div class="flex items-center">
+                        <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                          <span class="text-white font-semibold text-sm">{{ getInitials(person.name) }}</span>
                         </div>
-                        <div class="person-details">
-                          <span class="person-name">{{ person.name }}</span>
-                          <span class="person-status">Outstanding debt</span>
+                        <div>
+                          <span class="text-lg font-medium text-gray-900">{{ person.name }}</span>
+                          <p class="text-sm text-gray-500">Outstanding debt</p>
                         </div>
                       </div>
-                      <div class="person-amount-section">
-                        <span class="person-amount person-amount-red">
-                          {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
-                        </span>
-                        <button class="person-action person-action-red">
-                          Settle up
-                        </button>
+                      <div class="text-right">
+                        <span class="text-lg font-bold text-red-600">{{ person.amount | currency:'INR':'symbol': '1.2-2' }}</span>
+                        <button class="block text-xs text-red-500 hover:text-red-700 mt-1">Settle up</button>
                       </div>
                     </div>
                   }
                 </div>
               } @else {
-                <div class="empty-state">
-                  <div class="empty-icon">🎉</div>
-                  <span class="empty-title">You owe nothing!</span>
-                  <span class="empty-subtitle">You're all caught up with payments</span>
+                <div class="text-center py-12">
+                  <div class="text-6xl mb-4">🎉</div>
+                  <span class="text-gray-500 text-lg">You owe nothing!</span>
+                  <p class="text-gray-400 text-sm mt-1">You're all caught up</p>
                 </div>
               }
             </div>
           </div>
 
-          <!-- You Are Owed Section -->
-          <div class="debt-card">
-            <div class="debt-header debt-header-green">
-              <div class="debt-header-content">
-                <div class="debt-icon-wrapper debt-icon-green">
-                  <svg class="debt-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-green-50 to-green-100 p-6 border-b border-green-200">
+              <div class="flex items-center">
+                <div class="bg-green-500 rounded-full p-2 mr-3">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                   </svg>
                 </div>
-                <h2 class="debt-title">You Are Owed</h2>
+                <h2 class="text-xl font-bold text-green-800">You Are Owed</h2>
               </div>
             </div>
-            <div class="debt-body">
+            <div class="p-6 max-h-80 overflow-y-auto">
               @if (owedFrom && owedFrom.length) {
-                <div class="debt-list">
-                  @for (person of owedFrom; track trackByPersonName($index, person)) {
-                    <div class="person-card person-card-green">
-                      <div class="person-info">
-                        <div class="person-avatar person-avatar-green">
-                          <span>{{ getInitials(person.name) }}</span>
+                <div class="space-y-3">
+                  @for (person of owedFrom; track person.name) {
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div class="flex items-center">
+                        <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                          <span class="text-white font-semibold text-sm">{{ getInitials(person.name) }}</span>
                         </div>
-                        <div class="person-details">
-                          <span class="person-name">{{ person.name }}</span>
-                          <span class="person-status">Owes you money</span>
+                        <div>
+                          <span class="text-lg font-medium text-gray-900">{{ person.name }}</span>
+                          <p class="text-sm text-gray-500">Owes you money</p>
                         </div>
                       </div>
-                      <div class="person-amount-section">
-                        <span class="person-amount person-amount-green">
-                          {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
-                        </span>
-                        <button class="person-action person-action-green">
-                          Remind
-                        </button>
+                      <div class="text-right">
+                        <span class="text-lg font-bold text-green-600">{{ person.amount | currency:'INR':'symbol': '1.2-2' }}</span>
+                        <button class="block text-xs text-green-500 hover:text-green-700 mt-1">Remind</button>
                       </div>
                     </div>
                   }
                 </div>
               } @else {
-                <div class="empty-state">
-                  <div class="empty-icon">💸</div>
-                  <span class="empty-title">No one owes you!</span>
-                  <span class="empty-subtitle">Time to add some expenses</span>
+                <div class="text-center py-12">
+                  <div class="text-6xl mb-4">💸</div>
+                  <span class="text-gray-500 text-lg">No one owes you!</span>
+                  <p class="text-gray-400 text-sm mt-1">Time to add expenses</p>
                 </div>
               }
             </div>
@@ -198,51 +194,53 @@
       </div>
 
       <!-- Groups Sidebar -->
-      <div class="groups-sidebar">
-        <div class="groups-header">
-          <div class="groups-header-content">
-            <div class="groups-icon-wrapper">
-              <svg class="groups-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden h-fit sticky top-6">
+        <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-6 border-b border-purple-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="bg-purple-500 rounded-full p-2 mr-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-purple-800">Groups</h2>
             </div>
-            <h2 class="groups-title">Groups</h2>
+            <button (click)="openCreateGroupModal()"
+              class="bg-purple-500 hover:bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </button>
           </div>
-          <button (click)="openCreateGroupModal()" class="add-group-btn">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </button>
         </div>
-        <div class="groups-body">
+        <div class="p-6 max-h-[500px] overflow-y-auto">
           @if (groups && groups.length) {
-            <div class="groups-list">
-              @for (group of groups; track trackByGroupId($index, group)) {
-                <div class="group-card">
-                  <a [routerLink]="['/group', userId, group.groupId]" class="group-link">
-                    <div class="group-icon-wrapper">
-                      <svg class="group-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="space-y-3">
+              @for (group of groups; track group.groupId) {
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-purple-50 hover:border-purple-200 border border-transparent transition-all">
+                  <a [routerLink]="['/group', userId, group.groupId]" class="flex items-center flex-1">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                       </svg>
                     </div>
-                    <div class="group-info">
-                      <span class="group-name">{{ group.groupName }}</span>
-                      <span class="group-status">{{ getGroupStatus(group.netBalance) }}</span>
+                    <div>
+                      <span class="text-lg font-semibold text-gray-900">{{ group.groupName }}</span>
+                      <p class="text-sm text-gray-500">{{ getGroupStatus(group.netBalance) }}</p>
                     </div>
                   </a>
-                  <div class="group-actions">
-                    <div class="group-balance">
-                      <span class="group-amount" [ngClass]="{
-                        'amount-positive': group.netBalance > 0,
-                        'amount-negative': group.netBalance < 0,
-                        'amount-neutral': group.netBalance === 0
-                      }">
-                        {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
-                      </span>
-                    </div>
-                    <button (click)="openAddExpenseModal(group.groupId)" class="add-expense-btn">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg font-bold" [ngClass]="{
+                      'text-green-600': group.netBalance > 0,
+                      'text-red-600': group.netBalance < 0,
+                      'text-gray-600': group.netBalance === 0
+                    }">
+                      {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
+                    </span>
+                    <button (click)="openAddExpenseModal(group.groupId)"
+                      class="bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                       </svg>
@@ -252,11 +250,12 @@
               }
             </div>
           } @else {
-            <div class="empty-state">
-              <div class="empty-icon">👥</div>
-              <span class="empty-title">No groups yet!</span>
-              <span class="empty-subtitle">Create a group to start splitting expenses</span>
-              <button (click)="openCreateGroupModal()" class="create-group-btn">
+            <div class="text-center py-16">
+              <div class="text-6xl mb-4">👥</div>
+              <span class="text-gray-500 text-lg block mb-2">No groups yet!</span>
+              <p class="text-gray-400 text-sm mb-4">Create a group to start</p>
+              <button (click)="openCreateGroupModal()"
+                class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
                 Create Group
               </button>
             </div>
