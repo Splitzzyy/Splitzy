@@ -91,14 +91,14 @@ namespace splitzy_dotnet.Templates
             return Layout("🔒 Reset Your Password", body);
         }
     }
-        // --- Group Invitation (New User) Template ---
-        public class GroupInvitationTemplate : EmailTemplateBase
-        {
-            private const string SignupUrl = "https://splitzy.aarshiv.xyz/register";
+    // --- Group Invitation (New User) Template ---
+    public class GroupInvitationTemplate : EmailTemplateBase
+    {
+        private const string SignupUrl = "https://splitzy.aarshiv.xyz";
 
-            public string Build(string inviterName, string groupName)
-            {
-                var body = $"""
+        public string Build(string inviterName, string groupName)
+        {
+            var body = $"""
                 <p>Hi,</p>
                 <p><strong>{inviterName}</strong> has asked you to join the group <strong>{groupName}</strong>.</p>
                 <p>To view the expenses, check your balance, and settle up, please create an account.</p>
@@ -115,7 +115,7 @@ namespace splitzy_dotnet.Templates
                 </p>
             """;
 
-                return Layout($"You've been added to {groupName}", body);
-            }
-        }    
+            return Layout($"You've been added to {groupName}", body);
+        }
+    }
 }

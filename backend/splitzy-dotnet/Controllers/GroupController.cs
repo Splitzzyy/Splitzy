@@ -189,17 +189,17 @@ namespace splitzy_dotnet.Controllers
                         }
 
                         // Non-existing users (invite)
-                        //foreach (var email in missingEmails)
-                        //{
-                        //    var html = new GroupInviteTemplate()
-                        //        .Build(request.GroupName, creator.Name);
+                        foreach (var email in missingEmails)
+                        {
+                            var html = new GroupInvitationTemplate()
+                                .Build(creator.Name, request.GroupName);
 
-                        //    _emailService.SendAsync(
-                        //        email,
-                        //        $"Invitation to join {request.GroupName}",
-                        //        html
-                        //    );
-                        //}
+                            _emailService.SendAsync(
+                                email,
+                                $"Invitation to join {request.GroupName}",
+                                html
+                            );
+                        }
                     }
                     catch (Exception ex)
                     {
