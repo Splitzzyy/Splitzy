@@ -145,9 +145,6 @@ namespace splitzy_dotnet.Controllers
                 .Where(e => !foundEmails.Contains(e))
                 .ToList();
 
-            if (missingEmails.Any())
-                return NotFound($"User(s) not found: {string.Join(", ", missingEmails)}");
-
             using var tx = await _context.Database.BeginTransactionAsync();
 
             try
@@ -174,25 +171,35 @@ namespace splitzy_dotnet.Controllers
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                _ = Task.Run(async () =>
+                _ = Task.Run(() =>
                 {
                     try
                     {
-                        var emailTasks = users
-                            .Where(u => u.UserId != creator.UserId)
-                            .Select(u =>
-                            {
-                                var html = new GroupAddedTemplate()
-                                    .Build(u.Name, request.GroupName, creator.Name);
+                        // Existing users
+                        foreach (var u in users.Where(u => u.UserId != creator.UserId))
+                        {
+                            var html = new GroupAddedTemplate()
+                                .Build(u.Name, request.GroupName, creator.Name);
 
-                                return _emailService.SendAsync(
-                                    u.Email,
-                                    $"You were added to {request.GroupName}",
-                                    html
-                                );
-                            });
+                            _emailService.SendAsync(
+                                u.Email,
+                                $"You were added to {request.GroupName}",
+                                html
+                            );
+                        }
 
-                        await Task.WhenAll(emailTasks);
+                        // Non-existing users (invite)
+                        foreach (var email in missingEmails)
+                        {
+                            var html = new GroupInvitationTemplate()
+                                .Build(creator.Name, request.GroupName);
+
+                            _emailService.SendAsync(
+                                email,
+                                $"Invitation to join {request.GroupName}",
+                                html
+                            );
+                        }
                     }
                     catch (Exception ex)
                     {
