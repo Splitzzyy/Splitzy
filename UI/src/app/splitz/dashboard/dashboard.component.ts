@@ -60,7 +60,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onloadDashboardData() {
     this.userEmail = localStorage.getItem('userEmail') ?? '';
     this.splitzService.onFetchDashboardData().subscribe((data: any) => {
-      console.log(data);
       this.userName = data.userName;
       this.totalBalance = data.totalBalance;
       this.youOwe = data.youOwe;
@@ -75,9 +74,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   openAddExpenseModal(groupId: number): void {
     this.selectedGroupId = groupId;
-    // Fetch group members for the selected group
     this.splitzService.onFetchGroupData(groupId).subscribe((data: any) => {
-      console.log('Group data:', data);
       this.selectedGroupMembers = data.members || [];
       this.showExpenseModal = true;
     });
@@ -90,19 +87,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   onExpenseSaved(expense: any): void {
-    console.log('Saving expense:', expense);
     this.splitzService.onSaveExpense(expense).subscribe({
       next: (response: any) => {
-        console.log('Expense saved successfully:', response);
-        // Reload dashboard data to reflect the new expense
         this.onloadDashboardData();
         this.closeExpenseModal();
-        // Show success message (you can add a toast notification here)
-        alert('Expense added successfully!');
+        this.splitzService.show('Expense added', 'success');
       },
       error: (error: any) => {
         console.error('Error saving expense:', error);
-        alert('Failed to add expense. Please try again.');
+        this.splitzService.show('Failed to add expense. Please try again.', 'error')
       }
     });
   }
@@ -116,18 +109,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   onGroupSaved(group: any): void {
-    console.log('Creating group:', group);
     this.splitzService.onCreateGroup(group).subscribe({
       next: (response: any) => {
-        console.log('Group created successfully:', response);
         this.closeGroupModal();
-        alert('Group created successfully!');
-        // Reload dashboard data to show new group
+        this.splitzService.show('Group created successfully!', 'success');
         this.onloadDashboardData();
       },
       error: (error: any) => {
         console.error('Error creating group:', error);
-        alert('Failed to create group. Please try again.');
+        this.splitzService.show('Failed to create group. Please try again.', 'error');
       }
     });
   }
