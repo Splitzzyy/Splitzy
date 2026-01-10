@@ -53,14 +53,11 @@ export class GroupsComponent implements OnInit {
     this.getDataFromRouteParams();
   }
 
-  // Method 3: Getting data from route parameters (ID only)
   private getDataFromRouteParams(): void {
     this.route.params.subscribe(params => {
       this.userId = params['userId'];
-      this.groupId = +params['groupId']; // Convert string to number
-      console.log('Group ID from route:', this.groupId);
+      this.groupId = +params['groupId'];
       
-      // If no data from state/query, fetch from service/API
       if (!this.groupData) {
         this.fetchGroupData(this.groupId);
       }
@@ -71,7 +68,6 @@ export class GroupsComponent implements OnInit {
   private async fetchGroupData(groupId: number): Promise<void> {
     try {
       const data: any = await firstValueFrom(this.splitzService.onFetchGroupData(groupId));
-      console.log(data);
       this.groupData = {
         id: data.groupId,
         name: data.name,
@@ -83,7 +79,6 @@ export class GroupsComponent implements OnInit {
       this.expenses = data.expenses || [];
       this.members = data.members || [];
       this.balanceSummary = data.userSummaries || [];
-      console.log('Group data fetched:', this.groupData);
     } catch (error) {
       console.error('Error fetching group data:', error);
       this.groupData = null;
@@ -126,13 +121,11 @@ export class GroupsComponent implements OnInit {
   }
 
   handleExpenseSave(expense: any) {
-    console.log('New expense:', expense)
     this.showExpenseModal = false;
     this.splitzService.onSaveExpense(expense).subscribe({
       next: (response) => {
-        console.log('Expense saved successfully:', response);
-        // Optionally, refresh the group data or show a success message
         this.fetchGroupData(this.groupId);
+        this.splitzService.show('Expense Added Successfully!', 'success');
       },
       error: (error) => {
         console.error('Error saving expense:', error);
@@ -143,16 +136,12 @@ export class GroupsComponent implements OnInit {
     this.splitzService.onSettleExpense(expense).subscribe({
       next: (response: any) => {
         if (response?.success) {
-          console.log('Settle up successful:', response);
-
-          // close modal only on success
+          this.splitzService.show('Settle up successful', 'success');
           this.showSettleModal = false;
-
-          // refresh group/dashboard data
           this.fetchGroupData(this.groupId);
         } else {
-          // business failure (still HTTP 200)
           console.error('Settle up failed:', response?.message);
+          this.splitzService.show(`Settle up failed: ${response?.message}`, 'success');
         }
       },
       error: (error) => {
@@ -165,11 +154,12 @@ export class GroupsComponent implements OnInit {
     this.splitzService.onAddMemeber(memebers).subscribe({
       next: (response: any) => {
         if (response) {
-          console.log("Add memembers successful", response);
+          this.splitzService.show('Memeber Added Successfully', 'success');
         }
         this.showAddMemberModal = false;
       }, error: (error) => {
         console.error("Add members failed", error);
+        this.splitzService.show(`Add members failed: ${error?.error}`, 'success');
         this.errorMessage = error.error;
       }
     })

@@ -86,8 +86,6 @@ export class ExpenseModalComponent implements OnInit {
           amount: this.getSplitAmount(m)
         }))
     };
-
-    console.log('Saving expense:', expense);
     this.save.emit(expense);
     this.closeModal();
   }

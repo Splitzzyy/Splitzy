@@ -30,7 +30,7 @@ export class MainLayoutComponent implements OnInit {
   showAddMenu = false;
   showProfileMenu = false;
 
-  constructor(private router: Router, private spltizService: SplitzService) {
+  constructor(private router: Router, private splitzService: SplitzService) {
   }
 
   ngOnInit(): void {
@@ -47,10 +47,10 @@ export class MainLayoutComponent implements OnInit {
       this.showLoader = false;
       const localUserId = localStorage.getItem('userId') || '1';
       // Ensure SplitzService state is updated for downstream components
-      this.spltizService.setUserId(Number(localUserId));
+      this.splitzService.setUserId(Number(localUserId));
       this.userIdNumber = Number(localUserId);
       // no token for local development
-      try { this.spltizService.setToken(''); } catch { }
+      try { this.splitzService.setToken(''); } catch { }
       this.userId = localUserId;
       this.token = '';
       this.router.navigate(['/dashboard']);
@@ -80,13 +80,13 @@ export class MainLayoutComponent implements OnInit {
     if (type === 'expense') {
       this.showLoader = true;
       // Fetch all groups for the expense modal
-      this.spltizService.onFetchDashboardData().subscribe((data: any) => {
+      this.splitzService.onFetchDashboardData().subscribe((data: any) => {
         this.allGroups = data.groupWiseSummary || [];
         if (this.allGroups.length > 0) {
           // Select the first group by default
           this.openAddExpenseModal(this.allGroups[0].groupId);
         } else {
-          alert('No groups available. Please create a group first.');
+          this.splitzService.show('No groups available. Please create a group first.', 'info');
         }
       });
     } else if (type === 'settle') {
@@ -100,8 +100,7 @@ export class MainLayoutComponent implements OnInit {
   openAddExpenseModal(groupId: number): void {
     this.selectedGroupId = groupId;
     // Fetch group members for the selected group
-    this.spltizService.onFetchGroupData(groupId).subscribe((data: any) => {
-      console.log('Group data:', data);
+    this.splitzService.onFetchGroupData(groupId).subscribe((data: any) => {
       this.selectedGroupMembers = data.members || [];
       this.showLoader = false;
       this.showExpenseModal = true;
@@ -119,26 +118,20 @@ export class MainLayoutComponent implements OnInit {
   }
 
   onSettleUpSaved(settleData: any) {
-    console.log('Settle up data:', settleData);
-    // Send to your API here
-    // this.yourService.settleUp(settleData).subscribe(...)
     this.closeSettleModal();
   }
 
   onExpenseSaved(expense: any): void {
     this.showLoader = true;
-    console.log('Saving expense:', expense);
-    this.spltizService.onSaveExpense(expense).subscribe({
+    this.splitzService.onSaveExpense(expense).subscribe({
       next: (response: any) => {
         this.showLoader = false;
-        console.log('Expense saved successfully:', response);
         this.closeExpenseModal();
-        // Show success message
-        alert('Expense added successfully!');
+        this.splitzService.show('Expense added successfully!', 'success');
       },
       error: (error: any) => {
         console.error('Error saving expense:', error);
-        alert('Failed to add expense. Please try again.');
+        this.splitzService.show('Failed to add expense. Please try again.', 'error')
       }
     });
   }
@@ -150,7 +143,7 @@ export class MainLayoutComponent implements OnInit {
     }
   }
   logout() {
-    this.spltizService.logout();
+    this.splitzService.logout();
   }
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;

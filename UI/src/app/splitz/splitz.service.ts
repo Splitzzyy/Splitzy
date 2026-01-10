@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest } from './splitz.model';
+import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest, Toast, ToastType } from './splitz.model';
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +16,8 @@ export class SplitzService {
   private tokenSubject = new BehaviorSubject<string | null>(null);
   public userId$ = this.userIdSubject.asObservable();
   public token$ = this.tokenSubject.asObservable();
+  private toasts$ = new BehaviorSubject<Toast[]>([]);
+  private id = 0;
   private groupWiseSummary: any;
 
   constructor(private http: HttpClient, private router: Router) { }
@@ -57,7 +59,7 @@ export class SplitzService {
         this.clearLocalSession();
       })
     ).subscribe({
-      next: () => console.log('Logout API call successful'),
+      next: () => {},
       error: (err) => console.error('Logout API call failed', err)
     });
   }
@@ -81,29 +83,24 @@ export class SplitzService {
   }
   onFetchDashboardData() {
     const url = `${this.BASE_URL}${this.ENDPOINTS.DASHBOARD}`;
-    console.log(`Fetching dashboard data from ${url}`);
     return this.http.get<any>(url);
   }
   onFetchGroupData(groupId: any) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.GROUP}/${groupId}`;
-    console.log(`Fetching group data from ${url}`);
     return this.http.get<any>(url);
   }
   onSaveExpense(expense: any) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.EXPENSE}`;
-    console.log(`Saving expense to ${url}`);
     return this.http.post<any>(url, expense);
   }
 
   onCreateGroup(group: any) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.CREATE_GROUP}`;
-    console.log(`Creating group at ${url}`);
     return this.http.post<any>(url, group);
   }
 
   getRecentActivity() {
     const url = `${this.BASE_URL}${this.ENDPOINTS.RECENT}`;
-    console.log(`Fetching recent activity from ${url}`);
     return this.http.get<any[]>(url);
   }
   handleGoogleSignIn(googleResponse: any): void {
@@ -183,5 +180,19 @@ export class SplitzService {
   onAddMemeber(request: AddMembersRequest) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.ADDUSERTOGROUP}/${request.groupId}`;
     return this.http.post<any>(url, request);
+  }
+  get stream() {
+    return this.toasts$.asObservable();
+  }
+
+  show(message: string, type: ToastType = 'info', duration = 2500) {
+    const toast: Toast = { id: ++this.id, message, type, duration };
+    this.toasts$.next([...this.toasts$.value, toast]);
+
+    setTimeout(() => this.dismiss(toast.id), duration);
+  }
+
+  dismiss(id: number) {
+    this.toasts$.next(this.toasts$.value.filter(t => t.id !== id));
   }
 }

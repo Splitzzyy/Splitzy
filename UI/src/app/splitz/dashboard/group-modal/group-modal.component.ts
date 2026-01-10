@@ -15,6 +15,7 @@ export class GroupModalComponent implements OnInit {
 
   groupName: string = '';
   userEmails: string[] = [''];
+  spltizService: any;
   
   ngOnInit() {
     // Initialize with empty email field
@@ -54,7 +55,8 @@ export class GroupModalComponent implements OnInit {
 
   saveGroup(): void {
     if (!this.isValid()) {
-      alert('Please enter a valid group name and at least one valid email');
+      // alert('Please enter a valid group name and at least one valid email');
+      this.spltizService.show('Please enter a valid group name and at least one valid email');
       return;
     }
     const validEmails = this.userEmails
@@ -65,8 +67,6 @@ export class GroupModalComponent implements OnInit {
       groupName: this.groupName.trim(),
       userEmails: validEmails
     };
-
-    console.log('Creating group:', groupData);
     this.save.emit(groupData);
   }
 

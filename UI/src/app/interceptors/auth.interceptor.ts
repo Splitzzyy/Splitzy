@@ -22,7 +22,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !req.url.includes('logout')) { 
-        console.log('401 error - logging out');
         splitzService.logout();
       }
       return throwError(() => error);
