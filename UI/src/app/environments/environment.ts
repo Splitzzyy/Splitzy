@@ -17,5 +17,6 @@ export const environment = {
         FORGOTPASS: '/api/Auth/forget-password',
         SETUPPASS: '/api/Auth/verify',
         SETTLEUP: '/api/Settleup/settle-up',
+        ADDUSERTOGROUP: '/api/Group/AddUsersToGroup'
     }
 };

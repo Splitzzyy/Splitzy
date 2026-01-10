@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest } from './splitz.model';
+import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest } from './splitz.model';
 
 @Injectable({
   providedIn: 'root'
@@ -178,6 +178,10 @@ export class SplitzService {
   }
   onSettleExpense(request: SettleUpRequest) {
     const url = `${this.BASE_URL}${this.ENDPOINTS.SETTLEUP}`;
+    return this.http.post<any>(url, request);
+  }
+  onAddMemeber(request: AddMembersRequest) {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.ADDUSERTOGROUP}/${request.groupId}`;
     return this.http.post<any>(url, request);
   }
 }

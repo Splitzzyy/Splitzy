@@ -41,3 +41,7 @@ export interface SettleUpRequest {
   paidToUserId: number;
   amount: number;
 }
+export interface AddMembersRequest {
+    groupId: number
+    userEmails: string[];
+}
