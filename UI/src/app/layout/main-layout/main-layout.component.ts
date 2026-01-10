@@ -27,6 +27,8 @@ export class MainLayoutComponent implements OnInit {
   allGroups: any[] = [];
   mobileMenuOpen: boolean = false;
   showSettleModal: boolean = false;
+  showAddMenu = false;
+  showProfileMenu = false;
 
   constructor(private router: Router, private spltizService: SplitzService) {
   }
@@ -156,4 +158,40 @@ export class MainLayoutComponent implements OnInit {
   closeMobileMenu() {
     this.mobileMenuOpen = false;
   }
+  openAddMenu() {
+  this.showAddMenu = true;
+}
+
+closeAddMenu() {
+  this.showAddMenu = false;
+}
+
+handleAddExpense() {
+  this.closeAddMenu();
+  // Navigate to add expense or open modal
+  // You can emit an event or navigate based on your setup
+  this.router.navigate(['/add-expense']);
+  // OR if you handle it in dashboard:
+  // Navigate to dashboard and trigger expense modal
+}
+
+handleSettleUp() {
+  this.closeAddMenu();
+  // Navigate or trigger settle up
+  this.router.navigate(['/settle-up']);
+}
+
+handleCreateGroup() {
+  this.closeAddMenu();
+  // Navigate or trigger create group
+  this.router.navigate(['/create-group']);
+}
+
+openProfileMenu() {
+  this.showProfileMenu = true;
+}
+
+closeProfileMenu() {
+  this.showProfileMenu = false;
+}
 }

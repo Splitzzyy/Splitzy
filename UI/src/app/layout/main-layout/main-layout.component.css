@@ -7,7 +7,9 @@
 
 /* Animated gradient background */
 @keyframes gradient-shift {
-    0%, 100% { 
+
+    0%,
+    100% {
         background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
     }
 }
@@ -26,18 +28,45 @@
     animation: float 6s ease-in-out infinite;
 }
 
-.particle-1 { top: 20%; left: 10%; animation-delay: 0s; }
-.particle-2 { top: 40%; right: 15%; animation-delay: 1s; }
-.particle-3 { top: 60%; left: 20%; animation-delay: 2s; }
-.particle-4 { top: 80%; right: 10%; animation-delay: 3s; }
-.particle-5 { top: 30%; left: 80%; animation-delay: 4s; }
+.particle-1 {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.particle-2 {
+    top: 40%;
+    right: 15%;
+    animation-delay: 1s;
+}
+
+.particle-3 {
+    top: 60%;
+    left: 20%;
+    animation-delay: 2s;
+}
+
+.particle-4 {
+    top: 80%;
+    right: 10%;
+    animation-delay: 3s;
+}
+
+.particle-5 {
+    top: 30%;
+    left: 80%;
+    animation-delay: 4s;
+}
 
 @keyframes float {
-    0%, 100% { 
+
+    0%,
+    100% {
         transform: translateY(0px) scale(1);
         opacity: 0.3;
     }
-    50% { 
+
+    50% {
         transform: translateY(-20px) scale(1.1);
         opacity: 0.6;
     }
@@ -198,19 +227,19 @@
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .content {
         margin-left: 0;
     }
-    
+
     .sidebar {
         order: 2;
     }
-    
+
     .nav-link-content {
         padding: 12px 16px;
     }
-    
+
     .btn-content {
         padding: 12px 20px;
     }
@@ -250,6 +279,7 @@
         transform: translateX(-20px);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -261,13 +291,25 @@
 }
 
 /* Stagger animation for nav items */
-.nav-item:nth-child(1) { animation: slideInLeft 0.8s ease-out; }
-.nav-item:nth-child(2) { animation: slideInLeft 1s ease-out; }
+.nav-item:nth-child(1) {
+    animation: slideInLeft 0.8s ease-out;
+}
+
+.nav-item:nth-child(2) {
+    animation: slideInLeft 1s ease-out;
+}
 
 /* Button pulse effect on load */
 @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .action-btn {
@@ -314,6 +356,7 @@
         transform: translateX(-100%);
         opacity: 0.8;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -325,6 +368,7 @@
         transform: translateX(0);
         opacity: 1;
     }
+
     to {
         transform: translateX(-100%);
         opacity: 0.8;
@@ -350,7 +394,7 @@
         flex-direction: row;
         gap: 1rem;
     }
-    
+
     .sidebar {
         position: static;
         transform: translateX(0) !important;
@@ -358,13 +402,13 @@
         flex-shrink: 0;
         height: calc(100vh - 2rem);
     }
-    
+
     .content {
         flex: 1;
         padding: 0;
         min-height: auto;
     }
-    
+
     .mobile-menu-toggle {
         display: none;
     }
@@ -375,4 +419,75 @@
     .content {
         padding: 1.5rem;
     }
+}
+
+.mobile-bottom-nav {
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    color: #6b7280;
+    transition: all 0.2s;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.mobile-nav-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.mobile-nav-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.mobile-nav-item.active-nav-item {
+    color: #10b981;
+}
+
+.mobile-nav-add-btn {
+    width: 3.5rem;
+    height: 3.5rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: -1.5rem;
+}
+
+.mobile-nav-add-btn:active {
+    transform: scale(0.95);
+}
+
+@keyframes slide-up {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+}
+
+.active\:scale-98:active {
+    transform: scale(0.98);
 }
