@@ -425,4 +425,10 @@
     .members-list {
       max-height: 250px;
     }
+    .action-buttons {
+      flex-direction: column;
+    }
+    .select-all-wrapper{
+      padding: 0.75rem;
+    }
   }

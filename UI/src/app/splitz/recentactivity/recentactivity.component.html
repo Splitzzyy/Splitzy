@@ -1,10 +1,13 @@
-<div class="max-w-4xl mx-auto p-6">
+<div class="max-w-4xl mx-auto p-1 mb-20 lg:mb-0">
   <div class="bg-white rounded-xl shadow-sm border border-gray-200">
     <div class="p-6 border-b border-gray-200">
       <h2 class="text-xl font-semibold text-gray-900">Recent activity</h2>
     </div>
 
     <div class="divide-y divide-gray-100">
+      @if (showLoader) {
+      <app-loader></app-loader>
+      }
       @for (activity of activityData; track trackByIndex($index, activity)) {
         <div
           class="p-6 hover:bg-gray-50 transition-colors cursor-pointer">
@@ -53,7 +56,7 @@
       }
 
       <!-- Empty state -->
-      @if (activityData.length === 0) {
+      @if (!showLoader &&activityData.length === 0) {
         <div class="p-12 text-center">
           <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
           <h3 class="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>

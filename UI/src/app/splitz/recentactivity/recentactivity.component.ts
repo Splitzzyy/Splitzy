@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SplitzService } from '../splitz.service';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { LoaderComponent } from '../loader/loader.component';
 
 interface ActivityItem {
   actor: string;
@@ -18,13 +19,14 @@ interface ActivityItem {
 }
 @Component({
   selector: 'app-recentactivity',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoaderComponent],
   templateUrl: './recentactivity.component.html',
   styleUrl: './recentactivity.component.css'
 })
 export class RecentactivityComponent implements OnInit {
   activityData: ActivityItem[] = [];
   userId: number | null = null;
+  showLoader: boolean = true;
   constructor(private splitzService: SplitzService, private route: ActivatedRoute) {
   }
 
@@ -67,6 +69,7 @@ export class RecentactivityComponent implements OnInit {
   async loadActivityData(): Promise<any> {
     try {
       this.activityData = await firstValueFrom(this.splitzService.getRecentActivity());
+      this.showLoader = false;
     } catch (error) {
       console.error('Error loading activity data:', error);
     }
