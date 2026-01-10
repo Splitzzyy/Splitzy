@@ -30,8 +30,8 @@ export class GroupModalComponent implements OnInit {
     }
   }
   trackByIndex(index: number): number {
-  return index;
-}
+    return index;
+  }
 
   isValid(): boolean {
     // Validate group name is not empty
@@ -57,8 +57,6 @@ export class GroupModalComponent implements OnInit {
       alert('Please enter a valid group name and at least one valid email');
       return;
     }
-
-    // Filter out empty emails
     const validEmails = this.userEmails
       .map(email => email.trim())
       .filter(email => email !== '' && this.isValidEmail(email));

@@ -5,6 +5,7 @@ import { SplitzService } from '../../splitz.service';
 import { firstValueFrom } from 'rxjs';
 import { ExpenseModalComponent } from '../expense-modal/expense-modal.component';
 import { SettleupComponent } from '../settleup/settleup.component';
+import { AddMemberModalComponent } from '../add-member-modal/add-member-modal.component';
 
 export interface Group {
   id: number;
@@ -20,7 +21,8 @@ export interface Group {
   imports: [
     CommonModule,
     ExpenseModalComponent,
-    SettleupComponent
+    SettleupComponent,
+    AddMemberModalComponent
   ],
   templateUrl: './groups.component.html',
   styleUrls: ['./groups.component.css']
@@ -35,6 +37,8 @@ export class GroupsComponent implements OnInit {
   balanceSummary: any[] = [];
   showExpenseModal: boolean = false;
   showSettleModal: boolean = false;
+  showAddMemberModal: boolean = false;
+  errorMessage: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -106,26 +110,17 @@ export class GroupsComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  // Add expense functionality
-  addExpense(): void {
-    if (this.groupData) {
-      this.router.navigate(['/group', this.groupData.id, 'add-expense']);
-    }
-  }
-
-  // Add member functionality
-  addMember(): void {
-    if (this.groupData) {
-      this.router.navigate(['/group', this.groupData.id, 'add-member']);
-    }
-  }
-
   openExpenseModal() {
     this.showExpenseModal = true;
   }
 
   openSettleModal() {
     this.showSettleModal = true;
+  }
+
+  openAddMemberModal() {
+    this.errorMessage = '';
+    this.showAddMemberModal = true;
   }
 
   handleExpenseSave(expense: any) {
@@ -163,5 +158,18 @@ export class GroupsComponent implements OnInit {
         console.error('Error settling up expense:', error);
       }
     });
+  }
+  onAddMembers(memebers: any) {
+    this.splitzService.onAddMemeber(memebers).subscribe({
+      next: (response: any) => {
+        if (response) {
+          console.log("Add memembers successful", response);
+        }
+        this.showAddMemberModal = false;
+      }, error: (error) => {
+        console.error("Add members failed", error);
+        this.errorMessage = error.error;
+      }
+    })
   }
 }

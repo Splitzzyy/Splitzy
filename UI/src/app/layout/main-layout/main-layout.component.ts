@@ -78,7 +78,6 @@ export class MainLayoutComponent implements OnInit {
     if (type === 'expense') {
       this.showLoader = true;
       // Fetch all groups for the expense modal
-      debugger;
       this.spltizService.onFetchDashboardData().subscribe((data: any) => {
         this.allGroups = data.groupWiseSummary || [];
         if (this.allGroups.length > 0) {

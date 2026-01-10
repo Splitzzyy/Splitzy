@@ -8,6 +8,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const splitzService = inject(SplitzService);
   const token = splitzService.getToken();
   let headers: { [key: string]: string } = {};
+
   if (!(req.body instanceof FormData) && !req.headers.has('Content-Type')) {
     headers['Content-Type'] = 'application/json';
   }
@@ -17,10 +18,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (Object.keys(headers).length > 0) {
     req = req.clone({ setHeaders: headers });
   }
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      console.log('Interceptor caught error:', error.status);
-      if (error.status === 401) {
+      if (error.status === 401 && !req.url.includes('logout')) { 
         console.log('401 error - logging out');
         splitzService.logout();
       }
