@@ -8,6 +8,7 @@ interface SplitMember {
   amount: number;
   isSelected: boolean;
   avatarLetter: string;
+  customAmount?: number;
 }
 
 @Component({
@@ -29,6 +30,7 @@ export class ExpenseModalComponent implements OnInit {
   paidBy: number | null = null;
   splitMembers: SplitMember[] = [];
   selectAllChecked: boolean = false;
+  isUnequalSplit: boolean = false;
 
   ngOnInit() {
     // Initialize members with avatar letters
@@ -37,7 +39,8 @@ export class ExpenseModalComponent implements OnInit {
       avatarLetter: (member.memberName || member.name || 'Unknown').charAt(0).toUpperCase(),
       isSelected: false,
       id: member.memberId || member.id,
-      amount: 0
+      amount: 0,
+      customAmount: 0
     }));
     // Set current user as paidBy by default
     if (this.currentUserId) {
@@ -46,27 +49,116 @@ export class ExpenseModalComponent implements OnInit {
   }
 
   getSplitAmount(member: SplitMember): number {
-    const selectedMembers = this.splitMembers.filter(m => m.isSelected).length;
-    return member.isSelected && selectedMembers > 0 ? parseFloat(((this.amount / selectedMembers).toFixed(2))) : 0;
+    if (!member.isSelected) {
+      return 0;
+    }
+
+    if (this.isUnequalSplit) {
+      return member.customAmount || 0;
+    } else {
+      const selectedMembers = this.splitMembers.filter(m => m.isSelected).length;
+      return selectedMembers > 0 ? parseFloat(((this.amount / selectedMembers).toFixed(2))) : 0;
+    }
+  }
+
+  setSplitMode(isUnequal: boolean) {
+    if (this.isUnequalSplit === isUnequal) {
+      return; // Already in the requested mode
+    }
+    
+    this.isUnequalSplit = isUnequal;
+    
+    if (this.isUnequalSplit) {
+      this.initializeUnequalSplit();
+    } else {
+      this.splitMembers.forEach(member => {
+        member.customAmount = 0;
+      });
+    }
+  }
+
+  initializeUnequalSplit() {
+    const selectedMembers = this.splitMembers.filter(m => m.isSelected);
+    if (selectedMembers.length === 0 || this.amount === 0) {
+      return;
+    }
+
+    const equalAmount = parseFloat((this.amount / selectedMembers.length).toFixed(2));
+    selectedMembers.forEach(member => {
+      member.customAmount = equalAmount;
+    });
   }
 
   toggleSelectAll() {
     this.splitMembers.forEach(member => {
       member.isSelected = this.selectAllChecked;
     });
+    this.onMemberToggle();
+  }
+
+  onAmountChange() {
+    if (this.isUnequalSplit && this.amount > 0) {
+      const selectedCount = this.splitMembers.filter(m => m.isSelected).length;
+      if (selectedCount > 0) {
+        this.initializeUnequalSplit();
+      }
+    }
   }
 
   onMemberToggle() {
     const allSelected = this.splitMembers.every(m => m.isSelected);
-    const noneSelected = this.splitMembers.every(m => !m.isSelected);
     this.selectAllChecked = allSelected;
+
+    if (this.isUnequalSplit && this.amount > 0) {
+      const selectedCount = this.splitMembers.filter(m => m.isSelected).length;
+      if (selectedCount > 0) {
+        this.initializeUnequalSplit();
+      } else {
+        this.splitMembers.forEach(m => m.customAmount = 0);
+      }
+    }
+  }
+
+  onCustomAmountChange(member: SplitMember) {
+    const totalCustomAmount = this.getTotalCustomAmount();
+    if (totalCustomAmount > this.amount) {
+      const otherAmounts = this.splitMembers
+        .filter(m => m.isSelected && m.id !== member.id)
+        .reduce((sum, m) => sum + (m.customAmount || 0), 0);
+      member.customAmount = Math.max(0, this.amount - otherAmounts);
+    }
+    
+    if (member.customAmount && member.customAmount < 0) {
+      member.customAmount = 0;
+    }
+  }
+
+  getTotalCustomAmount(): number {
+    return this.splitMembers
+      .filter(m => m.isSelected)
+      .reduce((sum, m) => sum + (m.customAmount || 0), 0);
+  }
+
+  getRemainingAmount(): number {
+    return parseFloat((this.amount - this.getTotalCustomAmount()).toFixed(2));
+  }
+
+  isSplitValid(): boolean {
+    if (!this.isUnequalSplit) {
+      return true;
+    }
+    
+    const remaining = this.getRemainingAmount();
+    return Math.abs(remaining) < 0.02;
   }
 
   isValid(): boolean {
-    return this.amount > 0 &&
+    const basicValid = this.amount > 0 &&
       this.description.trim() !== '' &&
       this.paidBy !== null &&
       this.splitMembers.some(m => m.isSelected);
+    
+    return basicValid && this.isSplitValid();
   }
 
   saveExpense() {
