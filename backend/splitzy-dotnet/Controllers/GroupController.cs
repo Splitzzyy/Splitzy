@@ -80,6 +80,11 @@ namespace splitzy_dotnet.Controllers
                 if (group == null)
                     return NotFound("Group not found.");
 
+                var userMap = group.GroupMembers.ToDictionary(
+                                    gm => gm.UserId,
+                                    gm => gm.User.Name
+                                );
+
                 var usernames = group.GroupMembers.Select(gm => gm.User.Name).ToList();
 
                 var expenses = group.Expenses.Select(e => new GroupExpenseDTO
@@ -89,13 +94,22 @@ namespace splitzy_dotnet.Controllers
                     Amount = e.Amount
                 }).ToList();
 
+                var settlements = group.Settlements.Select(s => new GroupSettlementDTO
+                {
+                    PaidBy = userMap.ContainsKey(s.PaidBy) ? userMap[s.PaidBy] : "Unknown",
+                    PaidTo = userMap.ContainsKey(s.PaidTo) ? userMap[s.PaidTo] : "Unknown",
+                    Amount = s.Amount,
+                    CreatedAt = s.CreatedAt
+                }).ToList();
+
                 var summary = new GroupSummaryDTO
                 {
                     GroupId = group.GroupId,
                     GroupName = group.Name,
                     TotalMembers = usernames.Count,
                     Usernames = usernames,
-                    Expenses = expenses
+                    Expenses = expenses,
+                    Settlements = settlements
                 };
 
                 return Ok(summary);
@@ -112,6 +126,7 @@ namespace splitzy_dotnet.Controllers
             return await _context.Groups
                                 .Include(g => g.GroupMembers).ThenInclude(gm => gm.User)
                                 .Include(g => g.Expenses).ThenInclude(e => e.PaidByUser)
+                                .Include(g => g.Settlements)
                                 .FirstOrDefaultAsync(g => g.GroupId == groupId);
         }
 
