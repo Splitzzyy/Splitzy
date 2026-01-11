@@ -172,6 +172,7 @@ namespace splitzy_dotnet.Controllers
 
                 _context.Groups.Add(group);
 
+                // Existing users → GroupMembers
                 var groupMembers = users
                     .DistinctBy(u => u.UserId)
                     .Select(u => new GroupMember
@@ -182,6 +183,18 @@ namespace splitzy_dotnet.Controllers
                     });
 
                 _context.GroupMembers.AddRange(groupMembers);
+
+                // Persist missing emails
+                var invites = missingEmails.Select(email => new GroupInvite
+                {
+                    Group = group,
+                    Email = email,
+                    Accepted = false,
+                    InvitedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                });
+
+                _context.GroupInvites.AddRange(invites);
+
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();

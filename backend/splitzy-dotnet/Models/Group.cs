@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace splitzy_dotnet.Models;
+﻿namespace splitzy_dotnet.Models;
 
 public partial class Group
 {
@@ -18,4 +15,5 @@ public partial class Group
     public virtual ICollection<GroupMember> GroupMembers { get; set; } = new List<GroupMember>();
 
     public virtual ICollection<Settlement> Settlements { get; set; } = new List<Settlement>();
+    public virtual ICollection<GroupInvite> GroupInvites { get; set; } = new List<GroupInvite>();
 }
