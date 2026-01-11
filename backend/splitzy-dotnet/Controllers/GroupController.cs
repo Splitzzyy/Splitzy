@@ -96,9 +96,8 @@ namespace splitzy_dotnet.Controllers
 
                 var settlements = group.Settlements.Select(s => new GroupSettlementDTO
                 {
-                    PaidBy = userMap.ContainsKey(s.PaidBy) ? userMap[s.PaidBy] : "Unknown",
-                    PaidTo = userMap.ContainsKey(s.PaidTo) ? userMap[s.PaidTo] : "Unknown",
-                    Amount = s.Amount,
+                    PaidBy = userMap.TryGetValue(s.PaidBy, out var paidByName) ? paidByName : "Unknown",
+                    PaidTo = userMap.TryGetValue(s.PaidTo, out var paidToName) ? paidToName : "Unknown",
                     CreatedAt = s.CreatedAt
                 }).ToList();
 
