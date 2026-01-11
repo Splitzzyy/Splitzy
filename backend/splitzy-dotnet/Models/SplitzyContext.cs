@@ -29,8 +29,39 @@ public partial class SplitzyContext : DbContext
 
     public DbSet<GroupBalance> GroupBalances { get; set; }
 
+    public virtual DbSet<GroupInvite> GroupInvites { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<GroupInvite>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("group_invites_pkey");
+
+            entity.ToTable("group_invites");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+
+            entity.Property(e => e.GroupId).HasColumnName("group_id");
+
+            entity.Property(e => e.Email)
+                .HasMaxLength(150)
+                .HasColumnName("email");
+
+            entity.Property(e => e.InvitedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("invited_at");
+
+            entity.Property(e => e.Accepted)
+                .HasDefaultValue(false)
+                .HasColumnName("accepted");
+
+            entity.HasOne(d => d.Group)
+                .WithMany(p => p.GroupInvites)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("group_invites_group_id_fkey");
+        });
+
         modelBuilder.Entity<GroupBalance>(entity =>
         {
             entity.ToTable("group_balances");
@@ -58,6 +89,7 @@ public partial class SplitzyContext : DbContext
                   .HasForeignKey(e => e.UserId)
                   .HasConstraintName("group_balances_user_id_fkey");
         });
+
         modelBuilder.Entity<ActivityLog>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("activity_log_pkey");

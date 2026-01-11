@@ -167,6 +167,8 @@ namespace splitzy_dotnet.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
+            await HandleGroupInvitesAsync(user);
+
             _logger.LogInformation(
                 "Signup successful. UserId={UserId}, Email={Email}",
                 user.UserId,
@@ -306,6 +308,9 @@ namespace splitzy_dotnet.Controllers
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
+
+                await HandleGroupInvitesAsync(user);
+
                 // Send welcome email
                 try
                 {
@@ -422,6 +427,30 @@ namespace splitzy_dotnet.Controllers
                 success = true,
                 message = "Password updated successfully"
             });
+        }
+
+        private async Task HandleGroupInvitesAsync(User user)
+        {
+            var invites = await _context.GroupInvites
+                .Where(i => i.Email == user.Email && !i.Accepted)
+                .ToListAsync();
+
+            if (!invites.Any())
+                return;
+
+            foreach (var invite in invites)
+            {
+                _context.GroupMembers.Add(new GroupMember
+                {
+                    GroupId = invite.GroupId,
+                    UserId = user.UserId,
+                    JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                });
+
+                invite.Accepted = true;
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

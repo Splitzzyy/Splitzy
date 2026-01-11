@@ -80,6 +80,11 @@ namespace splitzy_dotnet.Controllers
                 if (group == null)
                     return NotFound("Group not found.");
 
+                var userMap = group.GroupMembers.ToDictionary(
+                                    gm => gm.UserId,
+                                    gm => gm.User.Name
+                                );
+
                 var usernames = group.GroupMembers.Select(gm => gm.User.Name).ToList();
 
                 var expenses = group.Expenses.Select(e => new GroupExpenseDTO
@@ -89,13 +94,21 @@ namespace splitzy_dotnet.Controllers
                     Amount = e.Amount
                 }).ToList();
 
+                var settlements = group.Settlements.Select(s => new GroupSettlementDTO
+                {
+                    PaidBy = userMap.TryGetValue(s.PaidBy, out var paidByName) ? paidByName : "Unknown",
+                    PaidTo = userMap.TryGetValue(s.PaidTo, out var paidToName) ? paidToName : "Unknown",
+                    CreatedAt = s.CreatedAt
+                }).ToList();
+
                 var summary = new GroupSummaryDTO
                 {
                     GroupId = group.GroupId,
                     GroupName = group.Name,
                     TotalMembers = usernames.Count,
                     Usernames = usernames,
-                    Expenses = expenses
+                    Expenses = expenses,
+                    Settlements = settlements
                 };
 
                 return Ok(summary);
@@ -112,6 +125,7 @@ namespace splitzy_dotnet.Controllers
             return await _context.Groups
                                 .Include(g => g.GroupMembers).ThenInclude(gm => gm.User)
                                 .Include(g => g.Expenses).ThenInclude(e => e.PaidByUser)
+                                .Include(g => g.Settlements)
                                 .FirstOrDefaultAsync(g => g.GroupId == groupId);
         }
 
@@ -157,6 +171,7 @@ namespace splitzy_dotnet.Controllers
 
                 _context.Groups.Add(group);
 
+                // Existing users → GroupMembers
                 var groupMembers = users
                     .DistinctBy(u => u.UserId)
                     .Select(u => new GroupMember
@@ -167,6 +182,18 @@ namespace splitzy_dotnet.Controllers
                     });
 
                 _context.GroupMembers.AddRange(groupMembers);
+
+                // Persist missing emails
+                var invites = missingEmails.Select(email => new GroupInvite
+                {
+                    Group = group,
+                    Email = email,
+                    Accepted = false,
+                    InvitedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                });
+
+                _context.GroupInvites.AddRange(invites);
+
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
