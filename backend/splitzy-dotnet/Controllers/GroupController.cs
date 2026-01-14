@@ -85,7 +85,26 @@ namespace splitzy_dotnet.Controllers
                                     gm => gm.User.Name
                                 );
 
-                var usernames = group.GroupMembers.Select(gm => gm.User.Name).ToList();
+                var activeMembers = group.GroupMembers
+                                        .Select(gm => new GroupMemberSummaryDTO
+                                        {
+                                            Name = gm.User.Name,
+                                            IsPending = false
+                                        });
+
+                var pendingMembers = await _context.GroupInvites
+                                        .Where(i => i.GroupId == groupId && !i.Accepted)
+                                        .Select(i => new GroupMemberSummaryDTO
+                                        {
+                                            Name = i.Email,
+                                            IsPending = true
+                                        })
+                                        .ToListAsync();
+
+                var members = activeMembers
+                    .Concat(pendingMembers)
+                    .ToList();
+
 
                 var expenses = group.Expenses.Select(e => new GroupExpenseDTO
                 {
@@ -105,8 +124,8 @@ namespace splitzy_dotnet.Controllers
                 {
                     GroupId = group.GroupId,
                     GroupName = group.Name,
-                    TotalMembers = usernames.Count,
-                    Usernames = usernames,
+                    TotalMembers = members.Count,
+                    Members = members,
                     Expenses = expenses,
                     Settlements = settlements
                 };

@@ -34,6 +34,15 @@ namespace splitzy_dotnet.Controllers
             if (!await _context.Groups.AnyAsync(g => g.GroupId == dto.GroupId))
                 return BadRequest("Invalid group");
 
+            var activeMembersCount = await _context.GroupMembers.CountAsync(gm => gm.GroupId == dto.GroupId);
+
+            var pendingInvitesCount = await _context.GroupInvites.CountAsync(i => i.GroupId == dto.GroupId && !i.Accepted);
+
+            if (activeMembersCount + pendingInvitesCount < 2)
+            {
+                return BadRequest("Invite at least one member to add expenses");
+            }
+
             if (!await _context.GroupMembers.AnyAsync(gm =>
                 gm.GroupId == dto.GroupId && gm.UserId == dto.PaidByUserId))
                 return BadRequest("Payer must be a member");

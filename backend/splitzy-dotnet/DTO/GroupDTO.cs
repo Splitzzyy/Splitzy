@@ -13,8 +13,14 @@
             public string GroupName { get; set; } = string.Empty;
             public int TotalMembers { get; set; }
             public List<string> Usernames { get; set; } = new();
+            public List<GroupMemberSummaryDTO> Members { get; set; } = new();
             public List<GroupExpenseDTO> Expenses { get; set; } = new();
             public List<GroupSettlementDTO> Settlements { get; set; } = new();
+        }
+        public class GroupMemberSummaryDTO
+        {
+            public string Name { get; set; } = null!;
+            public bool IsPending { get; set; }
         }
         public class GroupExpenseDTO
         {
