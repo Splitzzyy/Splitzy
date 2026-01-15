@@ -55,3 +55,5 @@ jobs:
         needs.build_ui.result != 'skipped'
       )
     uses: ./.github/workflows/deploy.yml
+    secrets:
+      APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
