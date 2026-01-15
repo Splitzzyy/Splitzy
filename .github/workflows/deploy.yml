@@ -12,18 +12,15 @@ jobs:
   docker:
     runs-on: [self-hosted, splitzy]
     steps:
-      - name: Update Runner Secrets
+      - name : Deploy Services
         env:
           APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
         run: |
           echo "$APP_SETTINGS" > secrets.json
-
-      - name : Deploy Services
-        run: |
           docker image prune -af
           docker rm -f ui api || true
 
-          docker run -d --name api -v ./secrets.json:/app/appsettings.Production.json --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
+          docker run -d --name api -v "${pwd}/secrets.json:/app/appsettings.Production.json" --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
 
           docker run -d --name ui --network splitzy --hostname ui --restart unless-stopped rghvgrv/splitzy-ui
       
