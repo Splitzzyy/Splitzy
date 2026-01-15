@@ -44,9 +44,6 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public IActionResult Index()
         {
-            // Get the token from request headers for logging
-            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var istehre = _jWTService.ValidateToken(token);
             _logger.LogInformation("Auth health check endpoint hit");
             return Ok("Welcome to Splitzy Auth API!");
         }
