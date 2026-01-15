@@ -38,6 +38,7 @@ namespace splitzy_dotnet.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Error sending email: {ex.Message}");
+                throw;
             }
             finally
             {
