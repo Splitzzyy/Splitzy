@@ -7,8 +7,17 @@ using System.Text;
 
 namespace splitzy_dotnet.Services
 {
-    public class JWTService() : IJWTService
+    public class JWTService : IJWTService
     {
+        private readonly ILogger<JWTService> _logger;
+        private readonly ISplitzyConfig _config;
+
+        public JWTService(ILogger<JWTService> logger, ISplitzyConfig splitzyConfig)
+        {
+            _logger = logger;
+            _config = splitzyConfig;
+        }
+
         public string GenerateToken(int id)
         {
             var claims = new[]
@@ -17,14 +26,14 @@ namespace splitzy_dotnet.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.JwtKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Jwt.Key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: Constants.JwtIssuer,
-                audience: Constants.JwtAudience,
+                issuer: _config.Jwt.Issuer,
+                audience: _config.Jwt.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Constants.JwtExpiryMinutes),
+                expires: DateTime.UtcNow.AddMinutes(_config.Jwt.ExpiryMinutes),
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -32,15 +41,15 @@ namespace splitzy_dotnet.Services
 
         public bool ValidateToken(string token)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.JwtKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Jwt.Key));
             var createToken = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = Constants.JwtIssuer,
-                ValidAudience = Constants.JwtAudience,
+                ValidIssuer = _config.Jwt.Issuer,
+                ValidAudience = _config.Jwt.Audience,
                 IssuerSigningKey = key
             };
 
@@ -70,16 +79,16 @@ namespace splitzy_dotnet.Services
             };
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(Constants.OtpJwtKey)
+                Encoding.UTF8.GetBytes(_config.OtpJwt.Key)
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: Constants.JwtIssuer,
-                audience: Constants.JwtAudience,
+                issuer: _config.Jwt.Issuer,
+                audience: _config.Jwt.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Constants.OtpJwtExpiryMinutes),
+                expires: DateTime.UtcNow.AddMinutes(_config.OtpJwt.ExpiryMinutes),
                 signingCredentials: creds
             );
 
@@ -97,11 +106,11 @@ namespace splitzy_dotnet.Services
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
 
-                ValidIssuer = Constants.JwtIssuer,
-                ValidAudience = Constants.JwtAudience,
+                ValidIssuer = _config.Jwt.Issuer,
+                ValidAudience = _config.Jwt.Audience,
 
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(Constants.OtpJwtKey)
+                    Encoding.UTF8.GetBytes(_config.OtpJwt.Key)
                 ),
 
                 ClockSkew = TimeSpan.Zero

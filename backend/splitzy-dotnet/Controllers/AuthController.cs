@@ -8,7 +8,6 @@ using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.Interfaces;
-using splitzy_dotnet.Templates;
 
 namespace splitzy_dotnet.Controllers
 {
@@ -21,19 +20,21 @@ namespace splitzy_dotnet.Controllers
         private readonly SplitzyContext _context;
         private readonly IJWTService _jWTService;
         private readonly ILogger<AuthController> _logger;
-        private readonly IEmailService _emailService;
+        private readonly IMessageProducer _messageProducer;
+        private readonly ISplitzyConfig _config;
 
         public AuthController(
             SplitzyContext context,
             IJWTService jWTService,
             ILogger<AuthController> logger,
-            IEmailService emailService)
+            IMessageProducer messageProducer,
+            ISplitzyConfig config)
         {
             _context = context;
             _jWTService = jWTService;
             _logger = logger;
-            _emailService = emailService;
-
+            _messageProducer = messageProducer;
+            _config = config;
         }
 
         /// <summary>
@@ -177,9 +178,14 @@ namespace splitzy_dotnet.Controllers
             // Send welcome email
             try
             {
-                var html = new WelcomeEmailTemplate().Build(request.Name);
-                _emailService.SendAsync(user.Email, "Welcome to Splitzy! 👋", html);
-                _logger.LogInformation("Welcome email sent to {Email}", user.Email);
+                var emailEvent = new EmailMessage
+                {
+                    ToEmail = user.Email,
+                    TemplateType = "Welcome",
+                    Payload = new { UserName = request.Name },
+                };
+
+                await _messageProducer.SendMessageAsync(emailEvent);
             }
             catch (Exception ex)
             {
@@ -240,7 +246,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            var googleClientId = Constants.GoogleClientId;
+            var googleClientId = _config.Google.ClientId;
 
             if (string.IsNullOrWhiteSpace(googleClientId))
             {
@@ -314,9 +320,14 @@ namespace splitzy_dotnet.Controllers
                 // Send welcome email
                 try
                 {
-                    var html = new WelcomeEmailTemplate().Build(payload.Name);
-                    await _emailService.SendAsync(user.Email, "Welcome to Splitzy! 👋", html);
-                    _logger.LogInformation("Welcome email sent to {Email}", payload.Email);
+                    var emailEvent = new EmailMessage
+                    {
+                        ToEmail = user.Email,
+                        TemplateType = "Welcome",
+                        Payload = new { UserName = payload.Name },
+                    };
+
+                    await _messageProducer.SendMessageAsync(emailEvent);
                 }
                 catch (Exception ex)
                 {
@@ -361,28 +372,14 @@ namespace splitzy_dotnet.Controllers
             var resetLink =
                 $"https://splitzy.aarshiv.xyz/setup-password?token={token}";
 
-            try
+            var emailEvent = new EmailMessage
             {
-                var html = new ForgotPasswordTemplate().Build(resetLink);
-                await _emailService.SendAsync(
-                    request.Email,
-                    "Reset your Splitzy password",
-                    html
-                );
+                ToEmail = request.Email,
+                TemplateType = "ForgotPassword",
+                Payload = new { ResetLink = resetLink }
+            };
 
-                _logger.LogInformation("Password reset email sent to {Email}", request.Email);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send reset email to {Email}", request.Email);
-
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = "Failed to send password reset email"
-                });
-            }
-
+            await _messageProducer.SendMessageAsync(emailEvent);
             return Ok(new
             {
                 success = true,

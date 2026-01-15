@@ -9,17 +9,18 @@ namespace splitzy_dotnet.Services
     public class EMailService : IEmailService
     {
         private readonly ILogger<EMailService> _logger;
-        public EMailService(ILogger<EMailService> logger)
+        private readonly ISplitzyConfig _config;
+        public EMailService(ILogger<EMailService> logger, ISplitzyConfig config)
         {
             _logger = logger;
-
+            _config = config;
         }
 
         public async Task SendAsync(string to, string subject, string html)
         {
             using var message = new MimeMessage();
 
-            message.From.Add(new MailboxAddress(Constants.NAME, Constants.Email));
+            message.From.Add(new MailboxAddress(_config.Email.Name, _config.Email.Address));
             message.To.Add(MailboxAddress.Parse(to));
             message.Subject = subject;
 
@@ -29,15 +30,16 @@ namespace splitzy_dotnet.Services
 
             try
             {
-                await smtp.ConnectAsync(Constants.HOST, Constants.PORT, SecureSocketOptions.StartTls);
+                await smtp.ConnectAsync(_config.Email.Host, _config.Email.Port, SecureSocketOptions.StartTls);
 
-                await smtp.AuthenticateAsync(Constants.Email, Constants.EmailToken);
+                await smtp.AuthenticateAsync(_config.Email.Address, _config.Email.Token);
 
                 await smtp.SendAsync(message);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Error sending email: {ex.Message}");
+                throw;
             }
             finally
             {
