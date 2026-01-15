@@ -17,7 +17,7 @@ public class RabbitMqProducer : IMessageProducer
 
     public async Task SendMessageAsync<T>(T message)
     {
-        var factory = new ConnectionFactory { HostName = "localhost" };
+        var factory = new ConnectionFactory { HostName = _config.Messaging.Host };
 
         try
         {
