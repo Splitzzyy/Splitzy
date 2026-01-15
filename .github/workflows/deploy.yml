@@ -16,7 +16,7 @@ jobs:
         env:
           APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
         run: |
-          echo "$APP_SETTINGS" | sudo tee /opt/splitzy/appsettings.ci.json
+          echo "$APP_SETTINGS" | tee /opt/splitzy/appsettings.ci.json
         
       # - name: Deploy
       #   run: /opt/splitzy/scripts/deploy.sh 
