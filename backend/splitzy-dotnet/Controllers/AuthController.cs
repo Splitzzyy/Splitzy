@@ -21,17 +21,20 @@ namespace splitzy_dotnet.Controllers
         private readonly IJWTService _jWTService;
         private readonly ILogger<AuthController> _logger;
         private readonly IMessageProducer _messageProducer;
+        private readonly ISplitzyConfig _config;
 
         public AuthController(
             SplitzyContext context,
             IJWTService jWTService,
             ILogger<AuthController> logger,
-            IMessageProducer messageProducer)
+            IMessageProducer messageProducer,
+            ISplitzyConfig config)
         {
             _context = context;
             _jWTService = jWTService;
             _logger = logger;
             _messageProducer = messageProducer;
+            _config = config;
         }
 
         /// <summary>
@@ -41,6 +44,9 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public IActionResult Index()
         {
+            // Get the token from request headers for logging
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var istehre = _jWTService.ValidateToken(token);
             _logger.LogInformation("Auth health check endpoint hit");
             return Ok("Welcome to Splitzy Auth API!");
         }
@@ -243,7 +249,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            var googleClientId = SplitzyConstants.GoogleClientId;
+            var googleClientId = _config.Google.ClientId;
 
             if (string.IsNullOrWhiteSpace(googleClientId))
             {

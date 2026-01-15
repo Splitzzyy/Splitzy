@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Services.Interfaces;
 using System.Text;
 using System.Text.Json;
@@ -6,10 +7,12 @@ using System.Text.Json;
 public class RabbitMqProducer : IMessageProducer
 {
     private readonly ILogger<RabbitMqProducer> _logger;
+    private readonly ISplitzyConfig _config;
 
-    public RabbitMqProducer(ILogger<RabbitMqProducer> logger)
+    public RabbitMqProducer(ILogger<RabbitMqProducer> logger, ISplitzyConfig config)
     {
         _logger = logger;
+        _config = config;
     }
 
     public async Task SendMessageAsync<T>(T message)
@@ -21,7 +24,7 @@ public class RabbitMqProducer : IMessageProducer
             using var connection = await factory.CreateConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
 
-            await channel.QueueDeclareAsync(queue: "email_queue",
+            await channel.QueueDeclareAsync(queue: _config.Messaging.MainQueue,
                                             durable: true,
                                             exclusive: false,
                                             autoDelete: false,
@@ -36,12 +39,12 @@ public class RabbitMqProducer : IMessageProducer
             };
 
             await channel.BasicPublishAsync(exchange: "",
-                                            routingKey: "email_queue",
+                                            routingKey: _config.Messaging.MainQueue,
                                             mandatory: false,
                                             basicProperties: properties,
                                             body: body);
 
-            _logger.LogInformation("Message published to email_queue");
+            _logger.LogInformation("Message published to " + _config.Messaging.MainQueue);
         }
         catch (Exception ex)
         {

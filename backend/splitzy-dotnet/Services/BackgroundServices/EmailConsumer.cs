@@ -13,6 +13,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
     {
         private readonly ILogger<EmailConsumer> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ISplitzyConfig _config;
 
         private IConnection? _connection;
         private IChannel? _channel;
@@ -24,10 +25,12 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
         public EmailConsumer(
             ILogger<EmailConsumer> logger,
-            IServiceScopeFactory scopeFactory)
+            IServiceScopeFactory scopeFactory,
+            ISplitzyConfig config)
         {
             _logger = logger;
             _scopeFactory = scopeFactory;
+            _config = config;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,7 +50,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             // Main queue
             await _channel.QueueDeclareAsync(
-                queue: SplitzyConstants.MainQueue,
+                queue: _config.Messaging.MainQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -57,7 +60,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             // Dead letter queue
             await _channel.QueueDeclareAsync(
-                queue: SplitzyConstants.DeadQueue,
+                queue: _config.Messaging.DeadLetterQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -67,15 +70,15 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             // Retry queue (TTL → main queue)
             await _channel.QueueDeclareAsync(
-                queue: SplitzyConstants.DeadQueue,
+                queue: _config.Messaging.RetryQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
                 arguments: new Dictionary<string, object?>
                 {
-                { "x-message-ttl", SplitzyConstants.RetryDelaySeconds },
+                { "x-message-ttl", _config.Messaging.RetryDelayTimeoutSeconds },
                 { "x-dead-letter-exchange", string.Empty },
-                { "x-dead-letter-routing-key", SplitzyConstants.MainQueue }
+                { "x-dead-letter-routing-key", _config.Messaging.MainQueue }
                 },
                 cancellationToken: stoppingToken
             );
@@ -84,12 +87,12 @@ namespace splitzy_dotnet.Services.BackgroundServices
             consumer.ReceivedAsync += OnMessageReceived;
 
             await _channel.BasicConsumeAsync(
-                queue: SplitzyConstants.MainQueue,
+                queue: _config.Messaging.MainQueue,
                 autoAck: false,
                 consumer: consumer
             );
 
-            _logger.LogInformation("EmailConsumer started. Listening to {Queue}", SplitzyConstants.MainQueue);
+            _logger.LogInformation("EmailConsumer started. Listening to {Queue}", _config.Messaging.MainQueue);
 
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
@@ -128,13 +131,13 @@ namespace splitzy_dotnet.Services.BackgroundServices
             EmailMessage? emailEvent,
             ReadOnlyMemory<byte> originalBody)
         {
-            if (emailEvent is null || emailEvent.RetryCount >= SplitzyConstants.MaxRetryAttempts)
+            if (emailEvent is null || emailEvent.RetryCount >= _config.Messaging.MaxRetryCount)
             {
                 _logger.LogWarning("Email moved to DEAD queue");
 
                 await _channel!.BasicPublishAsync(
                     exchange: "",
-                    routingKey: SplitzyConstants.DeadQueue,
+                    routingKey: _config.Messaging.DeadLetterQueue,
                     body: originalBody
                 );
 
@@ -146,7 +149,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
             _logger.LogWarning(
                 "Retrying email (Attempt {Retry}/{Max})",
                 emailEvent.RetryCount,
-                SplitzyConstants.MaxRetryAttempts
+                _config.Messaging.MaxRetryCount
             );
 
             var retryBody = Encoding.UTF8.GetBytes(
@@ -155,7 +158,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             await _channel!.BasicPublishAsync(
                 exchange: "",
-                routingKey: SplitzyConstants.MainQueue,
+                routingKey: _config.Messaging.MainQueue,
                 body: retryBody
             );
         }
