@@ -12,6 +12,13 @@ jobs:
   docker:
     runs-on: [self-hosted, splitzy]
     steps:
+      - name: Sanity
+        env:
+          APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
+        run: |
+          echo "$APP_SETTINGS" > secrets.santity.json
+          pwd 
+          ls
       - name : Deploy Services
         env:
           APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
