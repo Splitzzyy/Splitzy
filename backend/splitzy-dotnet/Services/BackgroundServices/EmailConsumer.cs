@@ -40,6 +40,10 @@ namespace splitzy_dotnet.Services.BackgroundServices
             var factory = new ConnectionFactory
             {
                 HostName = _config.Messaging.HostName,
+                Port = _config.Messaging.Port,
+                UserName = _config.Messaging.UserName,
+                Password = _config.Messaging.Password,
+                AutomaticRecoveryEnabled = true
             };
 
             _connection = await factory.CreateConnectionAsync(stoppingToken);
