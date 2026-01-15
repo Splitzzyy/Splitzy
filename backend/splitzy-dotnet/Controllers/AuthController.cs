@@ -175,10 +175,6 @@ namespace splitzy_dotnet.Controllers
             // Send welcome email
             try
             {
-                //var html = new WelcomeEmailTemplate().Build(request.Name);
-                //_emailService.SendAsync(user.Email, "Welcome to Splitzy! 👋", html);
-                //_logger.LogInformation("Welcome email sent to {Email}", user.Email);
-
                 var emailEvent = new EmailMessage
                 {
                     ToEmail = user.Email,
