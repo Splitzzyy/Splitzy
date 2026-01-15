@@ -16,7 +16,7 @@ jobs:
         env:
           APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
         run: |
-          echo "$APP_SETTINGS" | tee ./secrets.json
+          echo "$APP_SETTINGS" > secrets.json
 
       - name : Deploy Services
         run: |
@@ -26,4 +26,3 @@ jobs:
           docker run -d --name api -v ./secrets.json:/app/appsettings.Production.json --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
 
           docker run -d --name ui --network splitzy --hostname ui --restart unless-stopped rghvgrv/splitzy-ui
-      
