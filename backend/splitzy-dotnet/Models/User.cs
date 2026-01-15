@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace splitzy_dotnet.Models;
+﻿namespace splitzy_dotnet.Models;
 
 public partial class User
 {

@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services;
+using splitzy_dotnet.Services.BackgroundServices;
 using splitzy_dotnet.Services.Interfaces;
 using System.Reflection;
 using System.Text;
@@ -38,6 +39,8 @@ builder.Services.AddControllers();
 #endregion
 
 builder.Services.AddScoped<IEmailService, EMailService>();
+builder.Services.AddHostedService<EmailConsumer>();
+builder.Services.AddScoped<IMessageProducer, RabbitMqProducer>();
 #region Authentication
 builder.Services.AddAuthentication(options =>
 {

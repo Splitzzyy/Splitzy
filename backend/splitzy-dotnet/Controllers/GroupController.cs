@@ -5,7 +5,6 @@ using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services.Interfaces;
-using splitzy_dotnet.Templates;
 using static splitzy_dotnet.DTO.GroupDTO;
 
 namespace splitzy_dotnet.Controllers
@@ -17,13 +16,13 @@ namespace splitzy_dotnet.Controllers
     {
         private readonly SplitzyContext _context;
         private readonly ILogger<GroupController> _logger;
-        private readonly IEmailService _emailService;
+        private readonly IMessageProducer _messageProducer;
 
-        public GroupController(SplitzyContext context, ILogger<GroupController> logger, IEmailService emailService)
+        public GroupController(SplitzyContext context, ILogger<GroupController> logger, IMessageProducer messageProducer)
         {
             _context = context;
             _logger = logger;
-            _emailService = emailService;
+            _messageProducer = messageProducer;
         }
 
         /// <summary>
@@ -198,41 +197,38 @@ namespace splitzy_dotnet.Controllers
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                _ = Task.Run(() =>
+                foreach (var u in users.Where(u => u.UserId != creator.UserId))
                 {
-                    try
+                    var emailMessage = new EmailMessage
                     {
-                        // Existing users
-                        foreach (var u in users.Where(u => u.UserId != creator.UserId))
+                        ToEmail = u.Email,
+                        TemplateType = "GroupAdded",
+                        Payload = new
                         {
-                            var html = new GroupAddedTemplate()
-                                .Build(u.Name, request.GroupName, creator.Name);
-
-                            _emailService.SendAsync(
-                                u.Email,
-                                $"You were added to {request.GroupName}",
-                                html
-                            );
+                            UserName = u.Name,
+                            GroupName = request.GroupName,
+                            AddedBy = creator.Name
                         }
+                    };
 
-                        // Non-existing users (invite)
-                        foreach (var email in missingEmails)
-                        {
-                            var html = new GroupInvitationTemplate()
-                                .Build(creator.Name, request.GroupName);
+                    await _messageProducer.SendMessageAsync(emailMessage);
+                }
 
-                            _emailService.SendAsync(
-                                email,
-                                $"Invitation to join {request.GroupName}",
-                                html
-                            );
-                        }
-                    }
-                    catch (Exception ex)
+                foreach (var email in missingEmails)
+                {
+                    var emailMessage = new EmailMessage
                     {
-                        _logger.LogError(ex, "Failed to send group emails");
-                    }
-                });
+                        ToEmail = email,
+                        TemplateType = "GroupInvitation",
+                        Payload = new
+                        {
+                            InviterName = creator.Name,
+                            GroupName = request.GroupName
+                        }
+                    };
+
+                    await _messageProducer.SendMessageAsync(emailMessage);
+                }
 
                 return Ok(new
                 {
@@ -472,29 +468,23 @@ namespace splitzy_dotnet.Controllers
 
                     _logger.LogInformation("Users added to group {GroupId}: {UserIds}", groupId, string.Join(", ", newUsers.Select(u => u.UserId)));
 
-                    _ = Task.Run(async () =>
+                    foreach (var user in newUsers)
                     {
-                        try
+                        var emailMessage = new EmailMessage
                         {
-                            var emailTasks = newUsers.Select(u =>
+                            ToEmail = user.Email,
+                            TemplateType = "GroupAdded",
+                            RetryCount = 0,
+                            Payload = new
                             {
-                                var html = new GroupAddedTemplate()
-                                    .Build(u.Name, group.Name, currentUser.Name);
+                                UserName = user.Name,
+                                GroupName = group.Name,
+                                AddedBy = currentUser.Name
+                            }
+                        };
 
-                                return _emailService.SendAsync(
-                                    u.Email,
-                                    $"You were added to {group.Name}",
-                                    html
-                                );
-                            });
-
-                            await Task.WhenAll(emailTasks);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Failed to send group invitation emails for group {GroupId}", groupId);
-                        }
-                    });
+                        await _messageProducer.SendMessageAsync(emailMessage);
+                    }
 
                     return Ok(new
                     {
