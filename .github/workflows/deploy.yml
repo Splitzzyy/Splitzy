@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Update Runner Secrets
         run: |
-          echo "${{ secrets.APP_SETTINGS }}" > /opt/splitzy/appsettings.ci.json
+          echo "${{ secrets.APP_SETTINGS }}" | sudo tee /opt/splitzy/appsettings.ci.json
         
       # - name: Deploy
       #   run: /opt/splitzy/scripts/deploy.sh 
