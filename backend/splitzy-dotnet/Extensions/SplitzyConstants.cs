@@ -1,6 +1,6 @@
 ﻿namespace splitzy_dotnet.Extensions
 {
-    public static class Constants
+    public static class SplitzyConstants
     {
         public static string GoogleClientId { get; private set; } = null!;
 
@@ -14,6 +14,12 @@
 
         public static string Email { get; private set; } = null!;
         public static string EmailToken { get; private set; } = null!;
+
+        public static string MainQueue { get; private set; } = null!;
+        public static string RetryQueue { get; private set; } = null!;
+        public static string DeadQueue { get; private set; } = null!;
+        public static int RetryDelaySeconds { get; private set; }
+        public static int MaxRetryAttempts { get; private set; }
 
         public static string HOST { get; private set; } = "smtp.gmail.com";
         public static int PORT { get; private set; } = 587;
@@ -33,6 +39,12 @@
 
             Email = GetRequired(config, "Email:Address");
             EmailToken = GetRequired(config, "Email:Token");
+
+            MainQueue = GetRequired(config, "MessagingService:MainQueue");
+            RetryQueue = GetRequired(config, "MessagingService:RetryQueue");
+            DeadQueue = GetRequired(config, "MessagingService:DeadLetterQueue");
+            RetryDelaySeconds = GetRequiredInt(config, "MessagingService:RetryDelayTimeoutSeconds");
+            MaxRetryAttempts = GetRequiredInt(config, "MessagingService:MaxRetryCount");
         }
 
         private static string GetRequired(IConfiguration config, string key)

@@ -19,7 +19,7 @@ namespace splitzy_dotnet.Services
         {
             using var message = new MimeMessage();
 
-            message.From.Add(new MailboxAddress(Constants.NAME, Constants.Email));
+            message.From.Add(new MailboxAddress(SplitzyConstants.NAME, SplitzyConstants.Email));
             message.To.Add(MailboxAddress.Parse(to));
             message.Subject = subject;
 
@@ -29,9 +29,9 @@ namespace splitzy_dotnet.Services
 
             try
             {
-                await smtp.ConnectAsync(Constants.HOST, Constants.PORT, SecureSocketOptions.StartTls);
+                await smtp.ConnectAsync(SplitzyConstants.HOST, SplitzyConstants.PORT, SecureSocketOptions.StartTls);
 
-                await smtp.AuthenticateAsync(Constants.Email, Constants.EmailToken);
+                await smtp.AuthenticateAsync(SplitzyConstants.Email, SplitzyConstants.EmailToken);
 
                 await smtp.SendAsync(message);
             }

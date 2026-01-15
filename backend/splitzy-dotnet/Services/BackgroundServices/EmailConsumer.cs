@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services.Interfaces;
 using splitzy_dotnet.Templates;
@@ -15,13 +16,6 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
         private IConnection? _connection;
         private IChannel? _channel;
-
-        private const string MainQueue = "email_queue";
-        private const string RetryQueue = "email_retry_queue";
-        private const string DeadQueue = "email_dead_queue";
-
-        private const int MaxRetryCount = 3;
-        private const int RetryDelayMs = 30000;
 
         private readonly JsonSerializerOptions _jsonOptions = new()
         {
@@ -53,7 +47,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             // Main queue
             await _channel.QueueDeclareAsync(
-                queue: MainQueue,
+                queue: SplitzyConstants.MainQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -63,7 +57,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             // Dead letter queue
             await _channel.QueueDeclareAsync(
-                queue: DeadQueue,
+                queue: SplitzyConstants.DeadQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -73,15 +67,15 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             // Retry queue (TTL → main queue)
             await _channel.QueueDeclareAsync(
-                queue: RetryQueue,
+                queue: SplitzyConstants.DeadQueue,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
                 arguments: new Dictionary<string, object?>
                 {
-                { "x-message-ttl", RetryDelayMs },
+                { "x-message-ttl", SplitzyConstants.RetryDelaySeconds },
                 { "x-dead-letter-exchange", string.Empty },
-                { "x-dead-letter-routing-key", MainQueue }
+                { "x-dead-letter-routing-key", SplitzyConstants.MainQueue }
                 },
                 cancellationToken: stoppingToken
             );
@@ -90,12 +84,12 @@ namespace splitzy_dotnet.Services.BackgroundServices
             consumer.ReceivedAsync += OnMessageReceived;
 
             await _channel.BasicConsumeAsync(
-                queue: MainQueue,
+                queue: SplitzyConstants.MainQueue,
                 autoAck: false,
                 consumer: consumer
             );
 
-            _logger.LogInformation("EmailConsumer started. Listening to {Queue}", MainQueue);
+            _logger.LogInformation("EmailConsumer started. Listening to {Queue}", SplitzyConstants.MainQueue);
 
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
@@ -134,13 +128,13 @@ namespace splitzy_dotnet.Services.BackgroundServices
             EmailMessage? emailEvent,
             ReadOnlyMemory<byte> originalBody)
         {
-            if (emailEvent is null || emailEvent.RetryCount >= MaxRetryCount)
+            if (emailEvent is null || emailEvent.RetryCount >= SplitzyConstants.MaxRetryAttempts)
             {
                 _logger.LogWarning("Email moved to DEAD queue");
 
                 await _channel!.BasicPublishAsync(
                     exchange: "",
-                    routingKey: DeadQueue,
+                    routingKey: SplitzyConstants.DeadQueue,
                     body: originalBody
                 );
 
@@ -152,7 +146,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
             _logger.LogWarning(
                 "Retrying email (Attempt {Retry}/{Max})",
                 emailEvent.RetryCount,
-                MaxRetryCount
+                SplitzyConstants.MaxRetryAttempts
             );
 
             var retryBody = Encoding.UTF8.GetBytes(
@@ -161,7 +155,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             await _channel!.BasicPublishAsync(
                 exchange: "",
-                routingKey: RetryQueue,
+                routingKey: SplitzyConstants.MainQueue,
                 body: retryBody
             );
         }

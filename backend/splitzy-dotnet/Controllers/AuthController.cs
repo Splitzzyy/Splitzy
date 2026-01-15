@@ -247,7 +247,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            var googleClientId = Constants.GoogleClientId;
+            var googleClientId = SplitzyConstants.GoogleClientId;
 
             if (string.IsNullOrWhiteSpace(googleClientId))
             {

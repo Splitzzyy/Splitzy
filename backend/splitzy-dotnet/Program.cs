@@ -14,7 +14,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Constants.Init(builder.Configuration);
+SplitzyConstants.Init(builder.Configuration);
 
 #region Configuration
 builder.Configuration
@@ -55,10 +55,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = Constants.JwtIssuer,
-        ValidAudience = Constants.JwtAudience,
+        ValidIssuer = SplitzyConstants.JwtIssuer,
+        ValidAudience = SplitzyConstants.JwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(Constants.JwtKey)
+            Encoding.UTF8.GetBytes(SplitzyConstants.JwtKey)
         ),
         ClockSkew = TimeSpan.Zero
     };
