@@ -27,7 +27,7 @@ jobs:
           docker image prune -af
           docker rm -f ui api || true
 
-          docker run -d --name api -v "$(pwd)/secrets.json:/app/appsettings.Production.json" --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
+          docker run -d --name api -v "$(pwd)/secrets.json:/app/appsettings.Production.json:ro" --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
 
           docker run -d --name ui --network splitzy --hostname ui --restart unless-stopped rghvgrv/splitzy-ui
       
