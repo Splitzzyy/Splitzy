@@ -13,8 +13,10 @@ jobs:
     runs-on: [self-hosted, splitzy]
     steps:
       - name: Update Runner Secrets
+        env:
+          APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
         run: |
-          echo "${{ secrets.APP_SETTINGS }}" | sudo tee /opt/splitzy/appsettings.ci.json
+          echo "$APP_SETTINGS" | sudo tee /opt/splitzy/appsettings.ci.json
         
       # - name: Deploy
       #   run: /opt/splitzy/scripts/deploy.sh 
