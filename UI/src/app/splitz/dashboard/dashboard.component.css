@@ -1,5 +1,5 @@
 .dashboard-container {
-    padding: 1.5rem;
+    padding: 0rem;
     min-height: 85vh;
 }
 .dashboard-grid,
@@ -172,7 +172,7 @@
 .debt-header-green .debt-title { color: #065f46; }
 .debt-body,
 .groups-body {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
     overflow-y: auto;
 }
 .debt-body { max-height: 400px; }
@@ -370,6 +370,7 @@
 }
 @media (min-width: 1280px) {
     .dashboard-grid { grid-template-columns: 2fr 1fr; }
+    .balance-amount { font-size: 1.5rem; }
     .groups-sidebar {
         position: sticky;
         top: 1.5rem;
