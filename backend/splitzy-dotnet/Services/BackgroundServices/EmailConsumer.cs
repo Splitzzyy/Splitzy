@@ -39,7 +39,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
             var factory = new ConnectionFactory
             {
-                HostName = _config.Messaging.Host,
+                HostName = _config.Messaging.HostName,
             };
 
             _connection = await factory.CreateConnectionAsync(stoppingToken);

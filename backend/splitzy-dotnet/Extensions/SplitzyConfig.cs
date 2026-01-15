@@ -38,7 +38,7 @@ namespace splitzy_dotnet.Extensions
         public string DeadLetterQueue { get; set; } = null!;
         public int RetryDelayTimeoutSeconds { get; set; }
         public int MaxRetryCount { get; set; }
-        public string Host { get; set; } = null!;
+        public string HostName { get; set; } = null!;
     }
 
     public interface ISplitzyConfig
