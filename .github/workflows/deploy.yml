@@ -7,11 +7,23 @@ on:
       image_tag:
         required: false
         type: string
+    secrets:
+      APP_SETTINGS:
+        required: true
 
 jobs:
   docker:
     runs-on: [self-hosted, splitzy]
-
     steps:
-      - name: Deploy
-        run: /opt/splitzy/scripts/deploy.sh 
+      - name : Deploy Services
+        env:
+          APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
+        run: |
+          echo "$APP_SETTINGS" > secrets.json
+          docker image prune -af
+          docker rm -f ui api || true
+
+          docker run -d --name api -v "$(pwd)/secrets.json:/app/appsettings.Production.json:ro" --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
+
+          docker run -d --name ui --network splitzy --hostname ui --restart unless-stopped rghvgrv/splitzy-ui
+      
