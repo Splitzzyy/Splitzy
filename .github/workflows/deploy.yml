@@ -20,9 +20,8 @@ jobs:
 
       - name : Deploy Services
         run: |
-          docker image prune -af 
-          docker stop ui api || true
-          docker rm ui api || true
+          docker image prune -af
+          docker rm -f ui api || true
 
           docker run -d --name api -v ./secrets.json:/app/appsettings.Production.json --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
 
