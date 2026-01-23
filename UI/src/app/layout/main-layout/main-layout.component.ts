@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 
-import { SplitzService } from '../../splitz/splitz.service';
+import { SplitzService } from '../../splitz/services/splitz.service';
 import { LoaderComponent } from '../../splitz/loader/loader.component';
 import { environment } from '../../environments/environment';
 
@@ -127,7 +127,11 @@ export class MainLayoutComponent implements OnInit {
       next: (response: any) => {
         this.showLoader = false;
         this.closeExpenseModal();
-        this.splitzService.show('Expense added successfully!', 'success');
+        if (navigator.onLine) {
+          this.splitzService.show('Expense Added Successfully!', 'success');
+        } else {
+          this.splitzService.show('Expense saved offline. Will sync automatically.', 'info');
+        }
       },
       error: (error: any) => {
         console.error('Error saving expense:', error);

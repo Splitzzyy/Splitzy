@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SplitzService } from '../splitz.service';
+import { SplitzService } from '../services/splitz.service';
 
 import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterRequest } from '../splitz.model';

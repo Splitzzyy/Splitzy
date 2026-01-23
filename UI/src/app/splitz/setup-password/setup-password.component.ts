@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 
 import { LoaderComponent } from '../loader/loader.component';
-import { SplitzService } from '../splitz.service';
+import { SplitzService } from '../services/splitz.service';
 import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({

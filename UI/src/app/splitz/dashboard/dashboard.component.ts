@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router'; // <-- Import ActivatedRoute
-import { SplitzService } from '../splitz.service';
+import { SplitzService } from '../services/splitz.service';
 import { ExpenseModalComponent } from './expense-modal/expense-modal.component';
 import { GroupModalComponent } from './group-modal/group-modal.component';
 import { LoaderComponent } from '../loader/loader.component';
@@ -91,7 +91,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         this.onloadDashboardData();
         this.closeExpenseModal();
-        this.splitzService.show('Expense added', 'success');
+        if (navigator.onLine) {
+          this.splitzService.show('Expense Added Successfully!', 'success');
+        } else {
+          this.splitzService.show('Expense saved offline. Will sync automatically.', 'info');
+        }
       },
       error: (error: any) => {
         console.error('Error saving expense:', error);

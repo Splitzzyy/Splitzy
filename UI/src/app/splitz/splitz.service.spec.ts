@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { SplitzService } from './splitz.service';
+import { SplitzService } from './services/splitz.service';
 
 describe('SplitzService', () => {
   let service: SplitzService;

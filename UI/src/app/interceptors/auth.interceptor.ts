@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { SplitzService } from '../splitz/splitz.service';
+import { SplitzService } from '../splitz/services/splitz.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const splitzService = inject(SplitzService);

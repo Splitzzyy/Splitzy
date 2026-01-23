@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SplitzService } from '../splitz.service';
+import { SplitzService } from '../services/splitz.service';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { LoaderComponent } from '../loader/loader.component';

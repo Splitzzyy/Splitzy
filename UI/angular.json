@@ -24,7 +24,9 @@
                 "input": "public"
               },
               "src/splitzy.png",
-              "src/assets"
+              "src/assets",
+              "src/custom-service-worker.js",
+              "src/idb.js"
             ],
             "styles": ["src/styles.css"],
             "scripts": []
@@ -44,7 +46,6 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json",
               "aot": true,
               "optimization": true,
               "sourceMap": false,
