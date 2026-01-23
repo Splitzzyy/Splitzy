@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using splitzy_dotnet.Controllers;
-using splitzy_dotnet.DTO;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services.Interfaces;
 

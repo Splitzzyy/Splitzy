@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using splitzy_dotnet.Models;
 
 namespace spllitzy_dotnet_tests
