@@ -44,4 +44,8 @@
     <EditorConfigFiles Remove="D:\Repos\Splitzy\backend\splitzy-dotnet\DTO\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include=".github\workflows\dotnet-tests.yml" />
+  </ItemGroup>
+
 </Project>
