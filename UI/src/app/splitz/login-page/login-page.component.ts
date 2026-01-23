@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { LoaderComponent } from '../loader/loader.component';
 import { LoginRequest, LoginResponse } from '../splitz.model';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 

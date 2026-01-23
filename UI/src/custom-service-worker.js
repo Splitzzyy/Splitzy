@@ -2,13 +2,11 @@
 
 /* ---------- INSTALL ---------- */
 self.addEventListener('install', event => {
-  console.log('[SW] install');
   self.skipWaiting();
 });
 
 /* ---------- ACTIVATE ---------- */
 self.addEventListener('activate', event => {
-  console.log('[SW] activate');
   event.waitUntil(self.clients.claim());
 });
 
@@ -51,7 +49,6 @@ function openDb() {
 
 /* ---------- REPLAY LOGIC ---------- */
 async function replayOutbox() {
-  console.log('[SW] replayOutbox start');
 
   const db = await openDb();
   const tx = db.transaction(STORE, 'readwrite');
@@ -63,19 +60,14 @@ async function replayOutbox() {
     req.onerror = () => reject(req.error);
   });
 
-  console.log('[SW] outbox size:', items.length);
-
   for (const item of items) {
     try {
-      console.log('[SW] sending', item.method, item.url);
 
       const res = await fetch(item.url, {
         method: item.method,
         headers: item.headers,
         body: JSON.stringify(item.body)
       });
-
-      console.log('[SW] response', res.status);
 
       if (res.ok) {
         store.delete(item.id);
@@ -89,13 +81,10 @@ async function replayOutbox() {
             },
           });
         });
-        console.log('[SW] deleted', item.id);
       } else {
-        console.log('[SW] server rejected, stop');
         return;
       }
     } catch (e) {
-      console.log('[SW] network failed, stop');
       return;
     }
   }
@@ -105,7 +94,6 @@ async function replayOutbox() {
 /* ---------- MESSAGE TRIGGER ---------- */
 self.addEventListener('message', event => {
   if (event.data?.type === 'REPLAY_OUTBOX') {
-    console.log('[SW] replay message received');
     event.waitUntil(replayOutbox());
   }
 });
@@ -113,7 +101,6 @@ self.addEventListener('message', event => {
 /* ---------- SYNC TRIGGER ---------- */
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-outbox') {
-    console.log('[SW] sync message received');
     event.waitUntil(replayOutbox());
   }
 });
