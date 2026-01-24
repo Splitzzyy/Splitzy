@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Context;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services;
@@ -98,7 +101,6 @@ namespace splitzy_dotnet.Application
                         .Build();
             });
 
-
             // Swagger
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(c =>
@@ -166,69 +168,76 @@ namespace splitzy_dotnet.Application
             services.AddHealthChecks()
                     .AddDbContextCheck<SplitzyContext>("postgres");
 
-            services.AddMiniProfiler();
+            if (_env.IsDevelopment())
+            {
+                services.AddMiniProfiler();
+            }
         }
 
         // ============================
         // Configure Middleware
         // ============================
-        public void Configure(WebApplication app, IWebHostEnvironment env)
+        public void Configure(WebApplication app)
         {
             app.UseExceptionHandler(errorApp =>
             {
                 errorApp.Run(async context =>
                 {
-                    var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+                    var feature = context.Features.Get<IExceptionHandlerFeature>();
+                    var exception = feature?.Error;
 
-                    if (exception == null)
-                        return;
-
-                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                    await context.Response.WriteAsJsonAsync(new
+                    var problem = new ProblemDetails
                     {
-                        message = "Unexpected error"
-                    });
+                        Type = "https://httpstatuses.com/500",
+                        Title = "An unexpected error occurred",
+                        Status = StatusCodes.Status500InternalServerError,
+                        Detail = app.Environment.IsDevelopment()
+                            ? exception?.Message
+                            : "An internal server error occurred",
+                        Instance = context.Request.Path
+                    };
+
+                    // Optional: map specific exceptions
+                    if (exception is UnauthorizedAccessException)
+                    {
+                        problem.Status = StatusCodes.Status401Unauthorized;
+                        problem.Title = "Unauthorized";
+                        problem.Type = "https://httpstatuses.com/401";
+                    }
+
+                    context.Response.StatusCode = problem.Status.Value;
+                    context.Response.ContentType = "application/problem+json";
+                    await context.Response.WriteAsJsonAsync(problem);
                 });
             });
 
-
-
-            #region Request Logging + Response Time
             app.Use(async (context, next) =>
             {
-                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-                var sw = System.Diagnostics.Stopwatch.StartNew();
-
                 var correlationId =
                     context.Request.Headers["X-Correlation-Id"].FirstOrDefault()
                     ?? Guid.NewGuid().ToString();
 
                 context.Response.Headers["X-Correlation-Id"] = correlationId;
 
-                using (logger.BeginScope(new Dictionary<string, object>
+                using (LogContext.PushProperty("CorrelationId", correlationId))
                 {
-                    ["CorrelationId"] = correlationId
-                }))
-                {
-                    logger.LogInformation(
-                        "HTTP {Method} {Path} started",
-                        context.Request.Method,
-                        context.Request.Path);
-
                     await next();
-
-                    sw.Stop();
-
-                    logger.LogInformation(
-                        "HTTP {Method} {Path} completed with {StatusCode} in {ElapsedMs} ms",
-                        context.Request.Method,
-                        context.Request.Path,
-                        context.Response.StatusCode,
-                        sw.ElapsedMilliseconds);
                 }
             });
 
-            #endregion
+            // ============================
+            // Serilog request logging
+            // ============================
+            app.UseSerilogRequestLogging(options =>
+            {
+                options.MessageTemplate =
+                    "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+            });
+
+            // ============================
+            // ProblemDetails (replaces generic handler)
+            // ===========================
+            app.UseStatusCodePages();
 
             app.UseSwagger();
             app.UseSwaggerUI();
@@ -237,7 +246,10 @@ namespace splitzy_dotnet.Application
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseMiniProfiler();
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseMiniProfiler();
+            }
 
             app.MapHealthChecks("/health");
             app.MapControllers();

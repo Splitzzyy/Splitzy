@@ -165,7 +165,7 @@ namespace splitzy_dotnet.Controllers
 
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                _logger.LogWarning("Signup failed: Email already exists. Email={Email}", request.Email);
+                _logger.LogError("Signup failed: Email already exists. Email={Email}", request.Email);
                 return BadRequest(new ApiResponse<string>
                 {
                     Success = false,
