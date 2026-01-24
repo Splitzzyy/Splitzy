@@ -229,7 +229,7 @@ namespace splitzy_dotnet.Controllers
         /// For JWT-based authentication, logout is handled entirely on the client
         /// by removing the stored token.
         /// </remarks>
-        [HttpGet("logout")]
+        [HttpPost("logout")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Logout()
         {

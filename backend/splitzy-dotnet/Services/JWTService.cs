@@ -60,7 +60,7 @@ namespace splitzy_dotnet.Services
 
             var output = new JwtSecurityTokenHandler().ValidateToken(token, createToken, out var validatedToken);
 
-            if (output.Identity.IsAuthenticated)
+            if (output.Identity?.IsAuthenticated == true)
             {
                 return true;
             }
