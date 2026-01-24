@@ -23,4 +23,5 @@ public partial class User
     public virtual ICollection<Settlement> SettlementPaidByNavigations { get; set; } = new List<Settlement>();
 
     public virtual ICollection<Settlement> SettlementPaidToNavigations { get; set; } = new List<Settlement>();
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

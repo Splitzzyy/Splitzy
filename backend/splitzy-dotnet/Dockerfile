@@ -4,11 +4,11 @@ WORKDIR /app
 
 # Copy csproj and restore
 COPY *.csproj ./
-RUN dotnet restore
+RUN dotnet restore splitzy-dotnet.csproj
 
 # Copy everything else and publish
 COPY . .
-RUN dotnet publish -c Release -o out
+RUN dotnet publish splitzy-dotnet.csproj -c Release -o out
 
 # -------- Runtime stage --------
 FROM mcr.microsoft.com/dotnet/aspnet:8.0

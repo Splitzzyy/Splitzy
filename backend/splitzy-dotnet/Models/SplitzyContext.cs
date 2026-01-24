@@ -31,8 +31,39 @@ public partial class SplitzyContext : DbContext
 
     public virtual DbSet<GroupInvite> GroupInvites { get; set; }
 
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_tokens");
+
+            entity.HasKey(rt => rt.Id);
+
+            entity.HasOne(rt => rt.User)
+                  .WithMany(u => u.RefreshTokens)
+                  .HasForeignKey(rt => rt.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(rt => rt.TokenHash).IsUnique();
+            entity.HasIndex(rt => rt.UserId);
+
+            entity.Property(rt => rt.TokenHash)
+                  .IsRequired()
+                  .HasMaxLength(500);
+
+            entity.Property(rt => rt.IsRevoked)
+                  .HasDefaultValue(false);
+
+            entity.Property(rt => rt.CreatedAt)
+                  .HasColumnType("timestamp with time zone")
+                  .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(rt => rt.ExpiresAt)
+                  .HasColumnType("timestamp with time zone");
+        });
+
         modelBuilder.Entity<GroupInvite>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("group_invites_pkey");
