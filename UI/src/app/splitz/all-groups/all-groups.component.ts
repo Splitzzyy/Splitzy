@@ -4,7 +4,6 @@ import { RouterModule, Router } from '@angular/router';
 import { SplitzService } from '../services/splitz.service';
 import { LoaderComponent } from '../loader/loader.component';
 import { GroupModalComponent } from '../../splitz/dashboard/group-modal/group-modal.component';
-import { ExpenseModalComponent } from '../dashboard/expense-modal/expense-modal.component';
 
 export interface Group {
   groupId: number;
