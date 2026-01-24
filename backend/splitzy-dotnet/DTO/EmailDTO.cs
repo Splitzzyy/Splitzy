@@ -1,6 +1,6 @@
 namespace splitzy_dotnet.DTO
 {
-    public record WelcomeRequest(string To, string UserName);
+    public record WelcomeRequest(string To, string UserName, string VerificationLink);
 
     public record ReminderRequest(
             string To,

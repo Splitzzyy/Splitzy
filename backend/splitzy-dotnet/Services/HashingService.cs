@@ -14,5 +14,11 @@ namespace splitzy_dotnet.Services
                 return Convert.ToBase64String(hashedBytes);
             }
         }
+
+        public static bool VerifyPassword(string password, string hashedPassword)
+        {
+            string hashedInput = HashPassword(password);
+            return hashedInput == hashedPassword;
+        }
     }
 }
