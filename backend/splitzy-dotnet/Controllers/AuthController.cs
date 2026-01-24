@@ -117,7 +117,7 @@ namespace splitzy_dotnet.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(30)
             });
 
@@ -258,7 +258,7 @@ namespace splitzy_dotnet.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict
+                    SameSite = SameSiteMode.None
                 }
             );
 
@@ -405,7 +405,7 @@ namespace splitzy_dotnet.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(30)
             });
 
@@ -525,7 +525,7 @@ namespace splitzy_dotnet.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict
+                    SameSite = SameSiteMode.None
                 }
             );
 
@@ -615,7 +615,7 @@ namespace splitzy_dotnet.Controllers
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(30)
             });
 
