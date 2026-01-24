@@ -233,15 +233,25 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Logout()
         {
-            int userId = HttpContext.GetCurrentUserId();
+            var refreshToken = Request.Cookies["refresh_token"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Ok(new { Message = "Already logged out" });
 
-            var tokens = await _context.RefreshTokens
-                .Where(t => t.UserId == userId && !t.IsRevoked)
-                .ToListAsync();
+            var tokenHash = JWTService.HashToken(refreshToken);
 
-            tokens.ForEach(t => t.IsRevoked = true);
-            await _context.SaveChangesAsync();
+            var storedToken = await _context.RefreshTokens
+                .FirstOrDefaultAsync(t =>
+                    t.TokenHash == tokenHash &&
+                    !t.IsRevoked
+                );
 
+            if (storedToken != null)
+            {
+                storedToken.IsRevoked = true;
+                await _context.SaveChangesAsync();
+            }
+
+            // Clearing the refresh token cookie for the particular device
             Response.Cookies.Delete(
                 "refresh_token",
                 new CookieOptions
@@ -251,7 +261,6 @@ namespace splitzy_dotnet.Controllers
                     SameSite = SameSiteMode.Strict
                 }
             );
-
 
             return Ok(new ApiResponse<string>
             {
