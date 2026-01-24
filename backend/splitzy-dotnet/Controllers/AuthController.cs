@@ -510,7 +510,25 @@ namespace splitzy_dotnet.Controllers
 
             user.PasswordHash = HashingService.HashPassword(request.NewPassword);
 
+            var tokens = await _context.RefreshTokens
+                               .Where(t => t.UserId == userId && !t.IsRevoked)
+                               .ToListAsync();
+            foreach (var token in tokens)
+                token.IsRevoked = true;
+
             await _context.SaveChangesAsync();
+
+            // Clear the refresh token cookie
+            Response.Cookies.Delete(
+                "refresh_token",
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict
+                }
+            );
+
 
             return Ok(new
             {
