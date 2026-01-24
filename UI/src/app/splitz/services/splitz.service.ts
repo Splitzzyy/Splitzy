@@ -2,8 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
-import { environment } from '../environments/environment';
-import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest, Toast, ToastType } from './splitz.model';
+import { environment } from '../../../environments/environment';
+import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest, Toast, ToastType } from '../splitz.model';
 
 @Injectable({
   providedIn: 'root'

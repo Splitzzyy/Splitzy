@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
-import { SplitzService } from '../../splitz.service';
+import { SplitzService } from '../../services/splitz.service';
 import { firstValueFrom } from 'rxjs';
 import { ExpenseModalComponent } from '../expense-modal/expense-modal.component';
 import { SettleupComponent } from '../settleup/settleup.component';
@@ -125,7 +125,11 @@ export class GroupsComponent implements OnInit {
     this.splitzService.onSaveExpense(expense).subscribe({
       next: (response) => {
         this.fetchGroupData(this.groupId);
-        this.splitzService.show('Expense Added Successfully!', 'success');
+        if (navigator.onLine) {
+          this.splitzService.show('Expense Added Successfully!', 'success');
+        } else {
+          this.splitzService.show('Expense saved offline. Will sync automatically.', 'info');
+        }
       },
       error: (error) => {
         console.error('Error saving expense:', error);

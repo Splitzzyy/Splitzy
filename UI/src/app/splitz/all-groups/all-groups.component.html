@@ -1,0 +1,92 @@
+<!-- All Groups Page -->
+<div class="max-w-6xl mx-auto p-4 lg:p-6 mb-20 lg:mb-0">
+  
+  @if (showLoader) {
+    <app-loader></app-loader>
+  }
+
+  @if (!showLoader) {
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">All Groups</h1>
+          <p class="text-gray-600 text-sm mt-1">Manage and view all your expense groups</p>
+        </div>
+        <button (click)="openCreateGroupModal()"
+                class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors active:scale-95">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Create Group</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Groups Grid -->
+    @if (groups && groups.length > 0) {
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        @for (group of groups; track group.groupId) {
+          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
+            <a [routerLink]="['/group', userId, group.groupId]" class="block p-6 hover:bg-gray-50 transition-colors">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-4 flex-1">
+                  <!-- Group Icon -->
+                  <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                      </path>
+                    </svg>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-bold text-gray-900 text-lg">{{ group.groupName }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">{{ getGroupStatus(group.netBalance) }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Balance Card -->
+              <div [ngClass]="getStatusBackground(group.netBalance)" 
+                   class="rounded-xl p-4 border">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Net Balance</span>
+                  <span [ngClass]="getStatusColor(group.netBalance)" class="text-xl font-bold">
+                    {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
+                  </span>
+                </div>
+              </div>
+            </a>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-12 text-center">
+        <div class="mb-4">
+          <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+            </path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">No groups yet</h3>
+        <p class="text-gray-600 mb-6">Create a group to start splitting expenses with friends</p>
+        <button (click)="openCreateGroupModal()"
+                class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors active:scale-95">
+          Create Your First Group
+        </button>
+      </div>
+    }
+  }
+</div>
+
+<!-- Group Modal -->
+@if (showGroupModal) {
+  <app-group-modal
+    (close)="closeGroupModal()"
+    (save)="onGroupSaved($event)">
+  </app-group-modal>
+}

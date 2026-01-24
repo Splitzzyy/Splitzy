@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SplitzService } from '../splitz.service';
+import { SplitzService } from '../services/splitz.service';
 import { Toast } from '../splitz.model';
 
 @Component({

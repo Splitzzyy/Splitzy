@@ -59,6 +59,12 @@ export const routes: Routes = [
                     import('./splitz/dashboard/groups/groups.component')
                         .then(m => m.GroupsComponent),
             },
+            {
+                path: 'all-groups',
+                loadComponent: () =>
+                    import('./splitz/all-groups/all-groups.component')
+                        .then(m => m.AllGroupsComponent),
+            },
         ],
     },
     { path: '**', redirectTo: '/dashboard' },

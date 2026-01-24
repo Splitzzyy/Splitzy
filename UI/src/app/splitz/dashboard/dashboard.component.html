@@ -15,7 +15,8 @@
     [userId]="userId"
     [userEmail]="userEmail"
     (createGroup)="openCreateGroupModal()"
-    (addExpense)="openAddExpenseModal($event)">
+    (addExpense)="openAddExpenseModal($event)"
+    (viewAllGroups)="navigateToAllGroups()">
   </app-mobile-dashboard>
 
   <!-- Desktop Dashboard -->

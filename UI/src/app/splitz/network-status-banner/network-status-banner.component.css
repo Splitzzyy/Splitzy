@@ -1,0 +1,27 @@
+.banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 14px;
+  text-align: center;
+  font-weight: 600;
+  z-index: 10000;
+  transition: all 0.3s ease;
+}
+
+.banner.offline {
+  background: #b91c1c;
+  color: white;
+}
+
+.banner.online {
+  background: #15803d;
+  color: white;
+}
+
+.banner.minimized {
+  padding: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}

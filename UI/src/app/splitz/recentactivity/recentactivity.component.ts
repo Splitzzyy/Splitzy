@@ -1,7 +1,7 @@
 import { Component, OnInit, } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SplitzService } from '../splitz.service';
+import { SplitzService } from '../services/splitz.service';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LoaderComponent } from '../loader/loader.component';

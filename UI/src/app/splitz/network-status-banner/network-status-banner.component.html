@@ -1,0 +1,10 @@
+@if (visible()) {
+    <div class="banner" [class.online]="state() === 'online'" [class.offline]="state() === 'offline'" [class.minimized]="minimized()">
+        @if (state() === 'offline') {
+            <span> You are offline. Changes will sync when connection is restored.</span>
+        }
+        @if (state() === 'online') {
+            <span> Back online. Syncing changes...</span>
+        }
+</div>
+}

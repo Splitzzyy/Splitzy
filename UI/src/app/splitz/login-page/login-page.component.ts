@@ -1,11 +1,11 @@
 import { AfterViewInit, Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { SplitzService } from '../splitz.service';
+import { SplitzService } from '../services/splitz.service';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { LoaderComponent } from '../loader/loader.component';
 import { LoginRequest, LoginResponse } from '../splitz.model';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
