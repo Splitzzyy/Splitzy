@@ -2,10 +2,11 @@
 {
     public interface IJWTService
     {
-        string GenerateToken(int id);
+        string GenerateAccessToken(int id);
         bool ValidateToken(string token);
         string GetUserIdFromToken(string token);
         string GeneratePasswordResetToken(int userId);
         int ValidatePasswordResetToken(string token);
+        string GenerateRefreshToken();
     }
 }

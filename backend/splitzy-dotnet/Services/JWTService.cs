@@ -3,6 +3,7 @@ using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace splitzy_dotnet.Services
@@ -18,15 +19,18 @@ namespace splitzy_dotnet.Services
             _config = splitzyConfig;
         }
 
-        public string GenerateToken(int id)
+        public string GenerateAccessToken(int userId)
         {
             var claims = new[]
             {
-                new Claim("id", id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.Jwt.Key));
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_config.Jwt.Key)
+            );
+
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -34,7 +38,8 @@ namespace splitzy_dotnet.Services
                 audience: _config.Jwt.Audience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(_config.Jwt.ExpiryMinutes),
-                signingCredentials: creds);
+                signingCredentials: creds
+            );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
@@ -131,5 +136,18 @@ namespace splitzy_dotnet.Services
             return int.Parse(userIdClaim.Value);
         }
 
+        public string GenerateRefreshToken()
+        {
+            var bytes = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
+            return Convert.ToBase64String(bytes);
+        }
+
+        public static string HashToken(string token)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToBase64String(bytes);
+        }
     }
 }

@@ -98,7 +98,28 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            var token = _jWTService.GenerateToken(loginUser.UserId);
+            var accessToken = _jWTService.GenerateAccessToken(loginUser.UserId);
+            var refreshToken = _jWTService.GenerateRefreshToken();
+
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = loginUser.UserId,
+                TokenHash = JWTService.HashToken(refreshToken),
+                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            Response.Cookies.Append("refresh_token", refreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(30)
+            });
 
             _logger.LogInformation(
                 "Login successful. UserId={UserId}, Email={Email}",
@@ -109,7 +130,7 @@ namespace splitzy_dotnet.Controllers
             {
                 Success = true,
                 Message = "Login successful",
-                Data = new { Id = loginUser.UserId, Token = token }
+                Data = new { Id = loginUser.UserId, Token = accessToken }
             });
         }
 
@@ -210,9 +231,17 @@ namespace splitzy_dotnet.Controllers
         /// </remarks>
         [HttpGet("logout")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            _logger.LogInformation("Logout requested");
+            int userId = HttpContext.GetCurrentUserId();
+
+            var tokens = await _context.RefreshTokens
+                .Where(t => t.UserId == userId && !t.IsRevoked)
+                .ToListAsync();
+
+            tokens.ForEach(t => t.IsRevoked = true);
+            await _context.SaveChangesAsync();
+
             return Ok(new ApiResponse<string>
             {
                 Success = true,
@@ -335,7 +364,31 @@ namespace splitzy_dotnet.Controllers
                 }
             }
 
-            var token = _jWTService.GenerateToken(user.UserId);
+            var accessToken = _jWTService.GenerateAccessToken(user.UserId);
+            var refreshToken = _jWTService.GenerateRefreshToken();
+
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = user.UserId,
+                TokenHash = JWTService.HashToken(refreshToken),
+                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            Response.Cookies.Append(
+            "refresh_token",
+            refreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(30)
+            });
+
 
             _logger.LogInformation(
                 "Google login successful. UserId={UserId}, Email={Email}",
@@ -346,10 +399,21 @@ namespace splitzy_dotnet.Controllers
             {
                 Success = true,
                 Message = "Login successful",
-                Data = new { Id = user.UserId, Token = token }
+                Data = new { Id = user.UserId, Token = accessToken }
             });
         }
 
+        /// <summary>
+        /// Initiates the password reset process for a user by sending a password reset link to the specified email
+        /// address.
+        /// </summary>
+        /// <remarks>This endpoint does not require authentication. If the provided email address is
+        /// associated with a user account, a password reset link is sent to that email. For security reasons, the
+        /// response does not reveal whether the email is registered beyond the success or failure message.</remarks>
+        /// <param name="request">The request containing the user's email address for which the password reset link should be generated.
+        /// Cannot be null.</param>
+        /// <returns>An IActionResult indicating the outcome of the operation. Returns a success response if the password reset
+        /// link is sent; otherwise, returns a bad request if the email does not exist.</returns>
         [AllowAnonymous]
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequestUser request)
@@ -387,7 +451,16 @@ namespace splitzy_dotnet.Controllers
             });
         }
 
-
+        /// <summary>
+        /// Resets a user's password using a password reset token and a new password provided in the request.
+        /// </summary>
+        /// <remarks>This endpoint does not require authentication. The reset token is validated before
+        /// updating the user's password. Ensure that the new password meets any required password policies.</remarks>
+        /// <param name="request">The password reset request containing the reset token and the new password to set for the user. Cannot be
+        /// null.</param>
+        /// <returns>An <see cref="IActionResult"/> indicating the result of the password reset operation. Returns 200 OK if the
+        /// password is successfully updated; otherwise, returns 401 Unauthorized if the token is invalid or the user is
+        /// not found.</returns>
         [AllowAnonymous]
         [HttpPost("verify")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
@@ -449,5 +522,70 @@ namespace splitzy_dotnet.Controllers
 
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// Exchanges a valid refresh token for a new access token and refresh token pair.
+        /// </summary>
+        /// <remarks>This endpoint allows clients to obtain a new access token when the current one
+        /// expires, using a valid, unexpired, and non-revoked refresh token. The provided refresh token is invalidated
+        /// after use, and a new refresh token is issued. This endpoint does not require authentication.</remarks>
+        /// <param name="request">The refresh token request containing the refresh token to validate and exchange. Cannot be null.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the new access token and refresh token if the provided refresh
+        /// token is valid; otherwise, an unauthorized response.</returns>
+        [AllowAnonymous]
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh()
+        {
+            var refreshToken = Request.Cookies["refresh_token"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized();
+
+            var tokenHash = JWTService.HashToken(refreshToken);
+
+            var storedToken = await _context.RefreshTokens
+                .FirstOrDefaultAsync(t => t.TokenHash == tokenHash);
+
+            if (storedToken == null || storedToken.IsRevoked)
+                return Unauthorized("Invalid refresh token");
+
+            if (storedToken.ExpiresAt < DateTime.UtcNow)
+                return Unauthorized("Refresh token expired");
+
+            storedToken.IsRevoked = true;
+
+            var newAccessToken =
+                _jWTService.GenerateAccessToken(storedToken.UserId);
+
+            var newRefreshToken =
+                _jWTService.GenerateRefreshToken();
+
+            _context.RefreshTokens.Add(new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                UserId = storedToken.UserId,
+                TokenHash = JWTService.HashToken(newRefreshToken),
+                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            Response.Cookies.Append(
+            "refresh_token",
+            newRefreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(30)
+            });
+
+            return Ok(new
+            {
+                AccessToken = newAccessToken
+            });
+        }
+
     }
 }
