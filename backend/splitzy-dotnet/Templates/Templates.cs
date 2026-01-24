@@ -4,34 +4,61 @@ namespace splitzy_dotnet.Templates
     // --- Welcome Email Template ---
     public class WelcomeEmailTemplate : EmailTemplateBase
     {
-        public string Build(string userName)
+        public string Build(string userName, string verificationLink)
         {
             var body = $"""
-            <p style="font-size:16px; margin:0 0 12px 0;">
-                Hey <strong>{userName}</strong> 👋
-            </p>
+        <p style="font-size:16px; margin:0 0 12px 0;">
+            Hey <strong>{userName}</strong> 👋
+        </p>
 
-            <p style="
-                font-size:15px;
-                line-height:1.6;
-                margin:0 0 20px 0;
-            ">
-                Welcome to <strong>Splitzy</strong>! You can now split expenses,
-                track balances with friends, and settle up easily — all in one place.
-            </p>
+        <p style="
+            font-size:15px;
+            line-height:1.6;
+            margin:0 0 20px 0;
+        ">
+            Welcome to <strong>Splitzy</strong>! 🎉  
+            Before you get started, please verify your email address to activate your account.
+        </p>
 
-            <p style="
-                font-size:15px;
-                line-height:1.6;
-                margin:0;
-            ">
-                We’re excited to have you on board.
-            </p>
+        <p style="margin:24px 0; text-align:center;">
+            <a href="{verificationLink}"
+               style="
+                   background-color:#4F46E5;
+                   color:#ffffff;
+                   padding:12px 24px;
+                   text-decoration:none;
+                   font-size:15px;
+                   font-weight:600;
+                   border-radius:6px;
+                   display:inline-block;
+               ">
+                Verify Email Address
+            </a>
+        </p>
+
+        <p style="
+            font-size:14px;
+            line-height:1.6;
+            margin:20px 0 0 0;
+            color:#555;
+        ">
+            This link will expire in <strong>24 hours</strong>.
+            If you didn’t sign up for Splitzy, you can safely ignore this email.
+        </p>
+
+        <p style="
+            font-size:14px;
+            line-height:1.6;
+            margin:20px 0 0 0;
+        ">
+            We’re excited to have you on board 🚀
+        </p>
         """;
 
-            return Layout("Welcome to Splitzy!", body);
+            return Layout("Verify your email – Splitzy", body);
         }
     }
+
 
     // --- Reminder Email Template ---
     public class ReminderTemplate : EmailTemplateBase
