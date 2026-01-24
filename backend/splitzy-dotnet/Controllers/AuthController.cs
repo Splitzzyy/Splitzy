@@ -242,6 +242,17 @@ namespace splitzy_dotnet.Controllers
             tokens.ForEach(t => t.IsRevoked = true);
             await _context.SaveChangesAsync();
 
+            Response.Cookies.Delete(
+                "refresh_token",
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict
+                }
+            );
+
+
             return Ok(new ApiResponse<string>
             {
                 Success = true,
