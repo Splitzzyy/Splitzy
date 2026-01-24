@@ -78,7 +78,7 @@ namespace splitzy_dotnet.Controllers
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Invalid Email"
+                    Message = "Invalid credentials"
                 });
             }
 
@@ -101,7 +101,7 @@ namespace splitzy_dotnet.Controllers
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Wrong Password"
+                    Message = "Invalid credentials"
                 });
             }
 
