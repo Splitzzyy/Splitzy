@@ -54,7 +54,7 @@ export class SplitzService {
 
   logout(): void {
     const url = `${this.BASE_URL}${this.ENDPOINTS.LOGOUT}`;
-    this.http.get(url).pipe(
+    this.http.post(url, {}).pipe(
       finalize(() => {
         this.clearLocalSession();
       })
