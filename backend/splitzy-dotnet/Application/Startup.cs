@@ -148,7 +148,8 @@ namespace splitzy_dotnet.Application
                             "http://localhost:4200",
                             "https://42761f8c7efd.ngrok-free.app")
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
 
