@@ -1,45 +1,79 @@
-/* custom-service-worker.js */
-
-/* ---------- INSTALL ---------- */
-self.addEventListener('install', event => {
+self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-/* ---------- ACTIVATE ---------- */
-self.addEventListener('activate', event => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-/* ---------- FETCH (offline reads, safe) ---------- */
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  if (req.method !== "GET") return;
+
+  if (url.pathname.startsWith("/api")) {
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches
+              .open("runtime-cache")
+              .then((cache) => {
+                cache.put(req, responseClone);
+              })
+              .catch((err) => {});
+          }
+
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(req);
+          if (cached) {
+            return cached;
+          }
+          return new Response(JSON.stringify([]), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }),
+    );
+    return;
+  }
 
   event.respondWith(
-    caches.open('runtime-cache').then(cache =>
-      cache.match(event.request).then(cached => {
+    caches.open("runtime-cache").then((cache) =>
+      cache.match(req).then((cached) => {
         if (cached) return cached;
 
-        return fetch(event.request)
-          .then(response => {
-            cache.put(event.request, response.clone());
+        return fetch(req)
+          .then((response) => {
+            if (response.ok) {
+              cache.put(req, response.clone());
+            }
             return response;
           })
-          .catch(() => cached);
-      })
-    )
+          .catch((err) => {
+            throw err;
+          });
+      }),
+    ),
   );
 });
 
-/* ---------- INDEXED DB (OUTBOX) ---------- */
-const DB_NAME = 'offline-db';
-const STORE = 'outbox';
+const DB_NAME = "offline-db";
+const STORE = "outbox";
 
 function openDb() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
 
     req.onupgradeneeded = () => {
-      req.result.createObjectStore(STORE, { keyPath: 'id' });
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: "id" });
+      }
     };
 
     req.onsuccess = () => resolve(req.result);
@@ -47,60 +81,63 @@ function openDb() {
   });
 }
 
-/* ---------- REPLAY LOGIC ---------- */
 async function replayOutbox() {
+  try {
+    const db = await openDb();
 
-  const db = await openDb();
-  const tx = db.transaction(STORE, 'readwrite');
-  const store = tx.objectStore(STORE);
+    const items = await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readonly");
+      const store = tx.objectStore(STORE);
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    if (!items.length) return;
 
-  const items = await new Promise((resolve, reject) => {
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
+    const successfullySyncedIds = [];
 
-  for (const item of items) {
-    try {
-
-      const res = await fetch(item.url, {
-        method: item.method,
-        headers: item.headers,
-        body: JSON.stringify(item.body)
-      });
-
-      if (res.ok) {
-        store.delete(item.id);
-        const clients = await self.clients.matchAll();
-        clients.forEach((client) => {
-          client.postMessage({
-            type: "SYNC_SUCCESS",
-            payload: {
-              id: item.id,
-              entity: "expense",
-            },
-          });
+    for (const item of items) {
+      try {
+        const res = await fetch(item.url, {
+          method: item.method,
+          headers: item.headers,
+          body: JSON.stringify(item.body),
         });
-      } else {
-        return;
+
+        if (!res.ok) {
+          break;
+        }
+
+        successfullySyncedIds.push(item.id);
+      } catch (e) {
+        break;
       }
-    } catch (e) {
-      return;
     }
-  }
+
+    if (successfullySyncedIds.length) {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const store = tx.objectStore(STORE);
+
+        successfullySyncedIds.forEach((id) => store.delete(id));
+
+        tx.oncomplete = () => {
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+  } catch (error) {}
 }
 
-
-/* ---------- MESSAGE TRIGGER ---------- */
-self.addEventListener('message', event => {
-  if (event.data?.type === 'REPLAY_OUTBOX') {
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "REPLAY_OUTBOX") {
     event.waitUntil(replayOutbox());
   }
 });
 
-/* ---------- SYNC TRIGGER ---------- */
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-outbox') {
+self.addEventListener("sync", (event) => {
+  if (event.tag === "sync-outbox") {
     event.waitUntil(replayOutbox());
   }
 });

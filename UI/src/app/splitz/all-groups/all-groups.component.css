@@ -1,0 +1,22 @@
+/* All Groups Component Styles */
+
+:host {
+  display: block;
+}
+
+@media (max-width: 1024px) {
+  :host ::ng-deep {
+    .max-w-6xl {
+      padding-bottom: 80px;
+    }
+  }
+}
+
+/* Smooth transitions */
+button {
+  transition: all 0.3s ease;
+}
+
+a {
+  text-decoration: none;
+}

@@ -130,6 +130,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/group', this.userId, groupId]);
   }
 
+  navigateToAllGroups(): void {
+    this.router.navigate(['/all-groups']);
+  }
+
   getCurrentDate(): string {
     return new Date().toLocaleDateString('en-IN', {
       weekday: 'long',
