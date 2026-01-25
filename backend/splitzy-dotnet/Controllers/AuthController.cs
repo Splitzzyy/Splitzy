@@ -63,7 +63,7 @@ namespace splitzy_dotnet.Controllers
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Invalid login request payload");
+                _logger.LogError("Invalid login request payload");
                 return BadRequest(new ApiResponse<string>
                 {
                     Success = false,
@@ -74,7 +74,7 @@ namespace splitzy_dotnet.Controllers
             var loginUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
             if (loginUser == null)
             {
-                _logger.LogWarning("Login failed: Email not found. Email={Email}", user.Email);
+                _logger.LogError("Login failed: Email not found. Email={Email}", user.Email);
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
@@ -93,7 +93,7 @@ namespace splitzy_dotnet.Controllers
 
             if (!HashingService.VerifyPassword(user.Password, loginUser.PasswordHash))
             {
-                _logger.LogWarning(
+                _logger.LogError(
                     "Login failed: Incorrect password. UserId={UserId}, Email={Email}",
                     loginUser.UserId,
                     loginUser.Email);
@@ -349,7 +349,7 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Invalid Google token received");
+                _logger.LogError(ex, "Invalid Google token received");
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
@@ -359,7 +359,7 @@ namespace splitzy_dotnet.Controllers
 
             if (!payload.EmailVerified)
             {
-                _logger.LogWarning(
+                _logger.LogError(
                     "Google login failed: Email not verified. Email={Email}",
                     payload.Email);
 
@@ -749,6 +749,21 @@ namespace splitzy_dotnet.Controllers
             await _messageProducer.SendMessageAsync(emailEvent);
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Triggers the cleanup process for expired or invalid refresh tokens via the provided cleanup service.
+        /// </summary>
+        /// <param name="cleanupService">The service responsible for performing refresh token cleanup operations. This parameter is provided by
+        /// dependency injection and cannot be null.</param>
+        /// <returns>An IActionResult indicating the outcome of the cleanup operation. Returns a 200 OK response with a
+        /// confirmation message upon successful execution.</returns>
+        [HttpPost("cleanup-refresh-tokens")]
+        public async Task<IActionResult> CleanupRefreshTokens(
+               [FromServices] IRefreshTokenCleanupService cleanupService)
+        {
+            await cleanupService.CleanupAsync();
+            return Ok(new { Message = "Refresh token cleanup executed" });
         }
 
     }

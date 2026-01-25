@@ -39,7 +39,9 @@ namespace splitzy_dotnet.Application
             services.AddScoped<IEmailService, EMailService>();
             services.AddScoped<IMessageProducer, RabbitMqProducer>();
             services.AddScoped<IJWTService, JWTService>();
+            services.AddScoped<IRefreshTokenCleanupService, RefreshTokenCleanupService>();
             services.AddHostedService<EmailConsumer>();
+            services.AddHostedService<RefreshTokenBackgroundCleanupService>();
 
             // Config bindings
             services.Configure<GoogleSettings>(_config.GetSection("Google"));
@@ -196,15 +198,6 @@ namespace splitzy_dotnet.Application
                             : "An internal server error occurred",
                         Instance = context.Request.Path
                     };
-
-                    // Optional: map specific exceptions
-                    if (exception is UnauthorizedAccessException)
-                    {
-                        problem.Status = StatusCodes.Status401Unauthorized;
-                        problem.Title = "Unauthorized";
-                        problem.Type = "https://httpstatuses.com/401";
-                    }
-
                     context.Response.StatusCode = problem.Status.Value;
                     context.Response.ContentType = "application/problem+json";
                     await context.Response.WriteAsJsonAsync(problem);
