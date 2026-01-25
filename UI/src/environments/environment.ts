@@ -3,6 +3,8 @@ export const environment = {
     apiBaseUrl: 'https://splitzy.aarshiv.xyz',
     googleClientId: '181191664943-7db5glvs01ifeno7o78kotd9ujv910db.apps.googleusercontent.com',
     bypassAuthOnLocalhost: false,
+    TOKEN_EXPIRY_TIME: 10 * 60 * 1000, // 10 minutes
+    REFRESH_BEFORE_EXPIRY: 30 * 1000, // 30 seconds
     endpoints: {
         GOOGLELOGIN: '/api/Auth/google-login',
         SECURE: '/api/Auth/secure',
@@ -17,6 +19,7 @@ export const environment = {
         FORGOTPASS: '/api/Auth/forget-password',
         SETUPPASS: '/api/Auth/verify',
         SETTLEUP: '/api/Settleup/settle-up',
-        ADDUSERTOGROUP: '/api/Group/AddUsersToGroup'
+        ADDUSERTOGROUP: '/api/Group/AddUsersToGroup',
+        REFRESH: '/api/Auth/refresh'
     }
 };

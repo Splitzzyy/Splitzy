@@ -8,6 +8,7 @@ import { LoginRequest, LoginResponse } from '../splitz.model';
 import { environment } from '../../../environments/environment';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TokenRefreshService } from '../services/token-refresh.service';
 
 
 @Component({
@@ -28,7 +29,8 @@ export class LoginPageComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private splitzService: SplitzService
+    private splitzService: SplitzService,
+    private tokenRefreshService: TokenRefreshService
 
   ) {
     // this.authService.authState.subscribe((user: SocialUser) => {
