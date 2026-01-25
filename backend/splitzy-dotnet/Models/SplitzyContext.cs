@@ -32,9 +32,51 @@ public partial class SplitzyContext : DbContext
     public virtual DbSet<GroupInvite> GroupInvites { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<EmailVerification>(entity =>
+        {
+            entity.ToTable("email_verifications");
+
+            entity.HasKey(e => e.Id)
+                  .HasName("email_verifications_pkey");
+
+            entity.Property(e => e.Id)
+                  .HasColumnName("id");
+
+            entity.Property(e => e.UserId)
+                  .HasColumnName("user_id");
+
+            entity.Property(e => e.Token)
+                  .IsRequired()
+                  .HasMaxLength(200)
+                  .HasColumnName("token");
+
+            entity.Property(e => e.ExpiresAt)
+                  .HasColumnType("timestamp with time zone")
+                  .HasColumnName("expires_at");
+
+            entity.Property(e => e.IsUsed)
+                  .HasDefaultValue(false)
+                  .HasColumnName("is_used");
+
+            entity.Property(e => e.CreatedAt)
+                  .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                  .HasColumnType("timestamp with time zone")
+                  .HasColumnName("created_at");
+
+            entity.HasIndex(e => e.Token)
+                  .IsUnique();
+
+            entity.HasOne(e => e.User)
+                  .WithMany() // no navigation required
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("email_verifications_user_id_fkey");
+        });
+
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.ToTable("refresh_tokens");
@@ -306,6 +348,9 @@ public partial class SplitzyContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("name");
             entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            entity.Property(e => e.IsEmailVerified)
+                .HasColumnName("is_email_verified")
+                .HasDefaultValue(true);
         });
 
         OnModelCreatingPartial(modelBuilder);

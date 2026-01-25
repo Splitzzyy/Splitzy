@@ -179,10 +179,15 @@ namespace splitzy_dotnet.Services.BackgroundServices
             switch (msg.TemplateType)
             {
                 case "Welcome":
-                    if (TryGetProp(root, "UserName", out var name))
+                    if (
+                        TryGetProp(root, "UserName", out var name) &&
+                        TryGetProp(root, "VerificationLink", out var verificationLink)
+                    )
                     {
-                        htmlContent = new WelcomeEmailTemplate().Build(name);
-                        subject = "Welcome to Splitzy! 👋";
+                        htmlContent = new WelcomeEmailTemplate()
+                            .Build(name, verificationLink);
+
+                        subject = "Verify your email – Splitzy 👋";
                     }
                     break;
 
