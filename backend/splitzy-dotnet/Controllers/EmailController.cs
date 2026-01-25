@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Services.Interfaces;
@@ -6,7 +5,6 @@ using splitzy_dotnet.Templates;
 
 namespace splitzy_dotnet.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/email")]
     public class EmailController : ControllerBase
@@ -22,7 +20,7 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("welcome")]
         public async Task<IActionResult> SendWelcome([FromBody] WelcomeRequest request)
         {
-            var html = new WelcomeEmailTemplate().Build(request.UserName);
+            var html = new WelcomeEmailTemplate().Build(request.UserName, request.VerificationLink);
             await _emailService.SendAsync(request.To, "Welcome to Splitzy! 👋", html);
             return Ok("Welcome email sent.");
         }

@@ -78,13 +78,20 @@ namespace splitzy_dotnet.Controllers
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Invalid Email"
+                    Message = "Invalid credentials"
                 });
             }
 
-            var hashedInputPassword = HashingService.HashPassword(user.Password);
+            if (!loginUser.IsEmailVerified)
+            {
+                return Unauthorized(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Please verify your email before logging in"
+                });
+            }
 
-            if (loginUser.PasswordHash != hashedInputPassword)
+            if (!HashingService.VerifyPassword(user.Password, loginUser.PasswordHash))
             {
                 _logger.LogWarning(
                     "Login failed: Incorrect password. UserId={UserId}, Email={Email}",
@@ -94,7 +101,7 @@ namespace splitzy_dotnet.Controllers
                 return Unauthorized(new ApiResponse<string>
                 {
                     Success = false,
-                    Message = "Wrong Password"
+                    Message = "Invalid credentials"
                 });
             }
 
@@ -146,16 +153,6 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Signup([FromBody] SignupRequestDTO request)
         {
-            if (request == null)
-            {
-                _logger.LogWarning("Signup failed: request body is null");
-                return BadRequest(new ApiResponse<string>
-                {
-                    Success = false,
-                    Message = "Invalid input"
-                });
-            }
-
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid signup request payload");
@@ -168,7 +165,7 @@ namespace splitzy_dotnet.Controllers
 
             if (await _context.Users.AnyAsync(u => u.Email == request.Email))
             {
-                _logger.LogWarning("Signup failed: Email already exists. Email={Email}", request.Email);
+                _logger.LogError("Signup failed: Email already exists. Email={Email}", request.Email);
                 return BadRequest(new ApiResponse<string>
                 {
                     Success = false,
@@ -178,48 +175,76 @@ namespace splitzy_dotnet.Controllers
 
             var hashedPassword = HashingService.HashPassword(request.Password);
 
-            var user = new User
-            {
-                Name = request.Name,
-                Email = request.Email,
-                PasswordHash = hashedPassword,
-                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-            };
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            await HandleGroupInvitesAsync(user);
-
-            _logger.LogInformation(
-                "Signup successful. UserId={UserId}, Email={Email}",
-                user.UserId,
-                user.Email);
-
-            // Send welcome email
             try
             {
+                var user = new User
+                {
+                    Name = request.Name,
+                    Email = request.Email,
+                    PasswordHash = hashedPassword,
+                    IsEmailVerified = false,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                };
+
+                _context.Users.Add(user);
+
+                await _context.SaveChangesAsync();
+
+                var verification = new EmailVerification
+                {
+                    UserId = user.UserId,
+                    Token = Guid.NewGuid().ToString("N"),
+                    ExpiresAt = DateTime.UtcNow.AddHours(24),
+                    IsUsed = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.EmailVerifications.Add(verification);
+
+                await _context.SaveChangesAsync();
+
+                await HandleGroupInvitesAsync(user);
+
+                await transaction.CommitAsync();
+
+                _logger.LogInformation(
+                   "Signup successful. UserId={UserId}, Email={Email}",
+                   user.UserId,
+                   user.Email);
+
                 var emailEvent = new EmailMessage
                 {
                     ToEmail = user.Email,
                     TemplateType = "Welcome",
-                    Payload = new { UserName = request.Name },
+                    Payload = new
+                    {
+                        UserName = user.Name,
+                        VerificationLink =
+                            $"https://splitzy.aarshiv.xyz/verify-email?token={verification.Token}"
+                    }
                 };
 
                 await _messageProducer.SendMessageAsync(emailEvent);
+
+                return CreatedAtAction(nameof(Signup), new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Signup successful",
+                    Data = new { Id = user.UserId }
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+                await transaction.RollbackAsync();
+
+                _logger.LogError(ex, "Signup failed for Email={Email}", request.Email);
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new ApiResponse<string> { Success = false, Message = "Signup failed. Please try again." });
             }
-
-            return CreatedAtAction(nameof(Signup), new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Signup successful",
-                Data = new { Id = user.UserId }
-            });
-
         }
 
         /// <summary>
@@ -357,6 +382,7 @@ namespace splitzy_dotnet.Controllers
                 {
                     Email = payload.Email,
                     Name = payload.Name,
+                    IsEmailVerified = true,
                     PasswordHash = Guid.NewGuid().ToString(),
                     CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
@@ -623,6 +649,106 @@ namespace splitzy_dotnet.Controllers
             {
                 AccessToken = newAccessToken
             });
+        }
+
+        /// <summary>
+        /// Verifies a user's email address using the specified verification token.
+        /// </summary>
+        /// <remarks>This endpoint can be accessed without authentication. Once a token is used or
+        /// expired, it cannot be reused for verification.</remarks>
+        /// <param name="token">The email verification token to validate. This value is typically provided to the user via email and must be
+        /// valid, unused, and unexpired.</param>
+        /// <returns>An <see cref="IActionResult"/> indicating the result of the verification. Returns a success response if the
+        /// token is valid and the email is verified; otherwise, returns a bad request response if the token is invalid
+        /// or expired.</returns>
+        [AllowAnonymous]
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail(string token)
+        {
+            var record = await _context.EmailVerifications
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(x => x.Token == token);
+
+            if (record == null)
+                return BadRequest(new
+                {
+                    code = "TOKEN_INVALID",
+                    message = "Invalid verification link"
+                });
+
+            if (record.IsUsed)
+                return Ok(new
+                {
+                    code = "ALREADY_VERIFIED",
+                    message = "Email already verified"
+                });
+
+            if (record.ExpiresAt < DateTime.UtcNow)
+                return BadRequest(new
+                {
+                    code = "TOKEN_EXPIRED",
+                    message = "Verification link expired"
+                });
+
+            record.IsUsed = true;
+            record.User.IsEmailVerified = true;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                code = "VERIFIED",
+                message = "Email verified successfully"
+            });
+        }
+
+        /// <summary>
+        /// Initiates the process to resend an email verification link to the specified email address if the user exists
+        /// and has not yet verified their email.
+        /// </summary>
+        /// <remarks>This method does not reveal whether the provided email address is associated with a
+        /// user account or whether the email is already verified, in order to prevent email enumeration attacks. If the
+        /// user exists and their email is unverified, a new verification token is generated and a verification email is
+        /// sent.</remarks>
+        /// <param name="email">The email address of the user to whom the verification link should be sent. Cannot be null or empty.</param>
+        /// <returns>An HTTP 200 OK response regardless of whether the email exists or is already verified. No information is
+        /// disclosed about the existence or verification status of the email address.</returns>
+        [AllowAnonymous]
+        [HttpPost("resend-verification")]
+        public async Task<IActionResult> ResendVerification(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+
+            if (user == null || user.IsEmailVerified)
+                return Ok(); // avoid email enumeration
+
+            var token = Guid.NewGuid().ToString("N");
+
+            _context.EmailVerifications.Add(new EmailVerification
+            {
+                UserId = user.UserId,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            var emailEvent = new EmailMessage
+            {
+                ToEmail = user.Email,
+                TemplateType = "Welcome",
+                Payload = new
+                {
+                    UserName = user.Name,
+                    VerificationLink =
+                            $"https://splitzy.aarshiv.xyz/verify-email?token={token}"
+                }
+            };
+
+            await _messageProducer.SendMessageAsync(emailEvent);
+
+            return Ok();
         }
 
     }
