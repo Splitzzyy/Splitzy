@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -14,6 +15,7 @@ using splitzy_dotnet.Services.BackgroundServices;
 using splitzy_dotnet.Services.Interfaces;
 using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace splitzy_dotnet.Application
 {
@@ -157,6 +159,45 @@ namespace splitzy_dotnet.Application
                 });
             });
 
+            // Rate Limiting
+            services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                //Global limiter
+                options.AddFixedWindowLimiter("global", opt =>
+                {
+                    opt.PermitLimit = 100; // 100 requests
+                    opt.Window = TimeSpan.FromMinutes(1); // per 1 minute
+                    opt.QueueLimit = 0;
+                });
+
+                // Login-specific stricter policy
+                options.AddFixedWindowLimiter("login", opt =>
+                {
+                    opt.PermitLimit = 5;
+                    opt.Window = TimeSpan.FromMinutes(1);
+                });
+
+                // Per-user JWT-based limiter
+                options.AddPolicy("per-user", context =>
+                {
+                    // JWT subject (best)
+                    var userId =
+                        context.User.FindFirst("sub")?.Value
+                        ?? context.User.FindFirst("userId")?.Value
+                        ?? context.Connection.RemoteIpAddress?.ToString();
+
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        userId!,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 60,
+                            Window = TimeSpan.FromMinutes(1)
+                        });
+                });
+            });
+
             // DB
             services.AddDbContext<SplitzyContext>(options =>
             {
@@ -239,12 +280,13 @@ namespace splitzy_dotnet.Application
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseRateLimiter();
             if (app.Environment.IsDevelopment())
             {
                 app.UseMiniProfiler();
             }
 
-            app.MapHealthChecks("/health");
+            app.MapHealthChecks("/health").DisableRateLimiting();
             app.MapControllers();
 
             #region Auto DB Migration (Non-Prod Friendly)
