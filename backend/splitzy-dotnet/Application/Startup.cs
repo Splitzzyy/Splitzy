@@ -196,6 +196,14 @@ namespace splitzy_dotnet.Application
                             Window = TimeSpan.FromMinutes(1)
                         });
                 });
+
+                // For testing purposes
+                options.AddFixedWindowLimiter("fixed", opt =>
+                {
+                    opt.Window = TimeSpan.FromMinutes(1);
+                    opt.PermitLimit = 5;
+                    opt.QueueLimit = 0;
+                });
             });
 
             // DB
