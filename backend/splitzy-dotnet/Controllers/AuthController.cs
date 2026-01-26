@@ -1,6 +1,7 @@
 ﻿using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using splitzy_dotnet.DTO;
@@ -12,6 +13,7 @@ using splitzy_dotnet.Services.Interfaces;
 namespace splitzy_dotnet.Controllers
 {
     [Authorize]
+    [EnableRateLimiting("global")]
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -55,6 +57,7 @@ namespace splitzy_dotnet.Controllers
         /// Validates credentials and returns a JWT token if authentication succeeds.
         /// </remarks>
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
@@ -304,6 +307,7 @@ namespace splitzy_dotnet.Controllers
         /// Returns a JWT token for API access.
         /// </remarks>
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [HttpPost("google-login")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
@@ -461,6 +465,7 @@ namespace splitzy_dotnet.Controllers
         /// <returns>An IActionResult indicating the outcome of the operation. Returns a success response if the password reset
         /// link is sent; otherwise, returns a bad request if the email does not exist.</returns>
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequestUser request)
         {
@@ -508,6 +513,7 @@ namespace splitzy_dotnet.Controllers
         /// password is successfully updated; otherwise, returns 401 Unauthorized if the token is invalid or the user is
         /// not found.</returns>
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [HttpPost("verify")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
@@ -597,6 +603,7 @@ namespace splitzy_dotnet.Controllers
         /// <returns>An <see cref="IActionResult"/> containing the new access token and refresh token if the provided refresh
         /// token is valid; otherwise, an unauthorized response.</returns>
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
@@ -714,6 +721,7 @@ namespace splitzy_dotnet.Controllers
         /// <returns>An HTTP 200 OK response regardless of whether the email exists or is already verified. No information is
         /// disclosed about the existence or verification status of the email address.</returns>
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [HttpPost("resend-verification")]
         public async Task<IActionResult> ResendVerification(string email)
         {

@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Services.Interfaces;
 using splitzy_dotnet.Templates;
 
 namespace splitzy_dotnet.Controllers
 {
+    [EnableRateLimiting("per-user")]
     [ApiController]
     [Route("api/email")]
     public class EmailController : ControllerBase
