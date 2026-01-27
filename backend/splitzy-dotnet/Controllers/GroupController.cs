@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
@@ -10,6 +11,7 @@ using static splitzy_dotnet.DTO.GroupDTO;
 namespace splitzy_dotnet.Controllers
 {
     [Authorize]
+    [EnableRateLimiting("per-user")]
     [ApiController]
     [Route("api/[controller]")]
     public class GroupController : ControllerBase
