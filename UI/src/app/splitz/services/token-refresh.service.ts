@@ -28,6 +28,9 @@ export class TokenRefreshService {
                 })
             ).subscribe({
                 next: response => {
+                    if (response.accessToken) {
+                        localStorage.setItem('token', response.accessToken);
+                    }
                     console.log('Token refreshed successfully', response);
                 },
                 error: error => {

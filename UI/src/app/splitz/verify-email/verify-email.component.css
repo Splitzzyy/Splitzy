@@ -1,0 +1,31 @@
+/* Verify Email Component Styles */
+
+/* Ensure responsive design */
+@media (max-width: 640px) {
+  .max-w-md {
+    width: 100%;
+  }
+}
+
+/* Smooth transitions for buttons and form fields */
+button {
+  transition: all 0.3s ease-in-out;
+}
+
+input:focus {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Animation for loader text */
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.loader-text {
+  animation: fadeInOut 2s ease-in-out infinite;
+}

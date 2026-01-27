@@ -6,6 +6,7 @@ import { ExpenseModalComponent } from './expense-modal/expense-modal.component';
 import { GroupModalComponent } from './group-modal/group-modal.component';
 import { LoaderComponent } from '../loader/loader.component';
 import { MobileDashboardComponent } from '../mobile-dashboard/mobile-dashboard.component';
+import { TokenRefreshService } from '../services/token-refresh.service';
 
 export interface Group {
   groupId: number;
@@ -50,11 +51,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private splitzService: SplitzService
+    private splitzService: SplitzService,
+    private tokenRefreshService: TokenRefreshService
   ) { }
 
   ngOnInit(): void {
     this.onloadDashboardData();
+    this.tokenRefreshService.startAutoRefresh();
   }
 
   onloadDashboardData() {
@@ -171,5 +174,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.clear();
+    this.tokenRefreshService.stopAutoRefresh();
   }
 }
