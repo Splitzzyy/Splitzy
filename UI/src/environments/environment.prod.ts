@@ -20,6 +20,8 @@ export const environment = {
         SETUPPASS: '/api/Auth/verify',
         SETTLEUP: '/api/Settleup/settle-up',
         ADDUSERTOGROUP: '/api/Group/AddUsersToGroup',
-        REFRESH: '/api/Auth/refresh'
+        REFRESH: '/api/Auth/refresh',
+        VERIFY_EMAIL: '/api/Auth/verify-email',
+        RESEND_VERIFICATION: '/api/Auth/resend-verification'
     }
 };

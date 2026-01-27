@@ -13,7 +13,7 @@ import { TokenRefreshService } from './splitz/services/token-refresh.service';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
 
   constructor(private sync: SyncService, private splitzService: SplitzService, private tokenRefreshService: TokenRefreshService) {
     console.log('[APP] constructor');
@@ -26,16 +26,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     console.log('[APP] ngOnInit');
-    this.tokenRefreshService.startAutoRefresh();
 
     window.addEventListener('online', () => {
       console.log('[APP] online event fired');
       this.sync.triggerSync();
     });
-  }
-  ngOnDestroy(): void {
-    console.log('[APP] ngOnDestroy');
-    this.tokenRefreshService.stopAutoRefresh();
   }
 }
 

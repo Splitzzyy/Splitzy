@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
@@ -195,4 +195,15 @@ export class SplitzService {
   dismiss(id: number) {
     this.toasts$.next(this.toasts$.value.filter(t => t.id !== id));
   }
+  verifyEmail(token: string): Observable<any> {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.VERIFY_EMAIL}`;
+    const params = new HttpParams().set('token', token);
+    return this.http.get(url, { params });
+  }
+
+  resendVerificationEmail(email: string): Observable<any> {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.RESEND_VERIFICATION}`;
+    return this.http.post<any>(url, { email });
+  }
+
 }

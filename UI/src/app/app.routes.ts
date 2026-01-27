@@ -28,6 +28,12 @@ export const routes: Routes = [
                 .then(m => m.SetupPasswordComponent),
     },
     {
+        path: 'verify-email',
+        loadComponent: () =>
+            import('./splitz/verify-email/verify-email.component')
+                .then(m => m.VerifyEmailComponent),
+    },
+    {
         path: '',
         canActivate: [() => {
             const router = inject(Router);
