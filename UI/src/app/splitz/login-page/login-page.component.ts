@@ -31,13 +31,7 @@ export class LoginPageComponent implements AfterViewInit, OnDestroy {
     private fb: FormBuilder,
     private splitzService: SplitzService,
     private tokenRefreshService: TokenRefreshService
-
   ) {
-    // this.authService.authState.subscribe((user: SocialUser) => {
-    //   if (user) {
-    //     this.splitzService.setUserId(user.id);
-    //   }
-    // });
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -82,17 +76,17 @@ export class LoginPageComponent implements AfterViewInit, OnDestroy {
             this.isLoading = false;
 
             if (response.success && response.data.id) {
-              // Store user ID in service and session
+              // Store user ID and email in localStorage
               this.showLoader = false;
               this.splitzService.setUserId(response.data.id);
               localStorage.setItem('userEmail', loginData.email);
 
-              // Store token if provided
+              // Store token if provided (goes to sessionStorage automatically)
               if (response.data.token) {
                 this.splitzService.setToken(response.data.token);
               }
 
-              // Redirect to dashboard with userId in URL
+              // Redirect to dashboard
               this.splitzService.redirectToDashboard();
             } else {
               this.showLoader = false;
