@@ -24,7 +24,7 @@ namespace splitzy_dotnet.Services
             var deleted = await _db.RefreshTokens
                 .Where(t =>
                     t.ExpiresAt < now ||
-                    (t.IsRevoked && t.ExpiresAt < now.AddDays(-1))
+                    (t.IsRevoked)
                 )
                 .ExecuteDeleteAsync(cancellationToken);
 

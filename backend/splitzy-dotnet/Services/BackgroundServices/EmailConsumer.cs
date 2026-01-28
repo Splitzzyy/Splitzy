@@ -191,6 +191,16 @@ namespace splitzy_dotnet.Services.BackgroundServices
                     }
                     break;
 
+                case "WelcomeGoogle":
+                    if (TryGetProp(root, "UserName", out var googleUserName))
+                    {
+                        htmlContent = new WelcomeGoogleTemplate()
+                            .Build(googleUserName);
+
+                        subject = "Welcome to Splitzy";
+                    }
+                    break;
+
                 case "Reminder":
                     if (TryGetProp(root, "UserName", out var user) &&
                         TryGetProp(root, "GroupName", out var group) &&

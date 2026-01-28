@@ -10,7 +10,7 @@ namespace splitzy_dotnet.Services.BackgroundServices
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<RefreshTokenBackgroundCleanupService> _logger;
 
-        private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(6);
+        private static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(1);
 
         public RefreshTokenBackgroundCleanupService(
             IServiceScopeFactory scopeFactory,
