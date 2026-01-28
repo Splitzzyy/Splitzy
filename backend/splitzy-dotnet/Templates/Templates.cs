@@ -59,6 +59,55 @@ namespace splitzy_dotnet.Templates
         }
     }
 
+    // --- Welcome Google Email Template ---
+    public class WelcomeGoogleTemplate : EmailTemplateBase
+    {
+        public string Build(string userName)
+        {
+            var body = $"""
+        <p style="font-size:16px; margin:0 0 12px 0;">
+            Hey <strong>{userName}</strong> 👋
+        </p>
+
+        <p style="
+            font-size:15px;
+            line-height:1.6;
+            margin:0 0 20px 0;
+        ">
+            Welcome to <strong>Splitzy</strong>! 🎉  
+            Your Google account has been successfully connected and you're all set to start tracking expenses.
+        </p>
+
+        <p style="
+            font-size:15px;
+            line-height:1.6;
+            margin:0 0 20px 0;
+        ">
+            You can now:
+        </p>
+
+        <ul style="
+            font-size:15px;
+            line-height:1.8;
+            margin:0 0 20px 0;
+        ">
+            <li>Create and manage expense groups</li>
+            <li>Invite friends and split expenses</li>
+            <li>Track and settle up payments</li>
+        </ul>
+
+        <p style="
+            font-size:14px;
+            line-height:1.6;
+            margin:20px 0 0 0;
+        ">
+            We're excited to have you on board 🚀
+        </p>
+        """;
+
+            return Layout("Welcome to Splitzy", body);
+        }
+    }
 
     // --- Reminder Email Template ---
     public class ReminderTemplate : EmailTemplateBase

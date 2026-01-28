@@ -402,7 +402,7 @@ namespace splitzy_dotnet.Controllers
                     var emailEvent = new EmailMessage
                     {
                         ToEmail = user.Email,
-                        TemplateType = "Welcome",
+                        TemplateType = "WelcomeGoogle",
                         Payload = new { UserName = payload.Name },
                     };
 
