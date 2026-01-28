@@ -52,12 +52,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private splitzService: SplitzService,
-    private tokenRefreshService: TokenRefreshService
   ) { }
 
   ngOnInit(): void {
     this.onloadDashboardData();
-    this.tokenRefreshService.startAutoRefresh();
   }
 
   onloadDashboardData() {
@@ -174,6 +172,5 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.clear();
-    this.tokenRefreshService.stopAutoRefresh();
   }
 }

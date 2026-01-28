@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest, Toast, ToastType } from '../splitz.model';
+import { TokenStorageService } from './token-storage.service';
+import { TokenRefreshService } from './token-refresh.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +22,12 @@ export class SplitzService {
   private id = 0;
   private groupWiseSummary: any;
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private tokenStorageService: TokenStorageService,
+    private tokenRefreshService: TokenRefreshService
+  ) { }
 
   login(loginData: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.BASE_URL}${this.ENDPOINTS.LOGIN}`, loginData);
@@ -33,7 +40,6 @@ export class SplitzService {
   setUserId(userId: number): void {
     const userIdStr = userId.toString();
     localStorage.setItem('userId', userIdStr);
-    
     this.userIdSubject.next(userIdStr);
   }
 
@@ -43,13 +49,15 @@ export class SplitzService {
 
   setToken(token: string): void {
     const tokenStr = token.toString();
-    localStorage.setItem('token', tokenStr);
-    
+    this.tokenStorageService.setToken(tokenStr);
     this.tokenSubject.next(tokenStr);
+    
+    // Start auto-refresh when token is set
+    this.tokenRefreshService.startAutoRefresh();
   }
 
   getToken(): string | null {
-    return this.tokenSubject.value || localStorage.getItem('token');
+    return this.tokenSubject.value || this.tokenStorageService.getToken();
   }
 
   logout(): void {
@@ -59,19 +67,37 @@ export class SplitzService {
         this.clearLocalSession();
       })
     ).subscribe({
-      next: () => {},
-      error: (err) => console.error('Logout API call failed', err)
+      next: () => {
+        console.log('Logout API call successful');
+      },
+      error: (err) => {
+        console.error('Logout API call failed, clearing session anyway', err);
+        this.clearLocalSession();
+      }
     });
   }
 
   private clearLocalSession(): void {
+    // Stop auto-refresh
+    this.tokenRefreshService.stopAutoRefresh();
+
+    // Clear localStorage
     localStorage.removeItem('userId');
-    localStorage.removeItem('token');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
     localStorage.removeItem('googleToken');
+
+    // Clear token from sessionStorage and cookies
+    this.tokenStorageService.clearTokenAndCookies();
+
+    // Update subjects
     this.userIdSubject.next(null);
+    this.tokenSubject.next(null);
+
+    // Navigate to login
     this.router.navigate(['/login']);
+
+    console.log('Local session cleared');
   }
 
   isLoggedIn(): boolean {
@@ -117,35 +143,35 @@ export class SplitzService {
       );
       const userInfo = JSON.parse(jsonPayload);
 
-      // Store user information from Google
-      const userId = userInfo.sub; // Google's unique user ID
+      // Store user information from Google in localStorage
       const userEmail = userInfo.email;
       const userName = userInfo.name;
 
-      // Store in localStorage
-      // localStorage.setItem('userId', userId);
       localStorage.setItem('userEmail', userEmail);
       localStorage.setItem('userName', userName);
       localStorage.setItem('googleToken', token);
 
-      // Update subjects
-      // this.userIdSubject.next(userId);
+      // Update subject
       this.tokenSubject.next(token);
 
-      // Redirect to dashboard
+      // Send Google token to backend for authentication
       const googleLoginRequest: GoogleLoginRequest = {
         idToken: token
       }
       this.onGoogleLogin(googleLoginRequest).subscribe({
         next: (response) => {
-          if (response.success == true) {
-            if (response?.data?.id) {
-              localStorage.setItem('userId', response.data.id);
-              localStorage.setItem('token', response.data.token);
-              this.userIdSubject.next(response.data.id);
-              this.tokenSubject.next(response.data.token);
-              this.router.navigate(['/dashboard']);
-            }
+          if (response.success == true && response?.data?.id) {
+            // Store received credentials from backend
+            localStorage.setItem('userId', response.data.id);
+            this.tokenStorageService.setToken(response.data.token);
+            
+            this.userIdSubject.next(response.data.id);
+            this.tokenSubject.next(response.data.token);
+            
+            // Start auto-refresh with new token
+            this.tokenRefreshService.startAutoRefresh();
+            
+            this.router.navigate(['/dashboard']);
           }
           else {
             this.router.navigate(['/login']);

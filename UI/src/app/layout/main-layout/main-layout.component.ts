@@ -38,7 +38,7 @@ export class MainLayoutComponent implements OnInit {
     if (this.userId) {
       this.userIdNumber = parseInt(this.userId, 10);
     }
-    this.token = localStorage.getItem('token');
+    this.token = this.splitzService.getToken();
     this.checkAuthStatus();
   }
   checkAuthStatus() {
