@@ -1,4 +1,4 @@
-const CACHE_NAME = "app-cache-v1"; // Update 'v1' to 'v2', etc. when you want to force a clear
+const CACHE_NAME = "app-cache-v1.1"; // Update 'v1' to 'v2', etc. when you want to force a clear
 const RUNTIME_CACHE = "runtime-cache";
 const DB_NAME = "offline-db";
 const STORE = "outbox";
