@@ -1,15 +1,30 @@
+const CACHE_NAME = "app-cache-v1"; // Update 'v1' to 'v2', etc. when you want to force a clear
+const RUNTIME_CACHE = "runtime-cache";
+const DB_NAME = "offline-db";
+const STORE = "outbox";
+
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
+            console.log("Deleting old cache:", cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
-
   if (req.method !== "GET") return;
 
   if (url.pathname.startsWith("/api")) {
@@ -18,52 +33,41 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (response.ok) {
             const responseClone = response.clone();
-            caches
-              .open("runtime-cache")
-              .then((cache) => {
-                cache.put(req, responseClone);
-              })
-              .catch((err) => {});
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(req, responseClone);
+            });
           }
 
           return response;
         })
         .catch(async () => {
           const cached = await caches.match(req);
-          if (cached) {
-            return cached;
-          }
+          if (cached) return cached;
           return new Response(JSON.stringify([]), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           });
-        }),
+        })
     );
     return;
   }
 
   event.respondWith(
-    caches.open("runtime-cache").then((cache) =>
-      cache.match(req).then((cached) => {
-        if (cached) return cached;
-
-        return fetch(req)
-          .then((response) => {
-            if (response.ok) {
-              cache.put(req, response.clone());
-            }
-            return response;
-          })
-          .catch((err) => {
-            throw err;
+    fetch(req)
+      .then((response) => {
+        if (response.ok) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(req, responseClone);
           });
-      }),
-    ),
+        }
+        return response;
+      })
+      .catch(() => {
+        return caches.match(req);
+      })
   );
 });
-
-const DB_NAME = "offline-db";
-const STORE = "outbox";
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -103,11 +107,7 @@ async function replayOutbox() {
           headers: item.headers,
           body: JSON.stringify(item.body),
         });
-
-        if (!res.ok) {
-          break;
-        }
-
+        if (!res.ok) break;
         successfullySyncedIds.push(item.id);
       } catch (e) {
         break;
@@ -118,12 +118,8 @@ async function replayOutbox() {
       await new Promise((resolve, reject) => {
         const tx = db.transaction(STORE, "readwrite");
         const store = tx.objectStore(STORE);
-
         successfullySyncedIds.forEach((id) => store.delete(id));
-
-        tx.oncomplete = () => {
-          resolve();
-        };
+        tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       });
     }
