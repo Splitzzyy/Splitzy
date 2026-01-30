@@ -28,7 +28,6 @@
               },
               "src/splitzy.png",
               "src/assets",
-              "src/custom-service-worker.js",
               "src/idb.js"
             ],
             "styles": ["src/styles.css"],
