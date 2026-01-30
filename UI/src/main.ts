@@ -10,7 +10,7 @@ if (environment.production) {
   console.debug = () => {};
 }
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && environment.production) {
   navigator.serviceWorker.register('/custom-service-worker.js')
     .then(() => console.log('[MAIN] sw.js registered'))
     .catch(err => console.error(err));
