@@ -4,6 +4,7 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { SplitzService } from '../../splitz/services/splitz.service';
 import { LoaderComponent } from '../../splitz/loader/loader.component';
 import { environment } from '../../../environments/environment';
+import { TokenRefreshService } from '../../splitz/services/token-refresh.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -30,7 +31,11 @@ export class MainLayoutComponent implements OnInit {
   showAddMenu = false;
   showProfileMenu = false;
 
-  constructor(private router: Router, private splitzService: SplitzService) {
+  constructor(
+    private router: Router,
+    private splitzService: SplitzService,
+    private tokenRefreshService: TokenRefreshService
+  ) {
   }
 
   ngOnInit(): void {
@@ -53,6 +58,28 @@ export class MainLayoutComponent implements OnInit {
       try { this.splitzService.setToken(''); } catch { }
       this.userId = localUserId;
       this.token = '';
+    // If user has userId but no token (e.g., new tab opened), try to refresh token
+    if (this.userId && !this.token) {
+      console.log('userId present but no token. Attempting to refresh token from refresh_token cookie...');
+      this.tokenRefreshService.refreshTokenManually().subscribe({
+        next: (response: any) => {
+          if (response.accessToken) {
+            this.splitzService.setToken(response.accessToken);
+            this.token = response.accessToken;
+            this.showLoader = false;
+            this.router.navigate(['/dashboard']);
+          }
+        },
+        error: (error: any) => {
+          console.error('Token refresh failed:', error);
+          this.showLoader = false;
+          // Redirect to login if refresh fails
+          this.router.navigate(['/login']);
+        }
+      });
+      return;
+    }
+
       this.router.navigate(['/dashboard']);
       return;
     }

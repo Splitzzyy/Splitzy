@@ -14,21 +14,21 @@ export class TokenStorageService {
    * Sets the access token in sessionStorage (cleared when tab closes)
    */
   setToken(token: string): void {
-    sessionStorage.setItem(this.TOKEN_KEY, token);
+    localStorage.setItem(this.TOKEN_KEY, token);
   }
 
   /**
    * Gets the access token from sessionStorage
    */
   getToken(): string | null {
-    return sessionStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   /**
    * Removes the access token from sessionStorage
    */
   removeToken(): void {
-    sessionStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
   }
 
   /**
