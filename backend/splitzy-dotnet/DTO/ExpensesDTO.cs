@@ -29,4 +29,28 @@
         public string Name { get; set; } = string.Empty;
         public List<SplitDetailDto> SplitDetails { get; set; } = new();
     }
+
+    public class ExpenseDetailsResponseDto
+    {
+        public int ExpenseId { get; set; }
+        public string Name { get; set; }
+        public decimal Amount { get; set; }
+
+        public PaidByDto PaidBy { get; set; }
+        public List<ExpenseSplitDto> Splits { get; set; }
+    }
+
+    public class PaidByDto
+    {
+        public int UserId { get; set; }
+        public string UserName { get; set; }
+    }
+
+    public class ExpenseSplitDto
+    {
+        public int UserId { get; set; }
+        public string UserName { get; set; }
+        public decimal Amount { get; set; }
+    }
+
 }
