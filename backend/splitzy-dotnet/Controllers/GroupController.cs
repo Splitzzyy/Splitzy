@@ -338,6 +338,23 @@ namespace splitzy_dotnet.Controllers
                     .Where(v => v > 0)
                     .Sum(v => v);
 
+                // Getting Settlement Details
+                var settlementsRaw = await _context.Settlements
+                                .Where(s => s.GroupId == groupId)
+                                .OrderByDescending(s => s.CreatedAt)
+                                .ToListAsync();
+
+                var settlements = settlementsRaw.Select(s => new
+                {
+                    SettlementId = s.Id,
+                    PaidByUserId = s.PaidBy,
+                    PaidByName = userNameMap[s.PaidBy],
+                    PaidToUserId = s.PaidTo,
+                    PaidToName = userNameMap[s.PaidTo],
+                    Amount = Math.Round(s.Amount, 2),
+                    CreatedAt = s.CreatedAt?.ToString("MMM dd") ?? string.Empty
+                }).ToList();
+
                 return Ok(new
                 {
                     group.GroupId,
@@ -346,6 +363,7 @@ namespace splitzy_dotnet.Controllers
                     GroupBalance = Math.Round(groupBalance, 2),
                     MembersCount = members.Count,
                     Expenses = expenses,
+                    Settlements = settlements,
                     Balances = new
                     {
                         TotalBalance = Math.Round(userBalance, 2),
@@ -515,5 +533,71 @@ namespace splitzy_dotnet.Controllers
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
+
+        /// <summary>
+        /// Deletes the specified group if the current user is a member of that group.
+        /// </summary>
+        /// <remarks>Only users who are members of the specified group are authorized to delete it. If the
+        /// group does not exist, the method returns a 404 response. If the user is not a member, a 403 response is
+        /// returned. Any unexpected errors result in a 500 (Internal Server Error) response.</remarks>
+        /// <param name="groupId">The unique identifier of the group to delete.</param>
+        /// <returns>An <see cref="ActionResult"/> indicating the result of the operation. Returns status code 200 (OK) with a
+        /// success message if the group is deleted; 404 (Not Found) if the group does not exist; or 403 (Forbidden) if
+        /// the user is not a member of the group.</returns>
+        [HttpDelete("{groupId:int}")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteGroup(int groupId)
+        {
+            int userId = HttpContext.GetCurrentUserId();
+
+            try
+            {
+                var group = await _context.Groups
+                    .FirstOrDefaultAsync(g => g.GroupId == groupId);
+
+                if (group == null)
+                {
+                    return NotFound(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Group not found."
+                    });
+                }
+
+                var hasPendingBalance = await _context.GroupBalances
+                    .AnyAsync(b => b.GroupId == groupId && b.NetBalance != 0);
+
+                if (hasPendingBalance)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Group cannot be deleted until all balances are settled."
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Group deleted successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DeleteGroup failed for GroupId {GroupId}", groupId);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "An unexpected error occurred. Please try again later."
+                    });
+            }
+        }
+
     }
 }

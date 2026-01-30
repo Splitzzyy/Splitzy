@@ -250,6 +250,69 @@ namespace splitzy_dotnet.Controllers
         }
 
         /// <summary>
+        /// Retrieves the details of a specific expense, including payer and split information.
+        /// </summary>
+        /// <remarks>The response includes the expense's basic information, the user who paid, and a list
+        /// of users with their respective split amounts. Returns a 404 response if the specified expense does not
+        /// exist.</remarks>
+        /// <param name="expenseId">The unique identifier of the expense to retrieve.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the expense details if found; otherwise, a response indicating
+        /// that the expense was not found.</returns>
+        [HttpGet("{expenseId:int}")]
+        public async Task<IActionResult> GetExpenseDetails(int expenseId)
+        {
+            var expense = await _context.Expenses
+                .Include(e => e.ExpenseSplits)
+                .FirstOrDefaultAsync(e => e.ExpenseId == expenseId);
+
+            if (expense == null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Expense not found"
+                });
+            }
+
+            var userIds = expense.ExpenseSplits
+                                .Select(s => s.UserId)
+                                .Append(expense.PaidByUserId)
+                                .Distinct()
+                                .ToList();
+
+            var users = await _context.Users
+                                    .Where(u => userIds.Contains(u.UserId))
+                                    .ToDictionaryAsync(u => u.UserId, u => u.Name);
+
+            var response = new ExpenseDetailsResponseDto
+            {
+                ExpenseId = expense.ExpenseId,
+                Name = expense.Name,
+                Amount = expense.Amount,
+
+                PaidBy = new PaidByDto
+                {
+                    UserId = expense.PaidByUserId,
+                    UserName = users.GetValueOrDefault(expense.PaidByUserId)
+                },
+
+                Splits = expense.ExpenseSplits.Select(s => new ExpenseSplitDto
+                {
+                    UserId = s.UserId,
+                    UserName = users.GetValueOrDefault(s.UserId),
+                    Amount = s.OwedAmount
+                }).ToList()
+            };
+
+            return Ok(new
+            {
+                Success = true,
+                Message = "Expense details fetched successfully",
+                Data = response
+            });
+        }
+
+        /// <summary>
         /// Helper Method to check Balance
         /// </summary>
         /// <param name="groupId"></param>
