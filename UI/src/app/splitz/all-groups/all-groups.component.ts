@@ -40,10 +40,12 @@ export class AllGroupsComponent implements OnInit {
   }
 
   loadAllGroups(): void {
-    this.splitzService.onFetchDashboardData().subscribe((data: any) => {
-      this.groups = data.groupWiseSummary;
-      this.userId = data.userId;
-      this.showLoader = false;
+    this.splitzService.onFetchDashboardData().subscribe({
+      next: data => {
+        this.groups = data.groupWiseSummary;
+        this.userId = data.userId;
+        this.showLoader = false;
+      }
     });
   }
 

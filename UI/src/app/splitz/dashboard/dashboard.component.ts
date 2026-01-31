@@ -60,16 +60,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   onloadDashboardData() {
     this.userEmail = localStorage.getItem('userEmail') ?? '';
-    this.splitzService.onFetchDashboardData().subscribe((data: any) => {
-      this.userName = data.userName;
-      this.totalBalance = data.totalBalance;
-      this.youOwe = data.youOwe;
-      this.youAreOwed = data.youAreOwed;
-      this.oweTo = data.oweTo;
-      this.owedFrom = data.owedFrom;
-      this.groups = data.groupWiseSummary;
-      this.userId = data.userId;
-      this.showLoader = false;
+    this.splitzService.onFetchDashboardData().subscribe({
+      next: data => {
+        this.userName = data.userName;
+        this.totalBalance = data.totalBalance;
+        this.youOwe = data.youOwe;
+        this.youAreOwed = data.youAreOwed;
+        this.oweTo = data.oweTo;
+        this.owedFrom = data.owedFrom;
+        this.groups = data.groupWiseSummary;
+        this.userId = data.userId;
+        this.showLoader = false;
+      }
     });
   }
 

@@ -41,7 +41,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               let retryReq = req.clone({
                 setHeaders: {
                   Authorization: `Bearer ${response.accessToken}`,
-                  'Content-Type': 'application/json'
                 },
                 withCredentials: true
               });
@@ -56,7 +55,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             // Token refresh failed, error handling is done in TokenRefreshService
             return throwError(() => refreshError);
           }),
-          take(1)
         );
       }
 

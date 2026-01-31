@@ -107,13 +107,14 @@ export class MainLayoutComponent implements OnInit {
     if (type === 'expense') {
       this.showLoader = true;
       // Fetch all groups for the expense modal
-      this.splitzService.onFetchDashboardData().subscribe((data: any) => {
-        this.allGroups = data.groupWiseSummary || [];
-        if (this.allGroups.length > 0) {
-          // Select the first group by default
-          this.openAddExpenseModal(this.allGroups[0].groupId);
-        } else {
-          this.splitzService.show('No groups available. Please create a group first.', 'info');
+      this.splitzService.onFetchDashboardData().subscribe({
+        next: data => {
+          this.allGroups = data.groupWiseSummary || [];
+          if (this.allGroups.length > 0) {
+            this.openAddExpenseModal(this.allGroups[0].groupId);
+          } else {
+            this.splitzService.show('No groups available. Please create a group first.', 'info');
+          }
         }
       });
     } else if (type === 'settle') {
