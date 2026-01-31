@@ -544,7 +544,7 @@ namespace splitzy_dotnet.Controllers
         /// <returns>An <see cref="ActionResult"/> indicating the result of the operation. Returns status code 200 (OK) with a
         /// success message if the group is deleted; 404 (Not Found) if the group does not exist; or 403 (Forbidden) if
         /// the user is not a member of the group.</returns>
-        [HttpDelete("{groupId:int}")]
+        [HttpDelete("DeleteGroup/{groupId:int}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
