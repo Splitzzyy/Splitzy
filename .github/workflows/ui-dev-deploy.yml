@@ -1,0 +1,39 @@
+name: Build and Deploy FrontEnd on DEV
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request: 
+    branches:
+      - dev
+  
+jobs:
+  build-deploy-ui:
+    runs-on: [self-hosted, splitzy]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: UI/package-lock.json
+
+      - name: Install dependencies
+        working-directory: UI
+        run: npm ci
+
+      - name: Build Angular (prod)
+        working-directory: UI
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          npx ng build --configuration production
+
+      - name: Deploy to MinIO
+        working-directory: UI
+        run: |
+          mc mirror --overwrite --remove dist/splitz1 splitzy/splitzy-ui-dev
