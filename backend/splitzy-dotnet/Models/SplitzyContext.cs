@@ -194,7 +194,7 @@ public partial class SplitzyContext : DbContext
 
             entity.HasOne(d => d.Group).WithMany(p => p.ActivityLogs)
                 .HasForeignKey(d => d.GroupId)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("activity_log_group_id_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.ActivityLogs)
