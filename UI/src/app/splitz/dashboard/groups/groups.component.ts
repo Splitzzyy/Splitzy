@@ -156,8 +156,10 @@ export class GroupsComponent implements OnInit {
       },
       error: (error) => {
         // HTTP or unexpected error
+        const errorMessage = error.error || 'Settle Up Failed';
+        this.splitzService.show(errorMessage, 'error');
         console.error('Error settling up expense:', error);
-      }
+      },
     });
   }
   onAddMembers(memebers: any) {
