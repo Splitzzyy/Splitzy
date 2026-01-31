@@ -132,6 +132,7 @@ public partial class SplitzyContext : DbContext
             entity.HasOne(d => d.Group)
                 .WithMany(p => p.GroupInvites)
                 .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("group_invites_group_id_fkey");
         });
 
@@ -155,6 +156,7 @@ public partial class SplitzyContext : DbContext
             entity.HasOne(e => e.Group)
                   .WithMany()
                   .HasForeignKey(e => e.GroupId)
+                  .OnDelete(DeleteBehavior.Cascade)
                   .HasConstraintName("group_balances_group_id_fkey");
 
             entity.HasOne(e => e.User)
@@ -192,6 +194,7 @@ public partial class SplitzyContext : DbContext
 
             entity.HasOne(d => d.Group).WithMany(p => p.ActivityLogs)
                 .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("activity_log_group_id_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.ActivityLogs)
@@ -224,6 +227,7 @@ public partial class SplitzyContext : DbContext
 
             entity.HasOne(d => d.Group).WithMany(p => p.Expenses)
                 .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("expenses_group_id_fkey");
 
             entity.HasOne(d => d.PaidByUser).WithMany(p => p.Expenses)
@@ -247,6 +251,7 @@ public partial class SplitzyContext : DbContext
 
             entity.HasOne(d => d.Expense).WithMany(p => p.ExpenseSplits)
                 .HasForeignKey(d => d.ExpenseId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("expense_splits_expense_id_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.ExpenseSplits)
@@ -286,6 +291,7 @@ public partial class SplitzyContext : DbContext
 
             entity.HasOne(d => d.Group).WithMany(p => p.GroupMembers)
                 .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("group_members_group_id_fkey");
 
             entity.HasOne(d => d.User).WithMany(p => p.GroupMembers)
@@ -313,6 +319,7 @@ public partial class SplitzyContext : DbContext
 
             entity.HasOne(d => d.Group).WithMany(p => p.Settlements)
                 .HasForeignKey(d => d.GroupId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("settlements_group_id_fkey");
 
             entity.HasOne(d => d.PaidByNavigation)

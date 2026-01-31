@@ -577,7 +577,8 @@ namespace splitzy_dotnet.Controllers
                         Message = "Group cannot be deleted until all balances are settled."
                     });
                 }
-
+                // DELETE (cascade will handle everything else)
+                _context.Groups.Remove(group);
                 await _context.SaveChangesAsync();
 
                 return Ok(new ApiResponse<object>
