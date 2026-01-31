@@ -3,10 +3,12 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { throwError, catchError, switchMap, take } from 'rxjs';
 import { TokenRefreshService } from '../splitz/services/token-refresh.service';
 import { TokenStorageService } from '../splitz/services/token-storage.service';
+import { SplitzService } from '../splitz/services/splitz.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const tokenStorageService = inject(TokenStorageService);
   const tokenRefreshService = inject(TokenRefreshService);
+  const splitzService = inject(SplitzService);
   
   const token = tokenStorageService.getToken();
   let headers: { [key: string]: string } = {};
@@ -52,7 +54,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(refreshError => {
             console.error('Token refresh failed, logout triggered');
-            // Token refresh failed, error handling is done in TokenRefreshService
+            splitzService.logout();
             return throwError(() => refreshError);
           }),
         );
