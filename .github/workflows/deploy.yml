@@ -15,7 +15,7 @@ permissions:
   
 jobs:
   build-deploy-ui:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, splitzy]
     
     steps:
       - name: Checkout
