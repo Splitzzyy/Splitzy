@@ -152,7 +152,8 @@ namespace splitzy_dotnet.Application
                 {
                     policy.WithOrigins(
                             "http://localhost:4200",
-                            "https://42761f8c7efd.ngrok-free.app")
+                            "https://splitzy.aarshiv.xyz",
+                            "https://splitzy-dev.aarshiv.xyz")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
