@@ -197,7 +197,8 @@ export class GroupsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error deleting group:', error);
-        this.splitzService.show('Failed to delete group', 'error');
+        const errorMessage = error?.error?.message || 'Failed to delete group';
+        this.splitzService.show(errorMessage, 'error');
       }
     });
   }
