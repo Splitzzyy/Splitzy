@@ -12,18 +12,42 @@ on:
         required: true
 
 jobs:
-  docker:
-    runs-on: [self-hosted, splitzy]
+  build-deploy-ui:
+    runs-on: ubuntu-latest
+    
     steps:
-      - name : Deploy Services
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular (prod)
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          npx ng build --configuration production
+
+      - name: Deploy to MinIO
+        run: |
+          mc mirror --overwrite --remove dist/splitz1 splitzy/splitzy-ui
+
+  deploy-api:
+    runs-on: [self-hosted, splitzy]
+    needs: build-deploy-ui
+    
+    steps:
+      - name: Deploy API Service
         env:
           APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
         run: |
           echo "$APP_SETTINGS" > secrets.json
           docker image prune -af
-          docker rm -f ui api || true
+          docker rm -f api || true
 
           docker run -d --name api -v "$(pwd)/secrets.json:/app/appsettings.Production.json:ro" --network splitzy --hostname server --restart unless-stopped rghvgrv/splitzy-api
-
-          docker run -d --name ui --network splitzy --hostname ui --restart unless-stopped rghvgrv/splitzy-ui
-      
