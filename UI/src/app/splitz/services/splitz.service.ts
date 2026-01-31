@@ -207,6 +207,17 @@ export class SplitzService {
     const url = `${this.BASE_URL}${this.ENDPOINTS.ADDUSERTOGROUP}/${request.groupId}`;
     return this.http.post<any>(url, request);
   }
+
+  onDeleteGroup(groupId: number): Observable<any> {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.DELETE_GROUP}/${groupId}`;
+    return this.http.delete<any>(url);
+  }
+
+  onDeleteExpense(expenseId: number): Observable<any> {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.DELETE_EXPENSE}/${expenseId}`;
+    return this.http.delete<any>(url);
+  }
+
   get stream() {
     return this.toasts$.asObservable();
   }

@@ -7,6 +7,7 @@ import { ExpenseModalComponent } from '../expense-modal/expense-modal.component'
 import { SettleupComponent } from '../settleup/settleup.component';
 import { AddMemberModalComponent } from '../add-member-modal/add-member-modal.component';
 import { LoaderComponent } from '../../loader/loader.component';
+import { ConfirmationModalComponent } from '../confirmation-modal/confirmation-modal.component';
 
 export interface Group {
   id: number;
@@ -24,7 +25,8 @@ export interface Group {
     ExpenseModalComponent,
     SettleupComponent,
     AddMemberModalComponent,
-    LoaderComponent
+    LoaderComponent,
+    ConfirmationModalComponent
   ],
   templateUrl: './groups.component.html',
   styleUrls: ['./groups.component.css']
@@ -41,6 +43,10 @@ export class GroupsComponent implements OnInit {
   showSettleModal: boolean = false;
   showAddMemberModal: boolean = false;
   errorMessage: string = '';
+  showConfirmModal: boolean = false;
+  confirmModalConfig: any = {};
+  pendingDeleteAction: () => void = () => {};
+  expandedExpenseMenu: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -167,5 +173,76 @@ export class GroupsComponent implements OnInit {
         this.errorMessage = error.error;
       }
     })
+  }
+
+  // Delete Group functionality
+  openDeleteGroupModal(): void {
+    this.confirmModalConfig = {
+      title: 'Delete Group',
+      message: `Are you sure you want to delete "${this.groupData?.name}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDanger: true
+    };
+    this.pendingDeleteAction = () => this.deleteGroup();
+    this.showConfirmModal = true;
+  }
+
+  private deleteGroup(): void {
+    this.splitzService.onDeleteGroup(this.groupId).subscribe({
+      next: (response: any) => {
+        this.splitzService.show('Group deleted successfully', 'success');
+        this.showConfirmModal = false;
+        this.router.navigate(['/dashboard']);
+      },
+      error: (error) => {
+        console.error('Error deleting group:', error);
+        this.splitzService.show('Failed to delete group', 'error');
+      }
+    });
+  }
+
+  // Delete Expense functionality
+  openDeleteExpenseModal(expenseId: number, expenseName: string): void {
+    this.confirmModalConfig = {
+      title: 'Delete Expense',
+      message: `Are you sure you want to delete "${expenseName}" expense? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDanger: true
+    };
+    this.pendingDeleteAction = () => this.deleteExpense(expenseId);
+    this.showConfirmModal = true;
+  }
+
+  private deleteExpense(expenseId: number): void {
+    this.splitzService.onDeleteExpense(expenseId).subscribe({
+      next: (response: any) => {
+        this.splitzService.show('Expense deleted successfully', 'success');
+        this.showConfirmModal = false;
+        this.expandedExpenseMenu = null;
+        this.fetchGroupData(this.groupId);
+      },
+      error: (error) => {
+        console.error('Error deleting expense:', error);
+        this.splitzService.show('Failed to delete expense', 'error');
+      }
+    });
+  }
+
+  onConfirmDelete(): void {
+    this.pendingDeleteAction();
+  }
+
+  onCancelDelete(): void {
+    this.showConfirmModal = false;
+  }
+
+  toggleExpenseMenu(expenseId: number): void {
+    this.expandedExpenseMenu = this.expandedExpenseMenu === expenseId ? null : expenseId;
+  }
+
+  closeExpenseMenu(): void {
+    this.expandedExpenseMenu = null;
   }
 }
