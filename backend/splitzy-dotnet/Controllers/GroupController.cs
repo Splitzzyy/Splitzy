@@ -320,7 +320,7 @@ namespace splitzy_dotnet.Controllers
                     e.Name,
                     e.Amount,
                     PaidBy = userNameMap[e.PaidByUserId],
-                    CreatedAt = e.CreatedAt?.ToString("MMM dd") ?? string.Empty,
+                    e.CreatedAt,
                     YouOwe = e.ExpenseSplits
                         .FirstOrDefault(s => s.UserId == userId)?.OwedAmount ?? 0
                 });
@@ -352,14 +352,14 @@ namespace splitzy_dotnet.Controllers
                     PaidToUserId = s.PaidTo,
                     PaidToName = userNameMap[s.PaidTo],
                     Amount = Math.Round(s.Amount, 2),
-                    CreatedAt = s.CreatedAt?.ToString("MMM dd") ?? string.Empty
+                    s.CreatedAt
                 }).ToList();
 
                 return Ok(new
                 {
                     group.GroupId,
                     group.Name,
-                    Created = group.CreatedAt?.ToString("MMM dd") ?? string.Empty,
+                    group.CreatedAt,
                     GroupBalance = Math.Round(groupBalance, 2),
                     MembersCount = members.Count,
                     Expenses = expenses,
