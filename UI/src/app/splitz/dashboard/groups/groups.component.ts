@@ -80,9 +80,9 @@ export class GroupsComponent implements OnInit {
         balance: data.groupBalance ?? 0,
         description: '',
         memberCount: data.membersCount,
-        createdDate: data.created
+        createdDate: data.createdAt
       };
-      this.expenses = data.expenses || [];
+      this.expenses = data.expenses.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || [];
       this.members = data.members || [];
       this.balanceSummary = data.userSummaries || [];
     } catch (error) {
