@@ -33,7 +33,7 @@
                 <div class="text-4xl font-bold text-gray-900 mb-4" [ngClass]="{
                                 'text-red-500': totalBalance < 0,
                                 'text-green-500': totalBalance >= 0
-                            }"> {{ totalBalance.toString().substring(1)| currency:'INR':'symbol': '1.2-2' }}
+                            }"> {{ formatTotalBalance(totalBalance) | currency:'INR':'symbol': '1.2-2' }}
                 </div>
             </div>
             

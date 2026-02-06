@@ -145,7 +145,7 @@
               </div>
             </div>
             <div class="ml-4">
-              <p class="text-sm font-medium text-gray-500">Total Expense</p>
+              <p class="text-xs font-medium text-gray-500">Total Expense</p>
               <p class="text-2xl font-semibold text-gray-900">{{getTotalBalance('total') | currency:'INR':'symbol':'1.2-2'}}</p>
             </div>
           </div>
@@ -159,7 +159,7 @@
               </div>
             </div>
             <div class="ml-4">
-              <p class="text-sm font-medium text-gray-500">Monthly Expense</p>
+              <p class="text-xs font-medium text-gray-500">Monthly Expense</p>
               <p class="text-2xl font-semibold text-gray-900">{{getTotalBalance('monthly') | currency:'INR':'symbol':'1.2-2'}}</p>
             </div>
           </div>
@@ -177,7 +177,7 @@
               </div>
             </div>
             <div class="ml-4">
-              <p class="text-sm font-medium text-gray-500">Members</p>
+              <p class="text-xs font-medium text-gray-500">Members</p>
               <p class="text-2xl font-semibold text-gray-900">{{ groupData.memberCount || 0 }}</p>
             </div>
           </div>
@@ -195,7 +195,7 @@
               </div>
             </div>
             <div class="ml-4">
-              <p class="text-sm font-medium text-gray-500">Created</p>
+              <p class="text-xs font-medium text-gray-500">Created</p>
               <p class="text-2xl font-semibold text-gray-900">
                 {{ groupData.createdDate | date:'MMM d' }}
               </p>
@@ -253,17 +253,18 @@
                         </div>
                         <div>
                           <h4 class="text-sm font-medium text-gray-900">{{expense.name}}</h4>
-                          <p class="text-sm text-gray-500">Paid by {{formatName(expense.paidBy)}} • {{expense.createdAt | date:'MMM dd'}}</p>
+                          <p class="text-xs text-gray-500">Paid by {{formatName(expense.paidBy)}}</p>
+                          <p class="text-xs text-gray-500">{{expense.createdAt | date:'MMM dd'}}</p>
                         </div>
                       </div>
                       <div class="flex items-center space-x-4">
                         <div class="text-right">
-                          <p class="text-sm font-medium text-gray-900">₹{{expense.amount}}</p>
+                          <p class="text-xs font-medium text-gray-900">₹{{expense.amount}}</p>
                           @if (expense.youOwe) {
-                            <p class="text-sm text-red-500">You borrowed {{expense.youOwe}}</p>
+                            <p class="text-xs text-red-500">You borrowed {{expense.youOwe}}</p>
                           }
                           @else if (expense.youLent) {
-                            <p class="text-sm text-green-500">You lent {{expense.youLent}}</p>
+                            <p class="text-xs text-green-500">You lent {{expense.youLent}}</p>
                           }
                         </div>
                         <!-- 3-Dot Menu -->
