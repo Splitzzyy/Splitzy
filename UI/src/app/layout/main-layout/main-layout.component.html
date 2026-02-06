@@ -1,69 +1,65 @@
-<div class="main-layout lg:p-4">
+<div class="main-layout lg:p-4 bg-[#f6f7f9]">
 
   <!-- Sidebar for Desktop -->
   <nav class="sidebar rounded-2xl relative overflow-hidden hidden lg:block">
-    <div class="absolute inset-0 bg-emerald-900"></div>
-
-    <div class="relative z-10">
-      <div class="text-center py-4 border-b border-white/10">
-        <div class="inline-flex items-center gap-3 group cursor-pointer">
-          <div class="mx-auto h-8 w-8 rounded-full flex items-center justify-center shadow-lg">
-            <i class="fas fa-receipt text-white text-2xl"></i>
+    <div class="relative z-10 p-6 flex flex-col h-full">
+      <!-- User Profile Card -->
+      <div class="rounded-2xl p-4 mb-6">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-12 h-12 bg-[#10b981] rounded-lg flex items-center justify-center">
+            <span class="text-white text-lg font-semibold">{{ getUserInitials() }}</span>
           </div>
-          <h2 class="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-emerald-300 group-hover:to-white transition-all duration-300">
-            Splitz
-          </h2>
         </div>
+        <h3 class="font-semibold text-gray-900 text-sm">{{userName}}</h3>
+        <p class="text-gray-600 text-xs">{{userEmail}}</p>
       </div>
 
-      <div class="flex flex-col justify-between min-h-[calc(80vh-2rem)]">
-        <ul class="text-center mt-20 space-y-8 px-2">
-          <li class="nav-item">
-            <a [routerLink]="['/dashboard']" routerLinkActive="active-menu"
-              [routerLinkActiveOptions]="{ exact: true }" class="nav-link group">
-              <div class="nav-link-content">
-                <div class="nav-icon">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M8 1v6m8-6v6"></path>
-                  </svg>
-                </div>
-                <span class="nav-text">Dashboard</span>
-              </div>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a [routerLink]="['/recent-activity']" routerLinkActive="active-menu"
-              [routerLinkActiveOptions]="{ exact: true }" class="nav-link group">
-              <div class="nav-link-content">
-                <div class="nav-icon">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </div>
-                <span class="nav-text">Recent Activity</span>
-              </div>
-            </a>
-          </li>
-        </ul>
+      <!-- Navigation Items -->
+      <ul class="space-y-2 flex-1">
+        <li class="nav-item">
+          <a [routerLink]="['/dashboard']" routerLinkActive="active-menu"
+            [routerLinkActiveOptions]="{ exact: true }" 
+            class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors border-l-4 border-transparent">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span class="text-sm font-medium">Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="['/all-groups']" routerLinkActive="active-menu"
+            class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors border-l-4 border-transparent">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <span class="text-sm font-medium">Groups</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a [routerLink]="['/recent-activity']" routerLinkActive="active-menu"
+            [routerLinkActiveOptions]="{ exact: true }" 
+            class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors border-l-4 border-transparent">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-sm font-medium">Recent Activity</span>
+          </a>
+        </li>
+      </ul>
 
-        <div class="flex-end flex flex-col gap-4 mt-8 px-2 pb-8">
-          <button class="action-btn bg-red-800 hover:bg-red-700 text-white text-center px-4 py-2 rounded flex items-center gap-2"
-            (click)="logout()">
-            <div class="btn-content">
-              <div class="btn-icon">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
-                </svg>
-              </div>
-              <span class="btn-text">Logout</span>
-            </div>
-          </button>
-        </div>
+      <!-- Logout Button -->
+      <div class="flex flex-col gap-3 pt-6 border-t border-gray-200">
+        <button (click)="logout()"
+          class="flex items-center gap-3 w-full px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+          </svg>
+          <span class="text-sm font-medium">Logout</span>
+        </button>
       </div>
     </div>
   </nav>
@@ -74,7 +70,9 @@
       <app-loader></app-loader>
     }
     @if (!showLoader) {
-      <router-outlet></router-outlet>
+      <div class="rounded-2xl bg-white lg:p-4 lg:h-full">
+        <router-outlet></router-outlet>
+      </div>
     }
   </main>
 

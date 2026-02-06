@@ -1,6 +1,6 @@
-<div class="min-h-screen bg-gray-50 mb-20 lg:mb-0">
+<div class="h-full mb-20 lg:mb-0">
   <!-- Header Section -->
-  <div class="bg-white shadow-sm border-b">
+  <div class="bg-white border-b">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between py-3 sm:h-16">
         <!-- Back Button and Title -->
@@ -133,33 +133,39 @@
 
   <!-- Main Content -->
   @if (groupData) {
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto lg:px-4 sm:px-6 lg:px-8 py-8">
       <!-- Group Summary Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 md:gap-6 md:mb-8">
         <!-- Total Balance Card -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="bg-white rounded-lg md:shadow-sm p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                  </path>
-                </svg>
+                <span class="text-blue-600">₹</span>
               </div>
             </div>
             <div class="ml-4">
-              <p class="text-sm font-medium text-gray-500">Group Balance</p>
-              <p class="text-2xl font-semibold" [class.text-green-600]="groupData.balance > 0"
-                [class.text-red-600]="groupData.balance < 0"
-                [class.text-gray-900]="groupData.balance === 0">
-                {{ groupData.balance | currency:'INR':'symbol':'1.2-2' }}
-              </p>
+              <p class="text-sm font-medium text-gray-500">Total Expense</p>
+              <p class="text-2xl font-semibold text-gray-900">{{getTotalBalance('total') | currency:'INR':'symbol':'1.2-2'}}</p>
+            </div>
+          </div>
+        </div>
+        <!-- Monthly Expense Card -->
+        <div class="bg-white rounded-lg md:shadow-sm p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <span class="text-orange-600">₹</span>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-gray-500">Monthly Expense</p>
+              <p class="text-2xl font-semibold text-gray-900">{{getTotalBalance('monthly') | currency:'INR':'symbol':'1.2-2'}}</p>
             </div>
           </div>
         </div>
         <!-- Members Card -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="bg-white rounded-lg md:shadow-sm p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -177,7 +183,7 @@
           </div>
         </div>
         <!-- Created Date Card -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
+        <div class="bg-white rounded-lg md:shadow-sm p-6">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -243,21 +249,22 @@
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg relative group" (click)="closeExpenseMenu()">
                       <div class="flex items-center space-x-4">
                         <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                            </path>
-                          </svg>
+                          <i [class]="splitzService.getExpenseIcon(expense.name) + ' text-blue-600'"></i>
                         </div>
                         <div>
                           <h4 class="text-sm font-medium text-gray-900">{{expense.name}}</h4>
-                          <p class="text-sm text-gray-500">Paid by {{expense.paidBy}} • {{expense.createdAt}}</p>
+                          <p class="text-sm text-gray-500">Paid by {{formatName(expense.paidBy)}} • {{expense.createdAt | date:'MMM dd'}}</p>
                         </div>
                       </div>
                       <div class="flex items-center space-x-4">
                         <div class="text-right">
                           <p class="text-sm font-medium text-gray-900">₹{{expense.amount}}</p>
-                          <p class="text-sm text-gray-500">You owe {{expense.youOwe}}</p>
+                          @if (expense.youOwe) {
+                            <p class="text-sm text-red-500">You borrowed {{expense.youOwe}}</p>
+                          }
+                          @else if (expense.youLent) {
+                            <p class="text-sm text-green-500">You lent {{expense.youLent}}</p>
+                          }
                         </div>
                         <!-- 3-Dot Menu -->
                         <div class="relative" (click)="$event.stopPropagation()">

@@ -1,59 +1,79 @@
 <!-- Mobile Dashboard -->
-<div class="lg:hidden bg-white min-h-screen pb-20">
+<div class="lg:hidden bg-gray-50 min-h-screen pb-20">
 
-    <!-- Header -->
-    <div class="bg-gradient-to-br pt-10 from-emerald-600 to-emerald-700 text-white p-4 rounded-b-3xl shadow-lg">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h1 class="text-xl font-bold">Hi, {{userName}}! 👋</h1>
-                <p class="text-emerald-100 opacity-75 text-sm">{{ userEmail }}</p>
+    <!-- Header with Profile -->
+    <div class="bg-white p-4 pt-6">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+                <!-- Profile Avatar -->
+                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-white font-semibold text-sm">{{ getInitials(userName) }}</span>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold text-gray-900">{{ userName }}</h1>
+                    <p class="text-sm opacity-75"> {{userEmail}}</p>
+                </div>
             </div>
-        </div>
-
-        <!-- Balance Card -->
-        <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
-            <div class="text-emerald-100 text-xs uppercase tracking-wide mb-1">Total Balance</div>
-            <div class="text-3xl font-bold">{{ totalBalance | currency:'INR':'symbol': '1.2-2' }}</div>
+            <!-- Settings Icon -->
+            <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </button>
         </div>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="px-4 py-6 grid grid-cols-2 gap-3">
-        <!-- You Owe Card -->
-        <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white shadow-lg active:scale-95 transition-transform select-none"
-            (click)="navigateToDebts('owe')">
-            <div class="flex items-center gap-2 mb-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18">
-                    </path>
-                </svg>
-                <span class="text-xs uppercase tracking-wide opacity-90">You Owe</span>
+    <!-- Total Balance Card -->
+    <div class="px-4 pb-4">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+            <div class="text-center">
+                <div class="text-gray-500 text-sm mb-2">Total Balance</div>
+                <div class="text-4xl font-bold text-gray-900 mb-4" [ngClass]="{
+                                'text-red-500': totalBalance < 0,
+                                'text-green-500': totalBalance >= 0
+                            }"> {{ totalBalance.toString().substring(1)| currency:'INR':'symbol': '1.2-2' }}
+                </div>
             </div>
-            <div class="text-2xl font-bold mb-1">{{ youOwe | currency:'INR':'symbol': '1.2-2' }}</div>
-            <div class="flex items-center justify-between">
-                <span class="text-xs opacity-75">Tap to view</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </div>
-        </div>
+            
+            <!-- You Owe / You're Owed Pills -->
+            <div class="flex gap-3">
+                <button 
+                    (click)="navigateToDebts('owe')"
+                    class="flex-1 py-2.5 px-3 rounded-lg border-2 transition-all active:scale-95"
+                    [ngClass]="{
+                        'border-red-200 bg-red-50': youOwe > 0,
+                        'border-gray-200 bg-white': youOwe === 0
+                    }">
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="w-3.5 h-3.5" [ngClass]="youOwe > 0 ? 'text-red-600' : 'text-gray-400'" 
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                        </svg>
+                        <span class="text-xs font-medium" [ngClass]="youOwe > 0 ? 'text-red-600' : 'text-gray-500'">
+                            You Owe
+                        </span>
+                    </div>
+                </button>
 
-        <!-- You Are Owed Card -->
-        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-lg active:scale-95 transition-transform select-none"
-            (click)="navigateToDebts('owed')">
-            <div class="flex items-center gap-2 mb-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                </svg>
-                <span class="text-xs uppercase tracking-wide opacity-90">You're Owed</span>
-            </div>
-            <div class="text-2xl font-bold mb-1">{{ youAreOwed | currency:'INR':'symbol': '1.2-2' }}</div>
-            <div class="flex items-center justify-between">
-                <span class="text-xs opacity-75">Tap to view</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
+                <button 
+                    (click)="navigateToDebts('owed')"
+                    class="flex-1 py-2.5 px-3 rounded-lg border-2 transition-all active:scale-95"
+                    [ngClass]="{
+                        'border-green-200 bg-green-50': youAreOwed > 0,
+                        'border-gray-200 bg-white': youAreOwed === 0
+                    }">
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="w-3.5 h-3.5" [ngClass]="youAreOwed > 0 ? 'text-green-600' : 'text-gray-400'" 
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                        <span class="text-xs font-medium" [ngClass]="youAreOwed > 0 ? 'text-green-600' : 'text-gray-500'">
+                            You're Owed
+                        </span>
+                    </div>
+                </button>
             </div>
         </div>
     </div>
@@ -73,40 +93,35 @@
         @if (groups && groups.length) {
         <div class="space-y-3">
             @for (group of displayGroups; track group.groupId) {
-            <div
-                class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden active:scale-98 transition-transform">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden active:scale-98 transition-transform">
                 <a [routerLink]="['/group', userId, group.groupId]" class="block p-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                            <div
-                                class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="font-semibold text-gray-900 truncate">{{ group.groupName }}</h3>
-                                <p class="text-sm text-gray-500 truncate">{{ getGroupStatus(group.netBalance) }}</p>
-                            </div>
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 mr-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                                </path>
+                            </svg>
                         </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-900 text-sm truncate mb-0.5">{{ group.groupName }}</h3>
+                            <p class="text-xs text-gray-500 truncate">{{ getGroupStatus(group.netBalance) }}</p>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0 ml-4">
                             <div class="text-right">
-                                <span class="font-bold text-sm" [ngClass]="{
-                          'text-green-600': group.netBalance > 0,
-                          'text-red-600': group.netBalance < 0,
-                          'text-gray-600': group.netBalance === 0
-                        }">
+                                <span class="font-semibold text-sm" [ngClass]="{
+                                    'text-green-600': group.netBalance > 0,
+                                    'text-red-600': group.netBalance < 0,
+                                    'text-gray-600': group.netBalance === 0
+                                }">
                                     {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
                                 </span>
                             </div>
                             <button
                                 (click)="$event.preventDefault(); $event.stopPropagation(); addExpense.emit(group.groupId)"
-                                class="bg-gradient-to-br from-orange-500 to-red-500 text-white p-2 rounded-lg active:scale-95 transition-transform">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 4v16m8-8H4"></path>
+                                class="bg-gray-200 text-gray-500 p-1.5 rounded-full active:scale-95 transition-all hover:bg-gray-300">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                                 </svg>
                             </button>
                         </div>
@@ -117,18 +132,18 @@
 
             @if (groups.length > 2) {
             <button (click)="viewAllGroups.emit()"
-                class="w-full bg-purple-50 text-purple-700 font-semibold py-3 rounded-xl border-2 border-purple-200 active:scale-98 transition-transform">
+                class="w-full bg-white text-gray-700 font-medium text-sm py-3 rounded-xl border border-gray-200 active:scale-98 transition-transform hover:bg-gray-50">
                 View All Groups ({{ groups.length }})
             </button>
             }
         </div>
         } @else {
-        <div class="bg-white rounded-2xl p-8 text-center shadow-md border border-gray-100">
+        <div class="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-200">
             <div class="text-6xl mb-3">👥</div>
             <h3 class="font-semibold text-gray-900 mb-2">No groups yet</h3>
             <p class="text-sm text-gray-500 mb-4">Create a group to start splitting expenses</p>
             <button (click)="createGroup.emit()"
-                class="bg-purple-500 text-white px-6 py-2 rounded-lg font-medium active:scale-95 transition-transform">
+                class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2.5 rounded-xl font-medium active:scale-95 transition-all">
                 Create Your First Group
             </button>
         </div>
@@ -143,10 +158,9 @@
         (click)="$event.stopPropagation()">
         <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
             <h2 class="text-xl font-bold text-gray-900">{{ debtsType === 'owe' ? 'You Owe' : 'You Are Owed' }}</h2>
-            <button (click)="closeDebtsModal()" class="p-2 hover:bg-gray-100 rounded-lg">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
+            <button (click)="closeDebtsModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
@@ -155,11 +169,11 @@
             @if (debtsType === 'owe' && oweTo && oweTo.length) {
             <div class="space-y-3">
                 @for (person of oweTo; track person.name) {
-                <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl p-4 border-2 border-red-100">
+                <div class="bg-white rounded-2xl p-4 border-2 border-red-100 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">{{ getInitials(person.name) }}</span>
+                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-sm">{{ getInitials(person.name) }}</span>
                             </div>
                             <div>
                                 <h3 class="font-semibold text-gray-900">{{ person.name }}</h3>
@@ -167,9 +181,8 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-xl font-bold text-red-600">{{ person.amount | currency:'INR':'symbol':
-                                '1.2-2' }}</div>
-                            <button class="text-xs text-red-500 font-medium mt-1">Settle up</button>
+                            <div class="text-xl font-bold text-red-600">{{ person.amount | currency:'INR':'symbol': '1.2-2' }}</div>
+                            <button class="text-xs text-red-500 font-medium mt-1 hover:underline">Settle up</button>
                         </div>
                     </div>
                 </div>
@@ -178,11 +191,11 @@
             } @else if (debtsType === 'owed' && owedFrom && owedFrom.length) {
             <div class="space-y-3">
                 @for (person of owedFrom; track person.name) {
-                <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border-2 border-green-100">
+                <div class="bg-white rounded-2xl p-4 border-2 border-green-100 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold">{{ getInitials(person.name) }}</span>
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-sm">{{ getInitials(person.name) }}</span>
                             </div>
                             <div>
                                 <h3 class="font-semibold text-gray-900">{{ person.name }}</h3>
@@ -190,9 +203,8 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-xl font-bold text-green-600">{{ person.amount | currency:'INR':'symbol':
-                                '1.2-2' }}</div>
-                            <button class="text-xs text-green-500 font-medium mt-1">Remind</button>
+                            <div class="text-xl font-bold text-green-600">{{ person.amount | currency:'INR':'symbol': '1.2-2' }}</div>
+                            <button class="text-xs text-green-500 font-medium mt-1 hover:underline">Remind</button>
                         </div>
                     </div>
                 </div>

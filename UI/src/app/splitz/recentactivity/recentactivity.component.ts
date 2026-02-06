@@ -27,7 +27,7 @@ export class RecentactivityComponent implements OnInit {
   activityData: ActivityItem[] = [];
   userId: number | null = null;
   showLoader: boolean = true;
-  constructor(private splitzService: SplitzService, private route: ActivatedRoute) {
+  constructor(public splitzService: SplitzService, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
@@ -47,20 +47,6 @@ export class RecentactivityComponent implements OnInit {
     if (diffDays === 2) return 'Yesterday';
     if (diffDays <= 7) return `${diffDays - 1} days ago`;
     return date.toLocaleDateString();
-  }
-
-  getExpenseIcon(expenseName: string): string {
-    const name = expenseName.toLowerCase();
-    if (name.includes('dinner') || name.includes('food') || name.includes('lunch')) {
-      return 'fas fa-utensils';
-    }
-    if (name.includes('hotel') || name.includes('booking')) {
-      return 'fas fa-bed';
-    }
-    if (name.includes('ticket')) {
-      return 'fas fa-ticket-alt';
-    }
-    return 'fas fa-receipt';
   }
   trackByIndex(index: number, item: ActivityItem): number {
     return index;

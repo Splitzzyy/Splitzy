@@ -16,7 +16,7 @@
             }
           </svg>
         </div>
-        <h2 class="title">{{ title }}</h2>
+        <h2 class="title" [innerHTML]="title"></h2>
       </div>
       <button class="close-btn" (click)="onCancel()">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,7 +27,7 @@
 
     <!-- Body -->
     <div class="modal-body">
-      <p class="message">{{ message }}</p>
+      <p class="message" [innerHTML]="message"></p>
 
       <!-- Action Buttons -->
       <div class="action-buttons">
