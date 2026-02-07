@@ -246,32 +246,6 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("reminder")]
         public async Task<IActionResult> SendReminder([FromBody] ReminderRequestForPayment request)
         {
-            int currentUserId = HttpContext.GetCurrentUserId();
-
-            // fetch group balances
-            var balances = await _context.GroupBalances
-                .Where(b => b.GroupId == request.GroupId &&
-                       (b.UserId == request.OwedUserId ||
-                        b.UserId == request.OwedToUserId))
-                .ToListAsync();
-
-            if (balances.Count != 2)
-                return Ok(new { success = false, message = "Invalid users" });
-
-            var debtor = balances.Single(b => b.UserId == request.OwedUserId);
-            var creditor = balances.Single(b => b.UserId == request.OwedToUserId);
-
-            if (debtor.NetBalance >= 0)
-                return Ok(new { success = false, message = "User does not owe money" });
-
-            var amount = Math.Min(
-                Math.Abs(debtor.NetBalance),
-                creditor.NetBalance
-            );
-
-            if (amount <= 0)
-                return Ok(new { success = false, message = "Nothing to remind" });
-
             var owedUser = await _context.Users.FindAsync(request.OwedUserId);
             var owedToUser = await _context.Users.FindAsync(request.OwedToUserId);
             var group = await _context.Groups.FindAsync(request.GroupId);
@@ -281,12 +255,12 @@ namespace splitzy_dotnet.Controllers
 
             var html = new ReminderTemplate().Build(
                 owedUser.Name,
-                amount,
+                request.Amount,
                 group.Name,
                 owedToUser.Name
             );
 
-            var subject = $"Reminder: You owe ₹{amount:N2} to {owedToUser.Name}";
+            var subject = $"Reminder: You owe ₹{request.Amount:N2} to {owedToUser.Name}";
 
             await _emailService.SendAsync(
                 owedUser.Email,
@@ -298,7 +272,7 @@ namespace splitzy_dotnet.Controllers
             {
                 success = true,
                 message = "Reminder email sent.",
-                amount = amount
+                amount = request.Amount
             });
         }
 
