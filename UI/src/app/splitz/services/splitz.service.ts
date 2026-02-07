@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ResetData, SettleUpRequest, Toast, ToastType } from '../splitz.model';
+import { AddMembersRequest, GoogleLoginRequest, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ReminderRequest, ResetData, SettleUpRequest, Toast, ToastType } from '../splitz.model';
 import { TokenStorageService } from './token-storage.service';
 import { TokenRefreshService } from './token-refresh.service';
 
@@ -243,4 +243,8 @@ export class SplitzService {
     return this.http.post<any>(url, { email });
   }
 
+  sendReminder(reminderData: ReminderRequest): Observable<any> {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.REMIND}`;
+    return this.http.post<any>(url, reminderData);
+  }
 }

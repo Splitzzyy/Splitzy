@@ -7,6 +7,7 @@ import { GroupModalComponent } from './group-modal/group-modal.component';
 import { LoaderComponent } from '../loader/loader.component';
 import { MobileDashboardComponent } from '../mobile-dashboard/mobile-dashboard.component';
 import { TokenRefreshService } from '../services/token-refresh.service';
+import { ReminderRequest } from '../splitz.model';
 
 export interface Group {
   groupId: number;
@@ -135,6 +136,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   navigateToAllGroups(): void {
     this.router.navigate(['/all-groups']);
+  }
+
+  sendReminder(groupId: number, owedUserId: number, amount: number) {
+    const currentUserId = Number(this.userId);
+
+    const reminderRequest: ReminderRequest = {
+      groupId: groupId,
+      owedUserId: owedUserId,
+      owedToUserId: currentUserId,
+      amount: amount,
+    };
+
+    this.splitzService.sendReminder(reminderRequest).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.splitzService.show(
+            `Reminder sent successfully! Amount: ₹${response.amount}`,
+            'success',
+          );
+        } else {
+          this.splitzService.show(
+            response.message || 'Failed to send reminder',
+            'error',
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Error sending reminder:', error);
+        this.splitzService.show(
+          'Failed to send reminder. Please try again.',
+          'error',
+        );
+      },
+    });
   }
 
   getCurrentDate(): string {

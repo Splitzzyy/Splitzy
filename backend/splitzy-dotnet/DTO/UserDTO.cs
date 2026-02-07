@@ -64,6 +64,7 @@ namespace splitzy_dotnet.DTO
     public class ReminderRequestForPayment
     {
         public int GroupId { get; set; }
+        public decimal Amount { get; set; }
         public int OwedUserId { get; set; }   // who owes money
         public int OwedToUserId { get; set; } // who will receive
     }

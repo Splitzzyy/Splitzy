@@ -246,60 +246,48 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("reminder")]
         public async Task<IActionResult> SendReminder([FromBody] ReminderRequestForPayment request)
         {
-            int currentUserId = HttpContext.GetCurrentUserId();
+            if (request.OwedUserId <= 0 || request.OwedToUserId <= 0 || request.GroupId <= 0 || request.Amount <= 0)
+            {
+                return BadRequest(new { success = false, message = "Invalid request data" });
+            }
 
-            // fetch group balances
-            var balances = await _context.GroupBalances
-                .Where(b => b.GroupId == request.GroupId &&
-                       (b.UserId == request.OwedUserId ||
-                        b.UserId == request.OwedToUserId))
+            var usersTask = _context.Users
+                .Where(u => u.UserId == request.OwedUserId || u.UserId == request.OwedToUserId)
+                .Select(u => new { u.UserId, u.Name, u.Email })
                 .ToListAsync();
 
-            if (balances.Count != 2)
-                return Ok(new { success = false, message = "Invalid users" });
+            var groupNameTask = _context.Groups
+                .Where(g => g.GroupId == request.GroupId)
+                .Select(g => g.Name)
+                .FirstOrDefaultAsync();
 
-            var debtor = balances.Single(b => b.UserId == request.OwedUserId);
-            var creditor = balances.Single(b => b.UserId == request.OwedToUserId);
+            await Task.WhenAll(usersTask, groupNameTask);
 
-            if (debtor.NetBalance >= 0)
-                return Ok(new { success = false, message = "User does not owe money" });
+            var users = usersTask.Result;
+            var groupName = groupNameTask.Result;
 
-            var amount = Math.Min(
-                Math.Abs(debtor.NetBalance),
-                creditor.NetBalance
-            );
+            var owedUser = users.FirstOrDefault(u => u.UserId == request.OwedUserId);
+            var owedToUser = users.FirstOrDefault(u => u.UserId == request.OwedToUserId);
 
-            if (amount <= 0)
-                return Ok(new { success = false, message = "Nothing to remind" });
+            if (owedUser == null || owedToUser == null || groupName == null)
+                return NotFound(new { success = false, message = "User or group not found" });
 
-            var owedUser = await _context.Users.FindAsync(request.OwedUserId);
-            var owedToUser = await _context.Users.FindAsync(request.OwedToUserId);
-            var group = await _context.Groups.FindAsync(request.GroupId);
+            if (string.IsNullOrWhiteSpace(owedUser.Email))
+                return BadRequest(new { success = false, message = "No email address found" });
 
-            if (owedUser == null || owedToUser == null || group == null)
-                return Ok(new { success = false, message = "Invalid data" });
-
-            var html = new ReminderTemplate().Build(
-                owedUser.Name,
-                amount,
-                group.Name,
-                owedToUser.Name
-            );
-
-            var subject = $"Reminder: You owe ₹{amount:N2} to {owedToUser.Name}";
-
-            await _emailService.SendAsync(
-                owedUser.Email,
-                subject,
-                html
-            );
-
-            return Ok(new
+            try
             {
-                success = true,
-                message = "Reminder email sent.",
-                amount = amount
-            });
+                var html = new ReminderTemplate().Build(owedUser.Name, request.Amount, groupName, owedToUser.Name);
+                var subject = $"Reminder: You owe ₹{request.Amount:N2} to {owedToUser.Name}";
+
+                await _emailService.SendAsync(owedUser.Email, subject, html);
+
+                return Ok(new { success = true, message = "Reminder sent", amount = request.Amount });
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Failed to send reminder" });
+            }
         }
 
     }
