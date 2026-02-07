@@ -7,6 +7,7 @@ import { GroupModalComponent } from './group-modal/group-modal.component';
 import { LoaderComponent } from '../loader/loader.component';
 import { MobileDashboardComponent } from '../mobile-dashboard/mobile-dashboard.component';
 import { TokenRefreshService } from '../services/token-refresh.service';
+import { ReminderRequest } from '../splitz.model';
 
 export interface Group {
   groupId: number;
