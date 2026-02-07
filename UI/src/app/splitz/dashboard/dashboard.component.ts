@@ -7,7 +7,6 @@ import { GroupModalComponent } from './group-modal/group-modal.component';
 import { LoaderComponent } from '../loader/loader.component';
 import { MobileDashboardComponent } from '../mobile-dashboard/mobile-dashboard.component';
 import { TokenRefreshService } from '../services/token-refresh.service';
-import { ReminderRequest } from '../splitz.model';
 
 export interface Group {
   groupId: number;
@@ -27,12 +26,13 @@ export interface OwedFrom {
     ExpenseModalComponent,
     GroupModalComponent,
     LoaderComponent,
-    MobileDashboardComponent,
+    MobileDashboardComponent
   ],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css',
+  styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+
   public userName: string = '';
   public totalBalance: number = 0;
   public youOwe: number = 0;
@@ -52,7 +52,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private splitzService: SplitzService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.onloadDashboardData();
@@ -61,7 +61,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onloadDashboardData() {
     this.userEmail = localStorage.getItem('userEmail') ?? '';
     this.splitzService.onFetchDashboardData().subscribe({
-      next: (data) => {
+      next: data => {
         this.userName = data.userName;
         this.totalBalance = data.totalBalance;
         this.youOwe = data.youOwe;
@@ -71,7 +71,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.groups = data.groupWiseSummary;
         this.userId = data.userId;
         this.showLoader = false;
-      },
+      }
     });
   }
 
@@ -97,19 +97,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (navigator.onLine) {
           this.splitzService.show('Expense Added Successfully!', 'success');
         } else {
-          this.splitzService.show(
-            'Expense saved offline. Will sync automatically.',
-            'info',
-          );
+          this.splitzService.show('Expense saved offline. Will sync automatically.', 'info');
         }
       },
       error: (error: any) => {
         console.error('Error saving expense:', error);
-        this.splitzService.show(
-          'Failed to add expense. Please try again.',
-          'error',
-        );
-      },
+        this.splitzService.show('Failed to add expense. Please try again.', 'error')
+      }
     });
   }
 
@@ -130,12 +124,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       error: (error: any) => {
         console.error('Error creating group:', error);
-        this.splitzService.show(
-          'Failed to create group. Please try again.',
-          'error',
-        );
-      },
+        this.splitzService.show('Failed to create group. Please try again.', 'error');
+      }
     });
+  }
+
+  navigateToGroup(groupId: number): void {
+    this.router.navigate(['/group', this.userId, groupId]);
+  }
+
+  navigateToAllGroups(): void {
+    this.router.navigate(['/all-groups']);
   }
 
   sendReminder(groupId: number, owedUserId: number, amount: number) {
@@ -172,27 +171,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  navigateToGroup(groupId: number): void {
-    this.router.navigate(['/group', this.userId, groupId]);
-  }
-
-  navigateToAllGroups(): void {
-    this.router.navigate(['/all-groups']);
-  }
-
   getCurrentDate(): string {
     return new Date().toLocaleDateString('en-IN', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
+      day: 'numeric'
     });
   }
 
   getInitials(name: string): string {
     return name
       .split(' ')
-      .map((word) => word.charAt(0).toUpperCase())
+      .map(word => word.charAt(0).toUpperCase())
       .join('')
       .substring(0, 2);
   }
