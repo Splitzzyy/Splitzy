@@ -197,7 +197,7 @@
                           {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
                         </span>
                         <button class="person-action person-action-green" 
-                              (click)="sendReminder(person.groupId, person.userId, person.amount)">
+                              (click)="sendReminder(person.id , person.amount)">
                         Remind
                       </button>
                       </div>

@@ -56,7 +56,6 @@ export interface Toast {
 
 // ReminderRequest Model 
 export interface ReminderRequest {
-  groupId: number;
   owedUserId: number;
   owedToUserId: number;
   amount: number;
@@ -64,6 +63,5 @@ export interface ReminderRequest {
 export interface OwedFrom {
   name: string;
   amount: number;
-  userId: number;  
-  groupId: number;
+  id: number;
 }

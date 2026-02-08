@@ -133,11 +133,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/all-groups']);
   }
 
-  sendReminder(groupId: number, owedUserId: number, amount: number) {
+  sendReminder( owedUserId: number, amount: number) {
     const currentUserId = Number(this.userId);
 
     const reminderRequest: ReminderRequest = {
-      groupId: groupId,
       owedUserId: owedUserId,
       owedToUserId: currentUserId,
       amount: amount,
