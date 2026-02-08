@@ -203,12 +203,11 @@ namespace splitzy_dotnet.Services.BackgroundServices
 
                 case "Reminder":
                     if (TryGetProp(root, "UserName", out var user) &&
-                        TryGetProp(root, "GroupName", out var group) &&
                         TryGetProp(root, "OwedTo", out var owedTo) &&
                         root.TryGetProperty("Amount", out var amountElem))
                     {
                         var amount = amountElem.GetDecimal();
-                        htmlContent = new ReminderTemplate().Build(user, amount, group, owedTo);
+                        htmlContent = new ReminderTemplate().Build(user, amount, owedTo);
                         subject = "⏰ Payment Reminder";
                     }
                     break;

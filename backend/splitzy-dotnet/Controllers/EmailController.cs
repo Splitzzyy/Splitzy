@@ -34,7 +34,6 @@ namespace splitzy_dotnet.Controllers
             var html = new ReminderTemplate().Build(
                 request.UserName,
                 request.Amount,
-                request.GroupName,
                 request.OwedTo
             );
 

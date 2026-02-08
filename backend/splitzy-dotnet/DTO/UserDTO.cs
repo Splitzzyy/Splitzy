@@ -15,6 +15,7 @@ namespace splitzy_dotnet.DTO
     }
     public class PersonAmount
     {
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public decimal Amount { get; set; }
     }
@@ -63,7 +64,6 @@ namespace splitzy_dotnet.DTO
 
     public class ReminderRequestForPayment
     {
-        public int GroupId { get; set; }
         public decimal Amount { get; set; }
         public int OwedUserId { get; set; }   // who owes money
         public int OwedToUserId { get; set; } // who will receive
