@@ -192,7 +192,10 @@
                         <div class="text-right">
                             <div class="text-xl font-bold text-green-600">{{ person.amount | currency:'INR':'symbol':
                                 '1.2-2' }}</div>
-                            <button class="text-xs text-green-500 font-medium mt-1">Remind</button>
+                            <button class="text-xs text-green-500 font-medium mt-1"
+                                    (click)="sendReminder(person.userId, person.amount)">
+                                Remind
+                            </button>
                         </div>
                     </div>
                 </div>
