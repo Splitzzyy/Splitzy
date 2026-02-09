@@ -134,6 +134,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   sendReminder( owedUserId: number, amount: number) {
+    this.splitzService.show('Sending reminder...', 'info');
     const currentUserId = Number(this.userId);
 
     const reminderRequest: ReminderRequest = {

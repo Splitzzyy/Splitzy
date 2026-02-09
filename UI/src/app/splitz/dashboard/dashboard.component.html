@@ -15,7 +15,7 @@
     [userId]="userId"
     [userEmail]="userEmail"
     (createGroup)="openCreateGroupModal()"
-    (sendReminder)="sendReminder($event.userId, $event.amount)"
+    (sendReminder)="sendReminder($event.id, $event.amount)"
     (addExpense)="openAddExpenseModal($event)"
     (viewAllGroups)="navigateToAllGroups()">
   </app-mobile-dashboard>
