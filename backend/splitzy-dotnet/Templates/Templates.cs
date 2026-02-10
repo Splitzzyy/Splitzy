@@ -112,12 +112,12 @@ namespace splitzy_dotnet.Templates
     // --- Reminder Email Template ---
     public class ReminderTemplate : EmailTemplateBase
     {
-        public string Build(string userName, decimal amount, string groupName, string owedTo)
+        public string Build(string userName, decimal amount, string owedTo)
         {
             var body = $"""
                 <p>Hi {userName},</p>
                 <p>This is a friendly reminder that you owe <strong>₹{amount:N2}</strong> 
-                to <strong>{owedTo}</strong> in the group <strong>{groupName}</strong>.</p>
+                to <strong>{owedTo}</strong></p>
                 <p>Please settle up when you can!</p>
             """;
 

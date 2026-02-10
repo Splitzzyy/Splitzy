@@ -29,6 +29,7 @@ export class MobileDashboardComponent{
   @Output() settleUp = new EventEmitter<void>();
   @Output() viewAllGroups = new EventEmitter<void>();
   @Output() openMenuEvent = new EventEmitter<void>();
+  @Output() sendReminder = new EventEmitter<any>();
 
   showDebtsModal = false;
   debtsType: 'owe' | 'owed' = 'owe';

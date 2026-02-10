@@ -265,35 +265,44 @@ namespace splitzy_dotnet.Controllers
 
             try
             {
-                // 1️⃣ Group validation
-                var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == groupId);
+                //Group validation
+                var group = await _context.Groups
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(g => g.GroupId == groupId);
+
                 if (group == null)
                     return NotFound("Group not found.");
 
                 var isMember = await _context.GroupMembers
+                    .AsNoTracking()
                     .AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId);
+
                 if (!isMember)
                     return Forbid();
 
-                // 2️⃣ Members
+                // Members
                 var members = await _context.GroupMembers
+                    .AsNoTracking()
                     .Where(gm => gm.GroupId == groupId)
                     .Select(gm => gm.UserId)
                     .ToListAsync();
 
-                // 3️⃣ User maps
+                // User maps
                 var userNameMap = await _context.Users
+                    .AsNoTracking()
                     .Where(u => members.Contains(u.UserId))
                     .ToDictionaryAsync(u => u.UserId, u => u.Name);
 
                 var userDetailsMap = await _context.Users
+                    .AsNoTracking()
                     .Where(u => members.Contains(u.UserId))
                     .ToDictionaryAsync(
                         u => u.UserId,
                         u => new { u.Name, u.Email });
 
-                // 4️⃣ 🔥 SINGLE SOURCE OF TRUTH — BALANCES
+                // Balances
                 var balances = await _context.GroupBalances
+                    .AsNoTracking()
                     .Where(b => b.GroupId == groupId)
                     .ToDictionaryAsync(b => b.UserId, b => b.NetBalance);
 
@@ -308,24 +317,37 @@ namespace splitzy_dotnet.Controllers
                 decimal youOwe = userBalance < 0 ? Math.Abs(userBalance) : 0;
                 decimal youAreOwed = userBalance > 0 ? userBalance : 0;
 
-                // 5️⃣ Expenses (history only)
-                var allExpenses = await _context.Expenses
+                // Expenses
+                var expenses = await _context.Expenses
+                    .AsNoTracking()
                     .Where(e => e.GroupId == groupId)
-                    .Include(e => e.ExpenseSplits)
+                    .OrderByDescending(e => e.CreatedAt)
+                    .Select(e => new
+                    {
+                        e.ExpenseId,
+                        e.Name,
+                        e.Amount,
+                        PaidByUserId = e.PaidByUserId,
+                        e.CreatedAt,
+                        YourSplit = e.ExpenseSplits
+                            .Where(s => s.UserId == userId)
+                            .Select(s => s.OwedAmount)
+                            .FirstOrDefault()
+                    })
                     .ToListAsync();
 
-                var expenses = allExpenses.Select(e => new
+                var expenseList = expenses.Select(e => new
                 {
                     e.ExpenseId,
                     e.Name,
-                    e.Amount,
+                    Amount = Math.Round(e.Amount, 2),
                     PaidBy = userNameMap[e.PaidByUserId],
-                    CreatedAt = e.CreatedAt?.ToString("MMM dd") ?? string.Empty,
-                    YouOwe = e.ExpenseSplits
-                        .FirstOrDefault(s => s.UserId == userId)?.OwedAmount ?? 0
-                });
+                    e.CreatedAt,
+                    YouOwe = e.PaidByUserId != userId ? Math.Round(e.YourSplit, 2) : 0,
+                    YouLent = e.PaidByUserId == userId ? Math.Round(e.Amount - e.YourSplit, 2) : 0
+                }).ToList();
 
-                // 6️⃣ User summaries (UPDATED after settlement)
+                // User summaries
                 var userSummaries = balances.Select(b => new
                 {
                     UserId = b.Key,
@@ -333,37 +355,46 @@ namespace splitzy_dotnet.Controllers
                     Balance = Math.Round(b.Value, 2)
                 });
 
-                // 7️⃣ Group balance (sum of positives == sum of abs negatives)
+                // Group balance
                 var groupBalance = balances.Values
                     .Where(v => v > 0)
                     .Sum(v => v);
 
-                // Getting Settlement Details
-                var settlementsRaw = await _context.Settlements
-                                .Where(s => s.GroupId == groupId)
-                                .OrderByDescending(s => s.CreatedAt)
-                                .ToListAsync();
+                // Settlement Details
+                var settlements = await _context.Settlements
+                    .AsNoTracking()
+                    .Where(s => s.GroupId == groupId)
+                    .OrderByDescending(s => s.CreatedAt)
+                    .Select(s => new
+                    {
+                        SettlementId = s.Id,
+                        PaidByUserId = s.PaidBy,
+                        PaidToUserId = s.PaidTo,
+                        Amount = Math.Round(s.Amount, 2),
+                        s.CreatedAt
+                    })
+                    .ToListAsync();
 
-                var settlements = settlementsRaw.Select(s => new
+                var settlementList = settlements.Select(s => new
                 {
-                    SettlementId = s.Id,
-                    PaidByUserId = s.PaidBy,
-                    PaidByName = userNameMap[s.PaidBy],
-                    PaidToUserId = s.PaidTo,
-                    PaidToName = userNameMap[s.PaidTo],
-                    Amount = Math.Round(s.Amount, 2),
-                    CreatedAt = s.CreatedAt?.ToString("MMM dd") ?? string.Empty
+                    s.SettlementId,
+                    s.PaidByUserId,
+                    PaidByName = userNameMap[s.PaidByUserId],
+                    s.PaidToUserId,
+                    PaidToName = userNameMap[s.PaidToUserId],
+                    s.Amount,
+                    s.CreatedAt
                 }).ToList();
 
                 return Ok(new
                 {
                     group.GroupId,
                     group.Name,
-                    Created = group.CreatedAt?.ToString("MMM dd") ?? string.Empty,
+                    group.CreatedAt,
                     GroupBalance = Math.Round(groupBalance, 2),
                     MembersCount = members.Count,
-                    Expenses = expenses,
-                    Settlements = settlements,
+                    Expenses = expenseList,
+                    Settlements = settlementList,
                     Balances = new
                     {
                         TotalBalance = Math.Round(userBalance, 2),

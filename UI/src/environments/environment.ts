@@ -21,6 +21,7 @@ export const environment = {
         // DASHBOARD
         DASHBOARD: '/api/Dashboard/dashboard',
         RECENT: '/api/Dashboard/recent',
+        REMIND : '/api/Dashboard/reminder',
 
         // GROUP
         GROUP: '/api/Group/GetGroupOverview',

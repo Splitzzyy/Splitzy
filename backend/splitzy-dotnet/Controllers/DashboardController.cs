@@ -80,9 +80,9 @@ namespace splitzy_dotnet.Controllers
                 foreach (var s in settlements)
                 {
                     if (s.FromUser == userId)
-                        oweTo.Add(new PersonAmount { Name = users[s.ToUser], Amount = s.Amount });
+                        oweTo.Add(new PersonAmount { Id = s.ToUser, Name = users[s.ToUser], Amount = s.Amount });
                     else if (s.ToUser == userId)
-                        owedFrom.Add(new PersonAmount { Name = users[s.FromUser], Amount = s.Amount });
+                        owedFrom.Add(new PersonAmount { Id = s.FromUser, Name = users[s.FromUser], Amount = s.Amount });
                 }
             }
 
@@ -246,61 +246,38 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("reminder")]
         public async Task<IActionResult> SendReminder([FromBody] ReminderRequestForPayment request)
         {
-            int currentUserId = HttpContext.GetCurrentUserId();
+            if (request.OwedUserId <= 0 || request.OwedToUserId <= 0 || request.Amount <= 0)
+            {
+                return BadRequest(new { success = false, message = "Invalid request data" });
+            }
 
-            // fetch group balances
-            var balances = await _context.GroupBalances
-                .Where(b => b.GroupId == request.GroupId &&
-                       (b.UserId == request.OwedUserId ||
-                        b.UserId == request.OwedToUserId))
+            var users = await _context.Users
+                .Where(u => u.UserId == request.OwedUserId || u.UserId == request.OwedToUserId)
+                .Select(u => new { u.UserId, u.Name, u.Email })
                 .ToListAsync();
 
-            if (balances.Count != 2)
-                return Ok(new { success = false, message = "Invalid users" });
+            var owedUser = users.FirstOrDefault(u => u.UserId == request.OwedUserId);
+            var owedToUser = users.FirstOrDefault(u => u.UserId == request.OwedToUserId);
 
-            var debtor = balances.Single(b => b.UserId == request.OwedUserId);
-            var creditor = balances.Single(b => b.UserId == request.OwedToUserId);
+            if (owedUser == null || owedToUser == null)
+                return NotFound(new { success = false, message = "User not found" });
 
-            if (debtor.NetBalance >= 0)
-                return Ok(new { success = false, message = "User does not owe money" });
+            if (string.IsNullOrWhiteSpace(owedUser.Email))
+                return BadRequest(new { success = false, message = "No email address found" });
 
-            var amount = Math.Min(
-                Math.Abs(debtor.NetBalance),
-                creditor.NetBalance
-            );
-
-            if (amount <= 0)
-                return Ok(new { success = false, message = "Nothing to remind" });
-
-            var owedUser = await _context.Users.FindAsync(request.OwedUserId);
-            var owedToUser = await _context.Users.FindAsync(request.OwedToUserId);
-            var group = await _context.Groups.FindAsync(request.GroupId);
-
-            if (owedUser == null || owedToUser == null || group == null)
-                return Ok(new { success = false, message = "Invalid data" });
-
-            var html = new ReminderTemplate().Build(
-                owedUser.Name,
-                amount,
-                group.Name,
-                owedToUser.Name
-            );
-
-            var subject = $"Reminder: You owe ₹{amount:N2} to {owedToUser.Name}";
-
-            await _emailService.SendAsync(
-                owedUser.Email,
-                subject,
-                html
-            );
-
-            return Ok(new
+            try
             {
-                success = true,
-                message = "Reminder email sent.",
-                amount = amount
-            });
-        }
+                var html = new ReminderTemplate().Build(owedUser.Name, request.Amount, owedToUser.Name);
+                var subject = $"Reminder: You owe ₹{request.Amount:N2} to {owedToUser.Name}";
 
+                await _emailService.SendAsync(owedUser.Email, subject, html);
+
+                return Ok(new { success = true, message = "Reminder sent", amount = request.Amount });
+            }
+            catch
+            {
+                return StatusCode(500, new { success = false, message = "Failed to send reminder" });
+            }
+        }
     }
 }

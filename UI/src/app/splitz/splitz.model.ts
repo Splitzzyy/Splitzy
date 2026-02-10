@@ -53,3 +53,15 @@ export interface Toast {
   type: ToastType;
   duration: number;
 }
+
+// ReminderRequest Model 
+export interface ReminderRequest {
+  owedUserId: number;
+  owedToUserId: number;
+  amount: number;
+}
+export interface OwedFrom {
+  name: string;
+  amount: number;
+  id: number;
+}
