@@ -21,7 +21,7 @@
   </app-mobile-dashboard>
 
   <!-- Desktop Dashboard -->
-  <div class="hidden lg:block p-6 min-h-[85vh] dashboard-container">
+  <div class="hidden lg:block p-6 min-h-[100vh] dashboard-container">
     <div class="dashboard-grid">
       
       <!-- Main Content Area -->
@@ -31,13 +31,12 @@
         <div class="welcome-card">
           <div class="welcome-content">
             <div class="welcome-text">
-              <h1 class="welcome-title">Welcome {{userName}}! 👋</h1>
+              <h1 class="welcome-title">Welcome to Splitzy</h1>
               <p class="welcome-subtitle">Here's your expense overview</p>
             </div>
             <div class="last-updated">
               <span class="update-label">Last updated</span>
               <span class="update-date">{{ getCurrentDate() }}</span>
-              <span class="update-label">{{ userEmail }}</span>
             </div>
           </div>
         </div>

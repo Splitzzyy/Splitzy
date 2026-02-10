@@ -1,22 +1,9 @@
 .sidebar {
     position: relative;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); */
+    /* border: 1px solid rgba(255, 255, 255, 0.1); */
     height: 95vh;
     width: 240px !important;
-}
-
-/* Animated gradient background */
-@keyframes gradient-shift {
-
-    0%,
-    100% {
-        background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
-    }
-}
-
-.animate-gradient-shift {
-    animation: gradient-shift 8s ease-in-out infinite;
 }
 
 
@@ -437,4 +424,11 @@
 
 .active\:scale-98:active {
     transform: scale(0.98);
+}
+
+/* Active navigation indicator */
+.sidebar a.active-menu {
+    border-left-color: #10b981 !important;
+    background-color: #f0fdf4 !important;
+    color: #10b981 !important;
 }

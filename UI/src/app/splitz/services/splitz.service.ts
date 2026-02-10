@@ -105,7 +105,7 @@ export class SplitzService {
   }
 
   redirectToDashboard(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigateByUrl('/dashboard', { replaceUrl: true });
   }
   onFetchDashboardData() {
     const url = `${this.BASE_URL}${this.ENDPOINTS.DASHBOARD}`;
@@ -171,7 +171,7 @@ export class SplitzService {
             // Start auto-refresh with new token
             this.tokenRefreshService.startAutoRefresh();
             
-            this.router.navigate(['/dashboard']);
+            this.router.navigateByUrl('/dashboard', { replaceUrl: true });
           }
           else {
             this.router.navigate(['/login']);
@@ -241,6 +241,38 @@ export class SplitzService {
   resendVerificationEmail(email: string): Observable<any> {
     const url = `${this.BASE_URL}${this.ENDPOINTS.RESEND_VERIFICATION}`;
     return this.http.post<any>(url, { email });
+  }
+
+  getExpenseIcon(expenseName: string): string {
+    const name = expenseName.toLowerCase();
+    if (name.includes('dinner') || name.includes('food') || name.includes('lunch') || name.includes('breakfast') || name.includes('snack') || name.includes('restaurant') || name.includes('zomato') || name.includes('swiggy')) {
+      return 'fas fa-utensils';
+    }
+    if (name.includes('grocery') || name.includes('vegetable') || name.includes('sabji') || name.includes('chawal') || name.includes('milk') || name.includes('fruit') || name.includes('market') || name.includes('blinkit') || name.includes('zepto')) {
+      return 'fas fa-shopping-basket';
+    }
+    if (name.includes('uber') || name.includes('ola') || name.includes('taxi') || name.includes('cab') || name.includes('fuel') || name.includes('petrol') || name.includes('gas') || name.includes('train') || name.includes('flight') || name.includes('bus')) {
+      return 'fas fa-car';
+    }
+    if (name.includes('hotel') || name.includes('booking') || name.includes('rent') || name.includes('airbnb') || name.includes('stay')) {
+      return 'fas fa-bed';
+    }
+    if (name.includes('ticket') || name.includes('movie') || name.includes('cinema') || name.includes('show') || name.includes('netflix') || name.includes('subscription') || name.includes('game')) {
+      return 'fas fa-film';
+    }
+    if (name.includes('wifi') || name.includes('internet') || name.includes('broadband') || name.includes('bill') || name.includes('electricity') || name.includes('recharge') || name.includes('mobile')) {
+      return 'fas fa-bolt';
+    }
+    if (name.includes('amazon') || name.includes('flipkart') || name.includes('myntra') || name.includes('cloth') || name.includes('shoe') || name.includes('gratter') || name.includes('shopping')) {
+      return 'fas fa-shopping-bag';
+    }
+    if (name.includes('medicine') || name.includes('doctor') || name.includes('pharmacy') || name.includes('hospital') || name.includes('checkup')) {
+      return 'fas fa-briefcase-medical';
+    }
+    if (name.includes('beer') || name.includes('alcohol') || name.includes('wine') || name.includes('party') || name.includes('bar') || name.includes('drink')) {
+      return 'fas fa-glass-cheers';
+    }
+    return 'fas fa-receipt';
   }
 
   sendReminder(reminderData: ReminderRequest): Observable<any> {

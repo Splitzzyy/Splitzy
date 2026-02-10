@@ -1,3 +1,7 @@
-<app-network-status-banner></app-network-status-banner>
-<router-outlet></router-outlet>
-<app-toast></app-toast>
+@if (!isApiAvailable()) {
+  <app-service-unavailable></app-service-unavailable>
+} @else {
+  <app-network-status-banner></app-network-status-banner>
+  <router-outlet></router-outlet>
+  <app-toast></app-toast>
+}

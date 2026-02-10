@@ -3,10 +3,14 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { throwError, catchError, switchMap, take } from 'rxjs';
 import { TokenRefreshService } from '../splitz/services/token-refresh.service';
 import { TokenStorageService } from '../splitz/services/token-storage.service';
+import { SplitzService } from '../splitz/services/splitz.service';
+import { ApiAvailabilityService } from '../splitz/services/api-availability.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const tokenStorageService = inject(TokenStorageService);
   const tokenRefreshService = inject(TokenRefreshService);
+  const splitzService = inject(SplitzService);
+  const apiAvailabilityService = inject(ApiAvailabilityService);
   
   const token = tokenStorageService.getToken();
   let headers: { [key: string]: string } = {};
@@ -25,6 +29,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      // Handle 5xx errors (Service Unavailable, etc.) - except for excluded endpoints
+      if (error.status >= 500 && !apiAvailabilityService.isExcludedEndpoint(req.url)) {
+        console.error(`Server error ${error.status} for endpoint: ${req.url}`);
+        const errorMessage = error.error?.message || `Server error: ${error.status} ${error.statusText}`;
+        apiAvailabilityService.setApiUnavailable(errorMessage);
+        return throwError(() => error);
+      }
+
       // Handle 401 Unauthorized responses
       if (error.status === 401 && !req.url.includes('/logout') && !req.url.includes('/refresh')) {
         console.log('Received 401 Unauthorized, attempting token refresh...');
@@ -52,7 +64,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           }),
           catchError(refreshError => {
             console.error('Token refresh failed, logout triggered');
-            // Token refresh failed, error handling is done in TokenRefreshService
+            splitzService.logout();
             return throwError(() => refreshError);
           }),
         );

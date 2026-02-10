@@ -47,16 +47,18 @@ export class GroupsComponent implements OnInit {
   confirmModalConfig: any = {};
   pendingDeleteAction: () => void = () => {};
   expandedExpenseMenu: number | null = null;
+  userName: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private location: Location,
-    private splitzService: SplitzService
+    public splitzService: SplitzService
   ) {}
 
   ngOnInit(): void {
     this.getDataFromRouteParams();
+    this.userName = localStorage.getItem('userName');
   }
 
   private getDataFromRouteParams(): void {
@@ -181,7 +183,7 @@ export class GroupsComponent implements OnInit {
   openDeleteGroupModal(): void {
     this.confirmModalConfig = {
       title: 'Delete Group',
-      message: `Are you sure you want to delete "${this.groupData?.name}"? This action cannot be undone.`,
+      message: `Are you sure you want to delete <strong>${this.groupData?.name}</strong>?<br>This action cannot be undone.`,
       confirmText: 'Delete',
       cancelText: 'Cancel',
       isDanger: true
@@ -209,7 +211,7 @@ export class GroupsComponent implements OnInit {
   openDeleteExpenseModal(expenseId: number, expenseName: string): void {
     this.confirmModalConfig = {
       title: 'Delete Expense',
-      message: `Are you sure you want to delete "${expenseName}" expense? This action cannot be undone.`,
+      message: `Are you sure you want to delete <strong>"${expenseName}"</strong> expense?<br> This action cannot be undone.`,
       confirmText: 'Delete',
       cancelText: 'Cancel',
       isDanger: true
@@ -247,5 +249,28 @@ export class GroupsComponent implements OnInit {
 
   closeExpenseMenu(): void {
     this.expandedExpenseMenu = null;
+  }
+
+  formatName(fullName: string): string {
+    if (!fullName) return '';
+    if (fullName === this.userName) return 'You';
+    const parts = fullName.split(' ');
+    return parts.length > 1 ? `${parts[0]} ${parts[1][0]}.` : fullName;
+  }
+  getTotalBalance(totalOrMonthly: string): number {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    let totalAmount = 0.0;
+    this.expenses.forEach((expense: any) => {
+      if (totalOrMonthly === 'total') return totalAmount += expense.amount;
+      
+      const expenseDate = new Date(expense.createdAt);
+      if (expenseDate.getMonth() === currentMonth &&
+        expenseDate.getFullYear() === currentYear) {
+        totalAmount += expense.amount;
+      }
+    });
+    return totalAmount;
   }
 }

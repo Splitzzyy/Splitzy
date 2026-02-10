@@ -130,15 +130,14 @@
 }
 .debt-header {
     padding: 1.5rem;
-    border-bottom: 1px solid;
 }
 .debt-header-red {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    border-bottom-color: #fca5a5;
+    /* background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); */
+    border-bottom: 1px solid #fca5a5;
 }
 .debt-header-green {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    border-bottom-color: #6ee7b7;
+    /* background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); */
+    border-bottom: 1px solid #6ee7b7;
 }
 .debt-header-content,
 .person-info,
@@ -189,7 +188,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem;
-    background: #f9fafb;
+    /* background: #f9fafb; */
     border: 2px solid transparent;
     border-radius: 0.75rem;
     transition: all 0.2s;
@@ -264,7 +263,7 @@
     flex-direction: column;
 }
 .groups-header {
-    background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+    /* background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); */
     padding: 1.5rem;
     border-bottom: 1px solid #d8b4fe;
     display: flex;

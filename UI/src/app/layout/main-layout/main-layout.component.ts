@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 import { SplitzService } from '../../splitz/services/splitz.service';
 import { LoaderComponent } from '../../splitz/loader/loader.component';
@@ -20,6 +20,8 @@ export class MainLayoutComponent implements OnInit {
   modalType: 'expense' | 'settle' = 'expense';
   userId: string | null = null;
   userIdNumber: any = null;
+  userName: string | null = null;
+  userEmail: string | null = null;
   token: string | null = null;
   showLoader: boolean = true;
   showExpenseModal: boolean = false;
@@ -40,6 +42,8 @@ export class MainLayoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.userId = localStorage.getItem('userId');
+    this.userName = localStorage.getItem('userName');
+    this.userEmail = localStorage.getItem('userEmail');
     if (this.userId) {
       this.userIdNumber = parseInt(this.userId, 10);
     }
@@ -47,18 +51,14 @@ export class MainLayoutComponent implements OnInit {
     this.checkAuthStatus();
   }
   checkAuthStatus() {
-    // If bypassAuthOnLocalhost is enabled and running on localhost, bypass auth checks to ease local development and open dashboard.
     if (environment.bypassAuthOnLocalhost && this.isLocalhost()) {
       this.showLoader = false;
       const localUserId = localStorage.getItem('userId') || '1';
-      // Ensure SplitzService state is updated for downstream components
       this.splitzService.setUserId(Number(localUserId));
       this.userIdNumber = Number(localUserId);
-      // no token for local development
       try { this.splitzService.setToken(''); } catch { }
       this.userId = localUserId;
       this.token = '';
-    // If user has userId but no token (e.g., new tab opened), try to refresh token
     if (this.userId && !this.token) {
       console.log('userId present but no token. Attempting to refresh token from refresh_token cookie...');
       this.tokenRefreshService.refreshTokenManually().subscribe({
@@ -67,26 +67,24 @@ export class MainLayoutComponent implements OnInit {
             this.splitzService.setToken(response.accessToken);
             this.token = response.accessToken;
             this.showLoader = false;
-            this.router.navigate(['/dashboard']);
+            this.router.navigateByUrl('/dashboard', { replaceUrl: true });
           }
         },
         error: (error: any) => {
           console.error('Token refresh failed:', error);
           this.showLoader = false;
-          // Redirect to login if refresh fails
           this.router.navigate(['/login']);
         }
       });
       return;
     }
-
-      this.router.navigate(['/dashboard']);
+      this.router.navigateByUrl('/dashboard', { replaceUrl: true });
       return;
     }
 
     if (this.userId && this.token) {
       this.showLoader = false;
-      this.router.navigate(['/dashboard']);
+      this.router.navigateByUrl('/dashboard', { replaceUrl: true });
       return;
     }
 
@@ -218,5 +216,14 @@ openProfileMenu() {
 
 closeProfileMenu() {
   this.showProfileMenu = false;
+}
+
+getUserInitials(): string {
+  if (!this.userName) return '?';
+  const names = this.userName.trim().split(' ');
+  if (names.length >= 2) {
+    return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+  }
+  return names[0][0].toUpperCase();
 }
 }

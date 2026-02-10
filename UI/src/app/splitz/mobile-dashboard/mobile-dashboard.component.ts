@@ -12,7 +12,7 @@ import { RouterModule } from '@angular/router';
   templateUrl: './mobile-dashboard.component.html',
   styleUrl: './mobile-dashboard.component.css',
 })
-export class MobileDashboardComponent {
+export class MobileDashboardComponent{
 
   @Input() userName: string = '';
   @Input() totalBalance: number = 0;
@@ -65,4 +65,7 @@ export class MobileDashboardComponent {
   closeDebtsModal() {
     this.showDebtsModal = false;
   }
+  formatTotalBalance(totalBalance: number): number {
+  return Math.abs(totalBalance);
+}
 }
