@@ -1,4 +1,5 @@
 ﻿using splitzy_dotnet.DTO;
+using splitzy_dotnet.Extensions;
 
 public static class ExpenseSimplifier
 {
