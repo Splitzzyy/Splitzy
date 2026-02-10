@@ -23,14 +23,17 @@ public static class ExpenseSimplifier
 
             var amount = Math.Min(creditor.Value, -debtor.Value);
 
-            netBalances[creditor.Key] -= amount;
-            netBalances[debtor.Key] += amount;
+            // Normalize the amount BEFORE updating balances
+            amount = Helper.Normalize(amount);
+
+            netBalances[creditor.Key] = Helper.Normalize(netBalances[creditor.Key] - amount);
+            netBalances[debtor.Key] = Helper.Normalize(netBalances[debtor.Key] + amount);
 
             result.Add(new ExpensesDTO
             {
                 FromUser = debtor.Key,
                 ToUser = creditor.Key,
-                Amount = Math.Round(amount, 2)
+                Amount = amount  // Already normalized, no need for Math.Round
             });
         }
 
