@@ -1,4 +1,4 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { timeout, catchError, throwError } from 'rxjs';
 import { inject } from '@angular/core';
 import { ApiAvailabilityService } from '../splitz/services/api-availability.service';
