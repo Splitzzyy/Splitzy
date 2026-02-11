@@ -65,3 +65,11 @@ export interface OwedFrom {
   amount: number;
   id: number;
 }
+export interface SplitMember {
+  id: number;
+  name: string;
+  amount: number;
+  isSelected: boolean;
+  avatarLetter: string;
+  customAmount?: number;
+}

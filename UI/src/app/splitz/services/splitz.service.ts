@@ -279,4 +279,14 @@ export class SplitzService {
     const url = `${this.BASE_URL}${this.ENDPOINTS.REMIND}`;
     return this.http.post<any>(url, reminderData);
   }
+
+  onUpdateExpense(expense: any) {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.UPDATE_EXPENSE}`;
+    return this.http.put<any>(url, expense);
+  }
+
+  onGetExpenseDetails(expenseId: number) {
+    const url = `${this.BASE_URL}${this.ENDPOINTS.GET_EXPENSE_DETAILS}/${expenseId}`;
+    return this.http.get<any>(url);
+  }
 }

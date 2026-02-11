@@ -280,7 +280,7 @@
                           @if (expandedExpenseMenu === expense.expenseId) {
                             <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-10 border border-gray-200">
                               <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2 rounded-t-lg"
-                                disabled>
+                                (click)="openEditExpenseModal(expense.expenseId)">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
@@ -415,8 +415,8 @@
 
   <!-- Expense Modal Component -->
   @if (showExpenseModal) {
-    <app-expense-modal [groupId]="groupId" [members]="members" (close)="showExpenseModal = false"
-    (save)="handleExpenseSave($event)"></app-expense-modal>
+    <app-expense-modal [groupId]="groupId" [members]="members" [addOrEdit]="addOrEdit" (close)="showExpenseModal = false"
+    (save)="handleExpenseSave($event)" (edit)="handleExpenseEdit($event)"></app-expense-modal>
   }
 
   @if (showSettleModal) {
