@@ -52,6 +52,8 @@ export class GroupsComponent implements OnInit {
   addOrEdit: 'Add' | 'Edit' | null = 'Add';
   expandedExpenseOverview: number | null = null;
   expenseDetailsCache: Map<number, any> = new Map();
+  settlements: any[] = [];
+  combinedActivities: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -88,9 +90,17 @@ export class GroupsComponent implements OnInit {
         memberCount: data.membersCount,
         createdDate: data.createdAt
       };
-      this.expenses = data.expenses.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) || [];
+      this.expenses = data.expenses || [];
+      this.settlements = data.settlements || [];
       this.members = data.members || [];
       this.balanceSummary = data.userSummaries || [];
+
+      // Combine expenses and settlements, then sort by date
+      this.combinedActivities = [
+        ...this.expenses.map((e: any) => ({ ...e, type: 'expense' })),
+        ...this.settlements.map((s: any) => ({ ...s, type: 'settlement' }))
+      ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
     } catch (error) {
       console.error('Error fetching group data:', error);
       this.groupData = null;
@@ -334,5 +344,52 @@ export class GroupsComponent implements OnInit {
   closeExpenseMenu(): void {
     this.expandedExpenseMenu = null;
     this.expandedExpenseOverview = null;
+  }
+  getGroupedActivities(): { date: string, displayDate: string, activities: any[] }[] {
+    const grouped = new Map<string, any[]>();
+
+    this.combinedActivities.forEach(activity => {
+      const date = new Date(activity.createdAt);
+      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+      if (!grouped.has(dateKey)) {
+        grouped.set(dateKey, []);
+      }
+      grouped.get(dateKey)!.push(activity);
+    });
+
+    // Convert to array and sort by date (newest first)
+    return Array.from(grouped.entries())
+      .map(([date, activities]) => ({
+        date,
+        displayDate: this.formatGroupDate(date),
+        activities
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  formatGroupDate(dateString: string): string {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Reset time parts for comparison
+    today.setHours(0, 0, 0, 0);
+    yesterday.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+
+    if (date.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (date.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    } else {
+      // Format as "Month DD, YYYY" (e.g., "February 12, 2026")
+      return date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
   }
 }
