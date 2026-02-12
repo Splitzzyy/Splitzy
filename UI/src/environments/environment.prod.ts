@@ -33,7 +33,7 @@ export const environment = {
         EXPENSE: '/api/Expense/AddExpense',
         UPDATE_EXPENSE: '/api/Expense/UpdateExpense',
         DELETE_EXPENSE: '/api/Expense/DeleteExpense',
-        GET_EXPENSE_DETAILS: '/api/Expense/',
+        GET_EXPENSE_DETAILS: '/api/Expense',
 
         // SETTLEUP
         SETTLEUP: '/api/Settleup/settle-up',

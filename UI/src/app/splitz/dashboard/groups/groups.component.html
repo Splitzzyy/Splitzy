@@ -415,7 +415,7 @@
 
   <!-- Expense Modal Component -->
   @if (showExpenseModal) {
-    <app-expense-modal [groupId]="groupId" [members]="members" [addOrEdit]="addOrEdit" (close)="showExpenseModal = false"
+    <app-expense-modal [groupId]="groupId" [expenseId]="expenseId" [members]="members" [addOrEdit]="addOrEdit" (close)="closeExpenseModal()"
     (save)="handleExpenseSave($event)" (edit)="handleExpenseEdit($event)"></app-expense-modal>
   }
 

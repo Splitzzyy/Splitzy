@@ -291,6 +291,7 @@
   <app-expense-modal
     [groupId]="selectedGroupId!"
     [members]="selectedGroupMembers"
+    [addOrEdit]="addOrEdit"
     [currentUserId]="userId!"
     (close)="closeExpenseModal()"
     (save)="onExpenseSaved($event)">

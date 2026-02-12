@@ -45,6 +45,7 @@ export class GroupsComponent implements OnInit {
   errorMessage: string = '';
   showConfirmModal: boolean = false;
   confirmModalConfig: any = {};
+  expenseId: number | null = null;
   pendingDeleteAction: () => void = () => {};
   expandedExpenseMenu: number | null = null;
   userName: string | null = null;
@@ -117,6 +118,7 @@ export class GroupsComponent implements OnInit {
   }
 
   openExpenseModal() {
+    this.addOrEdit = 'Add';
     this.showExpenseModal = true;
   }
 
@@ -150,6 +152,7 @@ export class GroupsComponent implements OnInit {
     this.splitzService.onUpdateExpense(expense).subscribe({
       next: (response: any) => {
         this.splitzService.show('Expense Updated Successfully!', 'success');
+        this.fetchGroupData(this.groupId);
       }, error: (error) => {
         this.splitzService.show(error.error, 'error');
         console.error('Error updating expense', error.error);
@@ -236,7 +239,9 @@ export class GroupsComponent implements OnInit {
 
   // Update Expense Functionality
   openEditExpenseModal(expenseId: number) {
-    
+    this.addOrEdit = 'Edit';
+    this.showExpenseModal = true;
+    this.expenseId = expenseId;
   }
 
   private deleteExpense(expenseId: number): void {
@@ -291,5 +296,9 @@ export class GroupsComponent implements OnInit {
       }
     });
     return totalAmount;
+  }
+  closeExpenseModal(): void {
+    this.showExpenseModal = false;
+    this.addOrEdit = null;
   }
 }
