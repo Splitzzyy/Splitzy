@@ -43,6 +43,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   public showGroupModal: boolean = false;
   public showLoader: boolean = true;
   public userEmail: string = '';
+  addOrEdit: 'Add' | 'Edit' | null = null;
 
   constructor(
     private router: Router,
@@ -73,6 +74,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   openAddExpenseModal(groupId: number): void {
     this.selectedGroupId = groupId;
+    this.addOrEdit = 'Add';
     this.splitzService.onFetchGroupData(groupId).subscribe((data: any) => {
       this.selectedGroupMembers = data.members || [];
       this.showExpenseModal = true;
@@ -82,6 +84,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   closeExpenseModal(): void {
     this.showExpenseModal = false;
     this.selectedGroupId = null;
+    this.addOrEdit = null;
     this.selectedGroupMembers = [];
   }
 

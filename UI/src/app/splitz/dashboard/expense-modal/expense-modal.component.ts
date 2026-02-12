@@ -1,16 +1,8 @@
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface SplitMember {
-  id: number;
-  name: string;
-  amount: number;
-  isSelected: boolean;
-  avatarLetter: string;
-  customAmount?: number;
-}
-
+import { SplitzService } from '../../services/splitz.service';
+import { SplitMember } from '../../splitz.model';
 @Component({
   selector: 'app-expense-modal',
   standalone: true,
@@ -19,11 +11,14 @@ interface SplitMember {
   styleUrls: ['./expense-modal.component.css']
 })
 export class ExpenseModalComponent implements OnInit {
-  @Output() close = new EventEmitter<void>();
-  @Output() save = new EventEmitter<any>();
   @Input() groupId!: number;
   @Input() members: any[] = [];
   @Input() currentUserId!: number;
+  @Input() addOrEdit: 'Add' | 'Edit' | null = null;
+  @Input() expenseId: number | null = null;
+  @Output() close = new EventEmitter<void>();
+  @Output() save = new EventEmitter<any>();
+  @Output() edit = new EventEmitter<any>();
 
   amount: number = 0;
   description: string = '';
@@ -31,7 +26,7 @@ export class ExpenseModalComponent implements OnInit {
   splitMembers: SplitMember[] = [];
   selectAllChecked: boolean = false;
   isUnequalSplit: boolean = false;
-
+  constructor(private splitzService: SplitzService) {}
   ngOnInit() {
     // Initialize members with avatar letters
     this.splitMembers = this.members.map(member => ({
@@ -45,6 +40,44 @@ export class ExpenseModalComponent implements OnInit {
     // Set current user as paidBy by default
     if (this.currentUserId) {
       this.paidBy = this.currentUserId;
+    }
+    // Fetch and populate data for Edit mode
+    if (this.addOrEdit === 'Edit' && this.expenseId) {
+      this.splitzService.onGetExpenseDetails(this.expenseId).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.expenseId = response.data.expenseId;
+            this.description = response.data.name;
+            this.amount = response.data.amount;
+            this.paidBy = response.data.paidBy.userId;
+
+            const splits = response.data.splits;
+            const firstSplitAmount = splits[0]?.amount || 0;
+            const isUnequal = splits.some((split: any) => Math.abs(split.amount - firstSplitAmount) > 0.01);
+
+            this.isUnequalSplit = isUnequal;
+            
+            splits.forEach((split: any) => {
+              const member = this.splitMembers.find(m => m.id === split.userId);
+              if (member) {
+                member.isSelected = true;
+                member.amount = split.amount;
+                if (this.isUnequalSplit) {
+                  member.customAmount = split.amount;
+                }
+              }
+            });
+            // Update select all checkbox
+            this.selectAllChecked = this.splitMembers.every(m => m.isSelected);
+          } else {
+            this.splitzService.show(response.message, 'error');
+          }
+        },
+        error: (error) => {
+          console.error('Error Getting Expense Detail', error);
+          this.splitzService.show(error.error?.message || 'Failed to fetch expense details', 'error');
+        }
+      });
     }
   }
 
@@ -178,7 +211,13 @@ export class ExpenseModalComponent implements OnInit {
           amount: this.getSplitAmount(m)
         }))
     };
-    this.save.emit(expense);
+
+    if (this.addOrEdit === 'Add') {
+      this.save.emit(expense);
+    } else {
+      // Include expenseId for edit operation
+      this.edit.emit({ ...expense, expenseId: this.expenseId });
+    }
     this.closeModal();
   }
 

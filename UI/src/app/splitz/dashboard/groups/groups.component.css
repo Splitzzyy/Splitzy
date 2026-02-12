@@ -3,3 +3,35 @@
     color: white;
     box-shadow: 0 8px 25px rgba(72, 190, 157, 0.3);
 }
+/* Expense overview slide animation */
+.expense-overview-enter {
+  animation: slideDown 0.3s ease-out;
+  overflow: hidden;
+}
+
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+.expense-overview-exit {
+  animation: slideUp 0.3s ease-in;
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from {
+    max-height: 500px;
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+  }
+}

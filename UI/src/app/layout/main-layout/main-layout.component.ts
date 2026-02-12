@@ -32,6 +32,7 @@ export class MainLayoutComponent implements OnInit {
   showSettleModal: boolean = false;
   showAddMenu = false;
   showProfileMenu = false;
+  addOrEdit: 'Add' | 'Edit' | null = null;
 
   constructor(
     private router: Router,
@@ -125,6 +126,7 @@ export class MainLayoutComponent implements OnInit {
 
   openAddExpenseModal(groupId: number): void {
     this.selectedGroupId = groupId;
+    this.addOrEdit = 'Add';
     // Fetch group members for the selected group
     this.splitzService.onFetchGroupData(groupId).subscribe((data: any) => {
       this.selectedGroupMembers = data.members || [];
@@ -136,6 +138,7 @@ export class MainLayoutComponent implements OnInit {
   closeExpenseModal(): void {
     this.showExpenseModal = false;
     this.selectedGroupId = null;
+    this.addOrEdit = null;
     this.selectedGroupMembers = [];
   }
 

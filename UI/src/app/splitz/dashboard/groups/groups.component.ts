@@ -45,9 +45,13 @@ export class GroupsComponent implements OnInit {
   errorMessage: string = '';
   showConfirmModal: boolean = false;
   confirmModalConfig: any = {};
+  expenseId: number | null = null;
   pendingDeleteAction: () => void = () => {};
   expandedExpenseMenu: number | null = null;
   userName: string | null = null;
+  addOrEdit: 'Add' | 'Edit' | null = 'Add';
+  expandedExpenseOverview: number | null = null;
+  expenseDetailsCache: Map<number, any> = new Map();
 
   constructor(
     private route: ActivatedRoute,
@@ -116,6 +120,7 @@ export class GroupsComponent implements OnInit {
   }
 
   openExpenseModal() {
+    this.addOrEdit = 'Add';
     this.showExpenseModal = true;
   }
 
@@ -143,6 +148,18 @@ export class GroupsComponent implements OnInit {
         console.error('Error saving expense:', error);
       }
     });
+  }
+  handleExpenseEdit(expense: any) {
+    this.showExpenseModal = false;
+    this.splitzService.onUpdateExpense(expense).subscribe({
+      next: (response: any) => {
+        this.splitzService.show('Expense Updated Successfully!', 'success');
+        this.fetchGroupData(this.groupId);
+      }, error: (error) => {
+        this.splitzService.show(error.error, 'error');
+        console.error('Error updating expense', error.error);
+      }
+    })
   }
   onSettleUpSaved(expense: any) {
     this.splitzService.onSettleExpense(expense).subscribe({
@@ -207,6 +224,8 @@ export class GroupsComponent implements OnInit {
     });
   }
 
+
+
   // Delete Expense functionality
   openDeleteExpenseModal(expenseId: number, expenseName: string): void {
     this.confirmModalConfig = {
@@ -218,6 +237,13 @@ export class GroupsComponent implements OnInit {
     };
     this.pendingDeleteAction = () => this.deleteExpense(expenseId);
     this.showConfirmModal = true;
+  }
+
+  // Update Expense Functionality
+  openEditExpenseModal(expenseId: number) {
+    this.addOrEdit = 'Edit';
+    this.showExpenseModal = true;
+    this.expenseId = expenseId;
   }
 
   private deleteExpense(expenseId: number): void {
@@ -247,10 +273,6 @@ export class GroupsComponent implements OnInit {
     this.expandedExpenseMenu = this.expandedExpenseMenu === expenseId ? null : expenseId;
   }
 
-  closeExpenseMenu(): void {
-    this.expandedExpenseMenu = null;
-  }
-
   formatName(fullName: string): string {
     if (!fullName) return '';
     if (fullName === this.userName) return 'You';
@@ -272,5 +294,45 @@ export class GroupsComponent implements OnInit {
       }
     });
     return totalAmount;
+  }
+  closeExpenseModal(): void {
+    this.showExpenseModal = false;
+    this.addOrEdit = null;
+  }
+  toggleExpenseOverview(expenseId: number, event: Event): void {
+    event.stopPropagation();
+
+    if (this.expandedExpenseOverview === expenseId) {
+      this.expandedExpenseOverview = null;
+    } else {
+      this.expandedExpenseOverview = expenseId;
+
+      // Fetch expense details if not already cached
+      if (!this.expenseDetailsCache.has(expenseId)) {
+        this.splitzService.onGetExpenseDetails(expenseId).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.expenseDetailsCache.set(expenseId, response.data);
+            } else {
+              this.splitzService.show(response.message, 'error');
+              this.expandedExpenseOverview = null;
+            }
+          },
+          error: (error) => {
+            console.error('Error Getting Expense Detail', error);
+            this.splitzService.show(error.error, 'error');
+            this.expandedExpenseOverview = null;
+          }
+        });
+      }
+    }
+  }
+  getExpenseSplits(expenseId: number): any[] {
+    const details = this.expenseDetailsCache.get(expenseId);
+    return details?.splits || [];
+  }
+  closeExpenseMenu(): void {
+    this.expandedExpenseMenu = null;
+    this.expandedExpenseOverview = null;
   }
 }
