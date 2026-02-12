@@ -188,8 +188,8 @@ export class TokenRefreshService {
         // Clear all cookies
         this.tokenStorage.clearTokenAndCookies();
 
-        // Navigate to login
-        this.router.navigate(['/login']);
+        // Navigate to home page after logout
+        this.router.navigate(['/home']);
 
         console.log('User session cleared and logged out');
     }
