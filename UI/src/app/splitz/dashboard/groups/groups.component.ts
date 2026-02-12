@@ -50,6 +50,8 @@ export class GroupsComponent implements OnInit {
   expandedExpenseMenu: number | null = null;
   userName: string | null = null;
   addOrEdit: 'Add' | 'Edit' | null = 'Add';
+  expandedExpenseOverview: number | null = null;
+  expenseDetailsCache: Map<number, any> = new Map();
 
   constructor(
     private route: ActivatedRoute,
@@ -271,10 +273,6 @@ export class GroupsComponent implements OnInit {
     this.expandedExpenseMenu = this.expandedExpenseMenu === expenseId ? null : expenseId;
   }
 
-  closeExpenseMenu(): void {
-    this.expandedExpenseMenu = null;
-  }
-
   formatName(fullName: string): string {
     if (!fullName) return '';
     if (fullName === this.userName) return 'You';
@@ -300,5 +298,41 @@ export class GroupsComponent implements OnInit {
   closeExpenseModal(): void {
     this.showExpenseModal = false;
     this.addOrEdit = null;
+  }
+  toggleExpenseOverview(expenseId: number, event: Event): void {
+    event.stopPropagation();
+
+    if (this.expandedExpenseOverview === expenseId) {
+      this.expandedExpenseOverview = null;
+    } else {
+      this.expandedExpenseOverview = expenseId;
+
+      // Fetch expense details if not already cached
+      if (!this.expenseDetailsCache.has(expenseId)) {
+        this.splitzService.onGetExpenseDetails(expenseId).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.expenseDetailsCache.set(expenseId, response.data);
+            } else {
+              this.splitzService.show(response.message, 'error');
+              this.expandedExpenseOverview = null;
+            }
+          },
+          error: (error) => {
+            console.error('Error Getting Expense Detail', error);
+            this.splitzService.show(error.error, 'error');
+            this.expandedExpenseOverview = null;
+          }
+        });
+      }
+    }
+  }
+  getExpenseSplits(expenseId: number): any[] {
+    const details = this.expenseDetailsCache.get(expenseId);
+    return details?.splits || [];
+  }
+  closeExpenseMenu(): void {
+    this.expandedExpenseMenu = null;
+    this.expandedExpenseOverview = null;
   }
 }
