@@ -3,6 +3,17 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 export const routes: Routes = [
+    { 
+        path: '', 
+        redirectTo: 'home', 
+        pathMatch: 'full' 
+    },
+    {
+        path: 'home',
+        loadComponent: () =>
+            import('./splitz/home-page/home-page.component')
+                .then(m => m.HomePageComponent),
+    },
     {
         path: 'login',
         loadComponent: () =>

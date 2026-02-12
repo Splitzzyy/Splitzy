@@ -1,0 +1,187 @@
+<!-- Background Decorations -->
+<div class="page-wrapper">
+  <div class="bg-decoration"></div>
+  <div class="bg-decoration"></div>
+  <div class="bg-decoration"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-container">
+      <a routerLink="/" class="logo">
+        <div class="logo-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <span class="logo-text">Splitzy</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a (click)="scrollToFeatures()">Features</a></li>
+        <li>
+          <a href="https://github.com/Splitzzyy/Splitzy" target="_blank" rel="noopener noreferrer">
+            Source Code
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/Splitzzyy/Splitzy/issues" target="_blank" rel="noopener noreferrer">
+            Raise an Issue
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-cta">
+        <button (click)="navigateToLogin()" class="btn-nav btn-login">Log in</button>
+        <button (click)="navigateToRegister()" class="btn-nav btn-signup">Sign up</button>
+      </div>
+
+      <button class="mobile-menu-btn">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <i class="fas fa-sparkles"></i>
+        <span>Smart Group Expense Splitting</span>
+      </div>
+
+      <h1>
+        Split bills,<br>
+        share <span class="gradient-text">expenses</span>,<br>
+        settle up easily
+      </h1>
+
+      <p class="hero-description">
+        Stop the awkward money conversations. Splitzy makes it simple to track shared expenses, split bills fairly, and
+        settle up with friends, roommates, and groups.
+      </p>
+
+      <div class="hero-cta">
+        <button (click)="navigateToRegister()" class="btn-primary">
+          Get Started Free
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-number">100+</div>
+          <div class="stat-label">Happy Users</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">10k+</div>
+          <div class="stat-label">Expenses Split</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">₹1k+</div>
+          <div class="stat-label">Money Settled</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="mockup-container">
+        <div class="mockup-card">
+          <div class="mockup-header">
+            <div class="mockup-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="mockup-title">Trip to Goa</div>
+          </div>
+
+          <div class="receipt-item">
+            <div class="receipt-icon shopping">
+              <i class="fas fa-hotel"></i>
+            </div>
+            <div class="receipt-info">
+              <div class="receipt-name">Hotel Stay • Paid by Rahul</div>
+              <div class="receipt-date">Split among 4 people</div>
+            </div>
+            <div class="receipt-amount">₹4,500</div>
+          </div>
+
+          <div class="receipt-item">
+            <div class="receipt-icon food">
+              <i class="fas fa-utensils"></i>
+            </div>
+            <div class="receipt-info">
+              <div class="receipt-name">Dinner at Beach Shack • Paid by You</div>
+              <div class="receipt-date">Split among 4 people</div>
+            </div>
+            <div class="receipt-amount">₹2,400</div>
+          </div>
+
+          <div class="receipt-item">
+            <div class="receipt-icon transport">
+              <i class="fas fa-car"></i>
+            </div>
+            <div class="receipt-info">
+              <div class="receipt-name">Cab to Airport • Paid by Priya</div>
+              <div class="receipt-date">Split among 4 people</div>
+            </div>
+            <div class="receipt-amount">₹800</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="features-header">
+      <h2>Everything you need to split expenses</h2>
+      <p>Powerful features designed to make group expense management effortless and fair</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <h3>Create Groups</h3>
+        <p>Set up groups for trips, roommates, events, or any shared expense scenario. Invite friends instantly and
+          start tracking together.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h3>Add Expenses</h3>
+        <p>Quickly log any expense—who paid, how much, and who it's split with. Split equally or customize amounts for
+          each person.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-calculator"></i>
+        </div>
+        <h3>Smart Balances</h3>
+        <p>See exactly who owes what at a glance. Our smart algorithm simplifies debts to minimize the number of
+          transactions needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <h2>Ready to simplify group expenses?</h2>
+      <p>Join thousands of users who've eliminated awkward money conversations with Splitzy. Track, split, and settle
+        group expenses effortlessly. Start for free today.</p>
+
+      <div class="cta-buttons">
+        <button (click)="navigateToRegister()" class="btn-primary">
+          Create Free Account
+          <i class="fas fa-arrow-right"></i>
+        </button>
+        <button (click)="navigateToLogin()" class="btn-secondary">
+          Sign In
+          <i class="fas fa-sign-in-alt"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
