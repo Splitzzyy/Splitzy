@@ -728,7 +728,7 @@ h1 {
     flex-direction: column;
     gap: 12px;
   }
-
+  
   .cta-buttons .btn-primary,
   .cta-buttons .btn-secondary {
     width: 100%;
@@ -905,5 +905,63 @@ h1 {
 
   .receipt-amount {
     font-size: 14px;
+  }
+}
+
+/* Mobile Menu Styling */
+@media (max-width: 768px) {
+
+  .nav-links,
+  .nav-cta {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .nav-links.mobile-open,
+  .nav-cta.mobile-open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    background: rgba(6, 78, 59, 0.98);
+    backdrop-filter: blur(12px);
+    padding: 24px;
+    border-radius: 20px;
+    gap: 16px;
+    width: 240px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .nav-links.mobile-open {
+    margin-bottom: 16px;
+  }
+
+  .nav-links li {
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 16px;
+  }
+
+  .nav-cta button {
+    width: 100%;
+  }
+}
+
+/* Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

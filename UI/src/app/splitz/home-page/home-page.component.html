@@ -6,38 +6,41 @@
 
   <!-- Navigation -->
   <nav>
-    <div class="nav-container">
-      <a routerLink="/" class="logo">
-        <div class="logo-icon">
-          <i class="fas fa-receipt"></i>
-        </div>
-        <span class="logo-text">Splitzy</span>
-      </a>
+  <div class="nav-container">
 
-      <ul class="nav-links">
-        <li><a (click)="scrollToFeatures()">Features</a></li>
-        <li>
-          <a href="https://github.com/Splitzzyy/Splitzy" target="_blank" rel="noopener noreferrer">
-            Source Code
-          </a>
-        </li>
-        <li>
-          <a href="https://github.com/Splitzzyy/Splitzy/issues" target="_blank" rel="noopener noreferrer">
-            Raise an Issue
-          </a>
-        </li>
-      </ul>
-
-      <div class="nav-cta">
-        <button (click)="navigateToLogin()" class="btn-nav btn-login">Log in</button>
-        <button (click)="navigateToRegister()" class="btn-nav btn-signup">Sign up</button>
+    <!-- Logo -->
+    <a routerLink="/" class="logo" (click)="closeMobileMenu()">
+      <div class="logo-icon">
+        <i class="fas fa-receipt"></i>
       </div>
+      <span class="logo-text">Splitzy</span>
+    </a>
 
-      <button class="mobile-menu-btn">
-        <i class="fas fa-bars"></i>
-      </button>
+    <!-- Desktop Links -->
+    <ul class="nav-links" [class.mobile-open]="isMobileMenuOpen">
+      <li><a (click)="scrollToFeatures()">Features</a></li>
+      <li>
+        <a href="https://github.com/Splitzzyy/Splitzy" target="_blank">Source Code</a>
+      </li>
+      <li>
+        <a href="https://github.com/Splitzzyy/Splitzy/issues" target="_blank">Raise an Issue</a>
+      </li>
+    </ul>
+
+    <!-- Desktop CTA -->
+    <div class="nav-cta" [class.mobile-open]="isMobileMenuOpen">
+      <button (click)="navigateToLogin()" class="btn-nav btn-login">Log in</button>
+      <button (click)="navigateToRegister()" class="btn-nav btn-signup">Sign up</button>
     </div>
-  </nav>
+
+    <!-- Hamburger -->
+    <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+      <i class="fas" [ngClass]="isMobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+    </button>
+
+  </div>
+</nav>
+
 
   <!-- Hero Section -->
   <section class="hero">

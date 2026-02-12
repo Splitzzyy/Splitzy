@@ -7,21 +7,31 @@ import { Router } from '@angular/router';
   styleUrls: ['./home-page.component.css']
 })
 export class HomePageComponent {
-  
+
+  isMobileMenuOpen = false;
+
   constructor(private router: Router) {}
 
-  navigateToLogin(): void {
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+  }
+
+  navigateToLogin() {
     this.router.navigate(['/login']);
+    this.closeMobileMenu();
   }
 
-  navigateToRegister(): void {
+  navigateToRegister() {
     this.router.navigate(['/register']);
+    this.closeMobileMenu();
   }
 
-  scrollToFeatures(): void {
-    const element = document.getElementById('features');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+  scrollToFeatures() {
+    document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+    this.closeMobileMenu();
   }
 }
