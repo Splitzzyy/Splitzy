@@ -4,6 +4,12 @@ import { Router } from '@angular/router';
 
 export const routes: Routes = [
     {
+        path: 'welcome',
+        loadComponent: () => 
+            import('./splitz/home-page/home-page.component')
+                .then(m => m.HomePageComponent)
+    },
+    {
         path: 'login',
         loadComponent: () =>
             import('./splitz/login-page/login-page.component')
@@ -39,7 +45,7 @@ export const routes: Routes = [
             const router = inject(Router);
             const userId = localStorage.getItem('userId');
             if (!userId) {
-                return new RedirectCommand(router.parseUrl('/login'));
+                return new RedirectCommand(router.parseUrl('/welcome'));
             }
             return true;
         }],

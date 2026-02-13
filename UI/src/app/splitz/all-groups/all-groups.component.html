@@ -1,59 +1,60 @@
-<!-- All Groups Page -->
-<div class="max-w-6xl mx-auto p-4 lg:p-6 mb-20 lg:mb-0">
+<div class="max-w-7xl mx-auto p-4 lg:p-6 mb-20 lg:mb-0 dark:bg-zinc-900 min-h-[85vh] lg:min-h-screen transition-colors">
   
   @if (showLoader) {
     <app-loader></app-loader>
   }
 
   @if (!showLoader) {
-    <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <div class="flex items-center justify-between">
+    <div class="relative overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 border border-gray-200/50 dark:border-gray-700/50 shadow-lg rounded-3xl p-6 md:p-8 mb-8">
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-purple-400/10 to-pink-400/10 dark:from-purple-500/10 dark:to-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-gradient-to-br from-blue-400/10 to-purple-400/10 dark:from-blue-500/10 dark:to-purple-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+      </div>
+
+      <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">All Groups</h1>
-          <p class="text-gray-600 text-sm mt-1">Manage and view all your expense groups</p>
+          <h1 class="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight m-0 mb-1">All Groups</h1>
+          <p class="text-sm sm:text-base font-medium text-gray-500 dark:text-gray-400 m-0">Manage and view all your expense groups</p>
         </div>
         <button (click)="openCreateGroupModal()"
-                class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors active:scale-95">
-          <div class="flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            <span>Create Group</span>
-          </div>
+                class="group inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 rounded-2xl shadow-lg shadow-purple-500/40 dark:shadow-purple-500/30 text-sm font-bold text-white transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/50 active:scale-95 hover:from-purple-600 hover:to-pink-700 w-full sm:w-auto">
+          <svg class="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>Create Group</span>
         </button>
       </div>
     </div>
 
-    <!-- Groups Grid -->
     @if (groups && groups.length > 0) {
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         @for (group of groups; track group.groupId) {
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
-            <a [routerLink]="['/group', userId, group.groupId]" class="block p-6 hover:bg-gray-50 transition-colors">
-              <div class="flex items-start justify-between mb-4">
-                <div class="flex items-center gap-4 flex-1">
-                  <!-- Group Icon -->
-                  <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/10 dark:from-purple-500/10 dark:to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+            
+            <a [routerLink]="['/group', userId, group.groupId]" class="block p-5 sm:p-6 no-underline h-full flex flex-col">
+              <div class="flex items-start justify-between mb-6 flex-1 gap-4">
+                <div class="flex items-center gap-4 min-w-0">
+                  <div class="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                       </path>
                     </svg>
                   </div>
-                  <div class="flex-1">
-                    <h3 class="font-bold text-gray-900 text-lg">{{ group.groupName }}</h3>
-                    <p class="text-sm text-gray-500 mt-1">{{ getGroupStatus(group.netBalance) }}</p>
+                  <div class="min-w-0">
+                    <h3 class="font-black text-gray-900 dark:text-white text-lg sm:text-xl truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors m-0 mb-1">{{ group.groupName }}</h3>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 m-0 truncate">{{ getGroupStatus(group.netBalance) }}</p>
                   </div>
                 </div>
               </div>
 
-              <!-- Balance Card -->
-              <div [ngClass]="getStatusBackground(group.netBalance)" 
-                   class="rounded-xl p-4 border">
+              <div [ngClass]="group.netBalance > 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50' : (group.netBalance < 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50' : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700/50')" 
+                   class="rounded-2xl p-4 border transition-colors mt-auto">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm font-medium text-gray-700">Net Balance</span>
-                  <span [ngClass]="getStatusColor(group.netBalance)" class="text-xl font-bold">
+                  <span class="text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Net Balance</span>
+                  <span [ngClass]="group.netBalance > 0 ? 'text-emerald-600 dark:text-emerald-400' : (group.netBalance < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400')" 
+                        class="text-lg sm:text-xl font-black whitespace-nowrap">
                     {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
                   </span>
                 </div>
@@ -63,27 +64,24 @@
         }
       </div>
     } @else {
-      <!-- Empty State -->
-      <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-12 text-center">
-        <div class="mb-4">
-          <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-            </path>
-          </svg>
+      <div class="flex justify-center items-center py-12 sm:py-24 px-4">
+        <div class="text-center backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl p-8 sm:p-16 shadow-2xl border border-gray-200/50 dark:border-gray-700/50 max-w-lg w-full">
+          <div class="text-6xl sm:text-8xl mb-6 animate-bounce">👥</div>
+          <h3 class="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mb-3">No groups yet</h3>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-8 max-w-sm mx-auto">Create a group to start splitting expenses with friends seamlessly.</p>
+          <button (click)="openCreateGroupModal()"
+                  class="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-br from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 rounded-2xl shadow-xl shadow-purple-500/40 dark:shadow-purple-500/30 text-base font-bold text-white transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/50 active:scale-95 w-full sm:w-auto">
+            <svg class="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create Your First Group
+          </button>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 mb-2">No groups yet</h3>
-        <p class="text-gray-600 mb-6">Create a group to start splitting expenses with friends</p>
-        <button (click)="openCreateGroupModal()"
-                class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors active:scale-95">
-          Create Your First Group
-        </button>
       </div>
     }
   }
 </div>
 
-<!-- Group Modal -->
 @if (showGroupModal) {
   <app-group-modal
     (close)="closeGroupModal()"

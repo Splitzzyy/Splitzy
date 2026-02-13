@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AddMembersRequest } from '../../splitz.model';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-add-member-modal',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './add-member-modal.component.html',
   styleUrl: './add-member-modal.component.css',
 })

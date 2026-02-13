@@ -68,7 +68,7 @@ export class ForgotPasswordComponent {
             this.forgotPasswordForm.reset();
             // Optionally redirect to login after a delay
             setTimeout(() => {
-              this.router.navigate(['/login']);
+              this.router.navigate(['/home']);
             }, 3000);
           } else {
             this.errorMessage = response.message || 'Failed to send reset email. Please try again.';

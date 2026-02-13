@@ -1,37 +1,55 @@
-.settle-btn {
-    background: linear-gradient(135deg, #48be9d, #16a085);
-    color: white;
-    box-shadow: 0 8px 25px rgba(72, 190, 157, 0.3);
-}
-/* Expense overview slide animation */
-.expense-overview-enter {
-  animation: slideDown 0.3s ease-out;
-  overflow: hidden;
-}
-
-@keyframes slideDown {
-  from {
-    max-height: 0;
-    opacity: 0;
-  }
-  to {
-    max-height: 500px;
-    opacity: 1;
-  }
-}
-
-.expense-overview-exit {
-  animation: slideUp 0.3s ease-in;
-  overflow: hidden;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
-  from {
-    max-height: 500px;
+  from { 
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
     opacity: 1;
   }
-  to {
+}
+
+@keyframes slideInFromTop {
+  from {
     max-height: 0;
     opacity: 0;
   }
+  to {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-in {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.slide-in-from-top {
+  animation-name: slideInFromTop;
+}
+
+/* Smooth scale transitions */
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+.hover\:-translate-y-1:hover {
+  transform: translateY(-0.25rem);
 }

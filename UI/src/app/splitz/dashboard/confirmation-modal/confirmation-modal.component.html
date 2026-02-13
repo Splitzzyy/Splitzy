@@ -1,49 +1,38 @@
-<div class="modal-overlay" (click)="onCancel()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
-    <!-- Header -->
-    <div class="modal-header" [class.danger]="isDanger">
-      <div class="header-content">
-        <div class="icon-wrapper" [class.danger]="isDanger">
-          <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="fixed inset-0 bg-black/60 backdrop-blur-[4px] flex items-center justify-center z-[1000] p-4 animate-fadeIn" (click)="onCancel()">
+  <div class="bg-white dark:bg-zinc-800 rounded-2xl max-w-[500px] w-full shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] dark:shadow-black/40 overflow-hidden animate-slideUp" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between p-5 sm:p-6" [ngClass]="isDanger ? 'bg-gradient-to-br from-red-500 to-red-600' : 'bg-gradient-to-br from-blue-500 to-blue-600'">
+      <div class="flex items-center gap-4">
+        <div class="bg-white dark:bg-zinc-800 p-3 rounded-xl shadow-md flex items-center justify-center" [ngClass]="isDanger ? 'text-red-500 dark:text-red-400' : 'text-blue-500 dark:text-blue-400'">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             @if (isDanger) {
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             } @else {
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
-              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             }
           </svg>
         </div>
-        <h2 class="title" [innerHTML]="title"></h2>
+        <h2 class="text-lg sm:text-xl font-bold text-white m-0" [innerHTML]="title"></h2>
       </div>
-      <button class="close-btn" (click)="onCancel()">
+      <button class="bg-white/20 hover:bg-white/30 hover:scale-105 border-none p-2 rounded-lg cursor-pointer transition-all duration-200 text-white flex items-center justify-center shrink-0" (click)="onCancel()">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
     </div>
 
-    <!-- Body -->
-    <div class="modal-body">
-      <p class="message" [innerHTML]="message"></p>
+    <div class="p-5 sm:p-8">
+      <p class="text-[0.95rem] text-zinc-600 dark:text-zinc-300 leading-relaxed m-0 mb-8" [innerHTML]="message"></p>
 
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <button type="button" class="btn btn-cancel" (click)="onCancel()">
+      <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
+        <button type="button" class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium text-[0.95rem] border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-200 hover:not(:disabled):bg-zinc-200 dark:hover:not(:disabled):bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed" (click)="onCancel()">
           {{ cancelText }}
         </button>
-        <button (click)="onConfirm()" class="btn btn-submit" [class.danger]="isDanger">
-          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button (click)="onConfirm()" class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-medium text-[0.95rem] border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:not(:disabled):-translate-y-[2px]" [ngClass]="isDanger ? 'bg-gradient-to-br from-red-500 to-red-600 hover:not(:disabled):shadow-[0_4px_12px_rgba(239,68,68,0.4)]' : 'bg-gradient-to-br from-blue-500 to-blue-600 hover:not(:disabled):shadow-[0_4px_12px_rgba(59,130,246,0.4)]'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             @if (isDanger) {
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             } @else {
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M5 13l4 4L19 7">
-              </path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             }
           </svg>
           {{ confirmText }}

@@ -74,7 +74,7 @@ export class MainLayoutComponent implements OnInit {
         error: (error: any) => {
           console.error('Token refresh failed:', error);
           this.showLoader = false;
-          this.router.navigate(['/login']);
+          this.router.navigate(['/home']);
         }
       });
       return;
