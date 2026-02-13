@@ -149,10 +149,6 @@ export class SplitzService {
 
       localStorage.setItem('userEmail', userEmail);
       localStorage.setItem('userName', userName);
-      localStorage.setItem('googleToken', token);
-
-      // Update subject
-      this.tokenSubject.next(token);
 
       // Send Google token to backend for authentication
       const googleLoginRequest: GoogleLoginRequest = {
