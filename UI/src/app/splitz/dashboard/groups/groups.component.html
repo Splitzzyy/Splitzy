@@ -1,8 +1,8 @@
 <!-- Modern Groups Component - Fixed with Dark Mode Support -->
-<div class="h-full mb-20 lg:mb-0 bg-gray-50 dark:bg-zinc-900 transition-colors">
+<div class="h-full mb-20 lg:mb-0 dark:bg-zinc-900 transition-colors">
   
   <!-- Header Section - Glassmorphism -->
-  <div class="relative overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 border-b border-gray-200 dark:border-gray-700 shadow-lg">
+  <div class="relative overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 border-b border-gray-200 dark:border-gray-700">
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between py-4 sm:py-5 gap-4">
@@ -84,14 +84,6 @@
             </svg>
           </button>
           
-          <button (click)="openAddMemberModal()"
-            class="group inline-flex items-center p-3 backdrop-blur-xl bg-white/90 dark:bg-zinc-700/90 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-600/50 text-gray-700 dark:text-gray-200 transition-all duration-300 hover:bg-white dark:hover:bg-gray-600 hover:shadow-xl active:scale-95"
-            aria-label="Add member">
-            <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-            </svg>
-          </button>
-          
           <button (click)="openDeleteGroupModal()"
             class="group inline-flex items-center p-3 bg-gradient-to-br from-red-500 to-rose-600 dark:from-red-600 dark:to-rose-700 rounded-2xl shadow-lg shadow-red-500/40 dark:shadow-red-500/30 text-white transition-all duration-300 hover:shadow-xl hover:shadow-red-500/50 active:scale-95"
             aria-label="Delete group">
@@ -140,14 +132,12 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
       
       <!-- Total Expense Card -->
-      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-emerald-500/20 dark:hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-1">
+      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-emerald-500/20 dark:hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-1">
         <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/10 dark:from-emerald-500/10 dark:to-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="relative flex items-start gap-3 sm:gap-4">
           <div class="flex-shrink-0">
             <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
-              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+              <span class="text-white text-2xl">₹</span>
             </div>
           </div>
           <div class="flex-1 min-w-0">
@@ -158,7 +148,7 @@
       </div>
 
       <!-- Monthly Expense Card -->
-      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-orange-500/20 dark:hover:shadow-orange-500/10 transition-all duration-300 hover:-translate-y-1">
+      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-orange-500/20 dark:hover:shadow-orange-500/10 transition-all duration-300 hover:-translate-y-1">
         <div class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-amber-500/10 dark:from-orange-500/10 dark:to-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="relative flex items-start gap-3 sm:gap-4">
           <div class="flex-shrink-0">
@@ -176,7 +166,7 @@
       </div>
 
       <!-- Members Card -->
-      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-teal-500/20 dark:hover:shadow-teal-500/10 transition-all duration-300 hover:-translate-y-1">
+      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-teal-500/20 dark:hover:shadow-teal-500/10 transition-all duration-300 hover:-translate-y-1">
         <div class="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-emerald-500/10 dark:from-teal-500/10 dark:to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="relative flex items-start gap-3 sm:gap-4">
           <div class="flex-shrink-0">
@@ -194,7 +184,7 @@
       </div>
 
       <!-- Created Date Card -->
-      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 dark:hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1">
+      <div class="group relative backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-lg border border-gray-200/50 dark:border-gray-700/50 p-4 sm:p-6 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 dark:hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1">
         <div class="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/10 dark:from-purple-500/10 dark:to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
         <div class="relative flex items-start gap-3 sm:gap-4">
           <div class="flex-shrink-0">
@@ -212,25 +202,8 @@
       </div>
     </div>
 
-    <!-- Group Description -->
-    @if (groupData.description) {
-    <div class="backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 mb-6 lg:mb-8">
-      <div class="flex items-start gap-3">
-        <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-lg font-black text-gray-900 dark:text-white mb-2">Description</h3>
-          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ groupData.description }}</p>
-        </div>
-      </div>
-    </div>
-    }
-
     <!-- Navigation Tabs - Enhanced -->
-    <div class="backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-3xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 mb-6 lg:mb-8 overflow-hidden">
+    <div class="backdrop-blur-xl bg-white/90 dark:bg-zinc-800/90 rounded-lg border border-gray-200/50 dark:border-gray-700/50 mb-6 lg:mb-8 overflow-hidden">
       <div class="border-b border-gray-200/50 dark:border-gray-700/50">
         <nav class="-mb-px flex" aria-label="Tabs">
           <button (click)="activeTab = 'expenses'" 
@@ -555,7 +528,7 @@
               <h3 class="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-2">Invite more members</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-xs mx-auto">Add friends to start splitting expenses together.</p>
               <button (click)="openAddMemberModal()"
-                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 rounded-2xl shadow-xl shadow-emerald-500/40 dark:shadow-emerald-500/30 text-white font-bold transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/50 active:scale-95">
+                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 rounded-2xl shadow-xl shadow-purple-500/40 dark:shadow-purple-500/30 text-white font-bold transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/50 active:scale-95">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                 </svg>

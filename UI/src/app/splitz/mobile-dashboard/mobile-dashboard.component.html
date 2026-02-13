@@ -24,20 +24,12 @@
                         <p class="text-xs text-gray-600 dark:text-gray-400">{{ userEmail }}</p>
                     </div>
                 </div>
-                <!-- Animated Settings Icon -->
-                <button class="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all duration-300 hover:rotate-90 active:scale-95 group">
-                    <svg class="w-5 h-5 text-gray-700 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" 
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                </button>
             </div>
         </div>
     </div>
 
     <!-- Total Balance Card - Premium Glassmorphism -->
-    <div class="px-2 mt-6 pb-6">
+    <div class="px-2 -mt-6 pb-6">
         <div class="relative backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 rounded-[2rem] p-6 shadow-2xl shadow-emerald-500/20 dark:shadow-emerald-500/10 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transform hover:scale-[1.02] transition-transform duration-300">
             <!-- Animated Background Pattern -->
             <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 pointer-events-none"></div>
@@ -45,10 +37,7 @@
             
             <div class="relative text-center">
                 <div class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm mb-3 font-medium">
-                    <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span>Total Balance</span>
+                    <span class="animate-pulse">Total Balance</span>
                 </div>
                 <div class="text-5xl font-black mb-6 tracking-tight" [ngClass]="{
                     'text-red-500 drop-shadow-lg': totalBalance < 0,
@@ -149,26 +138,18 @@
             @for (group of displayGroups; track group.groupId) {
             <div class="group relative backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 rounded-[1.75rem] shadow-xl shadow-gray-900/10 dark:shadow-gray-900/20 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden active:scale-98 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 dark:hover:shadow-emerald-500/10">
                 <!-- Gradient Accent -->
-                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-purple-700 to-purple-600"></div>
                 
                 <a [routerLink]="['/group', userId, group.groupId]" class="block p-5">
                     <div class="flex items-center gap-4">
                         <!-- Enhanced Group Icon -->
                         <div class="relative">
-                            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 dark:shadow-emerald-500/20 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                                 <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
                                     </path>
                                 </svg>
-                            </div>
-                            <!-- Status Indicator -->
-                            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-gray-800 shadow-sm"
-                                [ngClass]="{
-                                    'bg-emerald-400': group.netBalance > 0,
-                                    'bg-red-400': group.netBalance < 0,
-                                    'bg-gray-400': group.netBalance === 0
-                                }">
                             </div>
                         </div>
                         
@@ -202,7 +183,6 @@
                                 }">
                                     {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
                                 </span>
-                                <span class="text-[0.65rem] text-gray-500 dark:text-gray-400 font-medium">Balance</span>
                             </div>
                             
                             <!-- DIFFERENTIATED: Add Expense Button - Outlined Style -->
