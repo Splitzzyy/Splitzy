@@ -3,16 +3,11 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 export const routes: Routes = [
-    { 
-        path: '', 
-        redirectTo: 'home', 
-        pathMatch: 'full' 
-    },
     {
-        path: 'home',
-        loadComponent: () =>
+        path: 'welcome',
+        loadComponent: () => 
             import('./splitz/home-page/home-page.component')
-                .then(m => m.HomePageComponent),
+                .then(m => m.HomePageComponent)
     },
     {
         path: 'login',
@@ -50,7 +45,7 @@ export const routes: Routes = [
             const router = inject(Router);
             const userId = localStorage.getItem('userId');
             if (!userId) {
-                return new RedirectCommand(router.parseUrl('/login'));
+                return new RedirectCommand(router.parseUrl('/welcome'));
             }
             return true;
         }],

@@ -95,7 +95,7 @@ export class SplitzService {
     this.tokenSubject.next(null);
 
     // Navigate to home page after logout
-    this.router.navigate(['/home']);
+    this.router.navigate(['/welcome']);
 
     console.log('Local session cleared');
   }
