@@ -62,8 +62,8 @@ export class AllGroupsComponent implements OnInit {
   }
 
   getStatusBackground(balance: number): string {
-    if (balance > 0) return 'bg-green-50 border-green-200';
-    if (balance < 0) return 'bg-red-50 border-red-200';
+    if (balance > 0) return 'dark:bg-green-900 bg-green-50 border-green-200';
+    if (balance < 0) return 'dark:bg-red-950 bg-red-50 border-red-200';
     return 'bg-gray-50 border-gray-200';
   }
 

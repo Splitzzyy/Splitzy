@@ -7,11 +7,11 @@
 
   @if (!showLoader) {
     <!-- Header -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="bg-white dark:bg-zinc-800/95 dark:border-gray-800 rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">All Groups</h1>
-          <p class="text-gray-600 text-sm mt-1">Manage and view all your expense groups</p>
+          <h1 class="text-2xl font-bold dark:text-gray-100 text-gray-900">All Groups</h1>
+          <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Manage and view all your expense groups</p>
         </div>
         <button (click)="openCreateGroupModal()"
                 class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors active:scale-95">
@@ -29,7 +29,7 @@
     @if (groups && groups.length > 0) {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         @for (group of groups; track group.groupId) {
-          <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
+          <div class="bg-white dark:bg-zinc-800/95 dark:border-gray-800 rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
             <a [routerLink]="['/group', userId, group.groupId]" class="block p-6 hover:bg-gray-50 transition-colors">
               <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-4 flex-1">
@@ -42,17 +42,17 @@
                     </svg>
                   </div>
                   <div class="flex-1">
-                    <h3 class="font-bold text-gray-900 text-lg">{{ group.groupName }}</h3>
-                    <p class="text-sm text-gray-500 mt-1">{{ getGroupStatus(group.netBalance) }}</p>
+                    <h3 class="font-bold dark:text-gray-200 text-gray-900 text-lg">{{ group.groupName }}</h3>
+                    <p class="text-sm dark:text-gray-400 text-gray-500 mt-1">{{ getGroupStatus(group.netBalance) }}</p>
                   </div>
                 </div>
               </div>
 
               <!-- Balance Card -->
               <div [ngClass]="getStatusBackground(group.netBalance)" 
-                   class="rounded-xl p-4 border">
+                   class="rounded-xl p-4">
                 <div class="flex items-center justify-between">
-                  <span class="text-sm font-medium text-gray-700">Net Balance</span>
+                  <span class="text-sm font-medium dark:text-gray-200 text-gray-700">Net Balance</span>
                   <span [ngClass]="getStatusColor(group.netBalance)" class="text-xl font-bold">
                     {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
                   </span>

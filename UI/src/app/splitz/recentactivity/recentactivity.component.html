@@ -1,10 +1,10 @@
 <div class="max-w-4xl mx-auto p-1 mb-20 lg:mb-0">
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+  <div class="bg-white dark:bg-zinc-800/50 rounded-xl shadow-sm border dark:border-gray-800 border-gray-200">
     <div class="p-6 border-b border-gray-200">
-      <h2 class="text-xl font-semibold text-gray-900">Recent activity</h2>
+      <h2 class="text-xl font-semibold dark:text-gray-100 text-gray-900">Recent activity</h2>
     </div>
 
-    <div class="divide-y divide-gray-100">
+    <div class="divide-y dark:divide-gray-800 divide-gray-100">
       @if (showLoader) {
       <app-loader></app-loader>
       }
@@ -13,20 +13,20 @@
           class="p-6 hover:bg-gray-50 transition-colors cursor-pointer">
           <div class="flex items-start space-x-4">
             <!-- Icon -->
-            <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <div class="w-12 h-12 dark:bg-emerald-900 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
               <i [class]="splitzService.getExpenseIcon(activity.expenseName) + ' text-emerald-600'"></i>
             </div>
             <!-- Content -->
             <div class="flex-1 min-w-0">
               <div class="flex items-start justify-between">
                 <div>
-                  <p class="text-sm text-gray-900">
+                  <p class="text-sm dark:text-gray-200 text-gray-900">
                     <span class="font-medium">{{ activity.actor }}</span>
-                    <span class="text-gray-600"> {{ activity.action }} "</span>
+                    <span class="dark:text-gray-400 text-gray-600"> {{ activity.action }} "</span>
                     <span class="font-medium">{{ activity.expenseName }}</span>
-                    <span class="text-gray-600">" in "</span>
+                    <span class="dark:text-gray-400 text-gray-600">" in "</span>
                     <span class="font-medium">{{ activity.groupName }}</span>
-                    <span class="text-gray-600">".</span>
+                    <span class="dark:text-gray-400 text-gray-600">".</span>
                   </p>
                   <div class="mt-2 flex items-center space-x-4">
                                     <span [ngClass]="{

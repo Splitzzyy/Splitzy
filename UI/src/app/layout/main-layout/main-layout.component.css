@@ -429,6 +429,6 @@
 /* Active navigation indicator */
 .sidebar a.active-menu {
     border-left-color: #10b981 !important;
-    background-color: #f0fdf4 !important;
+    background-color: #10b98123 !important;
     color: #10b981 !important;
 }

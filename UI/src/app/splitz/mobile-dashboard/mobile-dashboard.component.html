@@ -1,126 +1,215 @@
-<!-- Mobile Dashboard -->
-<div class="lg:hidden bg-gray-50 min-h-screen pb-20">
+<!-- Modern Mobile Dashboard - Dark Mode Support with Differentiated Buttons -->
+<div class="lg:hidden bg-gray-50 dark:bg-zinc-900 min-h-screen pb-20 transition-colors">
 
-    <!-- Header with Profile -->
-    <div class="bg-white p-4 pt-6">
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-                <!-- Profile Avatar -->
-                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-white font-semibold text-sm">{{ getInitials(userName) }}</span>
+    <!-- Header with Profile - Glassmorphism Style -->
+    <div class="relative overflow-hidden">
+        <!-- Animated Background Blobs -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-green-400/20 dark:from-emerald-500/10 dark:to-green-500/10 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute -top-10 -left-10 w-48 h-48 bg-gradient-to-br from-teal-400/20 to-emerald-400/20 dark:from-teal-500/10 dark:to-emerald-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        </div>
+        
+        <div class="relative backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 p-5 pt-8 pb-6 border-b border-gray-200/50 dark:border-gray-700/50">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <!-- Animated Profile Avatar -->
+                    <div class="relative">
+                        <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 dark:shadow-emerald-500/20 transform hover:scale-105 transition-transform duration-300">
+                            <span class="text-white font-bold text-sm">{{ getInitials(userName) }}</span>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-800 shadow-sm animate-pulse"></div>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{{ userName }}</h1>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ userEmail }}</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-base font-semibold text-gray-900">{{ userName }}</h1>
-                    <p class="text-sm opacity-75"> {{userEmail}}</p>
-                </div>
+                <!-- Animated Settings Icon -->
+                <button class="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all duration-300 hover:rotate-90 active:scale-95 group">
+                    <svg class="w-5 h-5 text-gray-700 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" 
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
             </div>
-            <!-- Settings Icon -->
-            <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </button>
         </div>
     </div>
 
-    <!-- Total Balance Card -->
-    <div class="px-4 pb-4">
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-            <div class="text-center">
-                <div class="text-gray-500 text-sm mb-2">Total Balance</div>
-                <div class="text-4xl font-bold text-gray-900 mb-4" [ngClass]="{
-                                'text-red-500': totalBalance < 0,
-                                'text-green-500': totalBalance >= 0
-                            }"> {{ formatTotalBalance(totalBalance) | currency:'INR':'symbol': '1.2-2' }}
+    <!-- Total Balance Card - Premium Glassmorphism -->
+    <div class="px-4 mt-6 pb-6">
+        <div class="relative backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 rounded-[2rem] p-6 shadow-2xl shadow-emerald-500/20 dark:shadow-emerald-500/10 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden transform hover:scale-[1.02] transition-transform duration-300">
+            <!-- Animated Background Pattern -->
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 pointer-events-none"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/10 to-green-400/10 rounded-full blur-2xl"></div>
+            
+            <div class="relative text-center">
+                <div class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm mb-3 font-medium">
+                    <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Total Balance</span>
+                </div>
+                <div class="text-5xl font-black mb-6 tracking-tight" [ngClass]="{
+                    'text-red-500 drop-shadow-lg': totalBalance < 0,
+                    'text-emerald-500 dark:text-emerald-400 drop-shadow-lg': totalBalance > 0,
+                    'text-gray-700 dark:text-gray-300': totalBalance === 0
+                }">
+                    {{ formatTotalBalance(totalBalance) | currency:'INR':'symbol': '1.2-2' }}
                 </div>
             </div>
             
-            <!-- You Owe / You're Owed Pills -->
-            <div class="flex gap-3">
+            <!-- Enhanced Action Pills with Haptic Feedback -->
+            <div class="relative flex gap-3">
                 <button 
                     (click)="navigateToDebts('owe')"
-                    class="flex-1 py-2.5 px-3 rounded-lg border-2 transition-all active:scale-95"
+                    class="flex-1 group relative overflow-hidden rounded-2xl transition-all duration-300 active:scale-95 hover:shadow-xl"
                     [ngClass]="{
-                        'border-red-200 bg-red-50': youOwe > 0,
-                        'border-gray-200 bg-white': youOwe === 0
+                        'bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/40 dark:shadow-red-500/30': youOwe > 0,
+                        'bg-white dark:bg-zinc-700 border-2 border-gray-200 dark:border-gray-600': youOwe === 0
                     }">
-                    <div class="flex items-center justify-center gap-2">
-                        <svg class="w-3.5 h-3.5" [ngClass]="youOwe > 0 ? 'text-red-600' : 'text-gray-400'" 
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                        </svg>
-                        <span class="text-xs font-medium" [ngClass]="youOwe > 0 ? 'text-red-600' : 'text-gray-500'">
-                            You Owe
-                        </span>
+                    <div class="relative py-4 px-4">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="p-2 rounded-xl transition-colors" 
+                                [ngClass]="youOwe > 0 ? 'bg-white/20' : 'bg-gray-100 dark:bg-zinc-600'">
+                                <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" 
+                                    [ngClass]="youOwe > 0 ? 'text-white' : 'text-gray-400 dark:text-gray-500'" 
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                                </svg>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-sm font-bold block mb-1" 
+                                    [ngClass]="youOwe > 0 ? 'text-white' : 'text-gray-500 dark:text-gray-400'">
+                                    You Owe
+                                </span>
+                                <span class="text-xs font-semibold opacity-90" 
+                                    [ngClass]="youOwe > 0 ? 'text-white' : 'text-gray-400 dark:text-gray-500'">
+                                    {{ youOwe | currency:'INR':'symbol': '1.2-2' }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </button>
 
                 <button 
                     (click)="navigateToDebts('owed')"
-                    class="flex-1 py-2.5 px-3 rounded-lg border-2 transition-all active:scale-95"
+                    class="flex-1 group relative overflow-hidden rounded-2xl transition-all duration-300 active:scale-95 hover:shadow-xl"
                     [ngClass]="{
-                        'border-green-200 bg-green-50': youAreOwed > 0,
-                        'border-gray-200 bg-white': youAreOwed === 0
+                        'bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/40 dark:shadow-emerald-500/30': youAreOwed > 0,
+                        'bg-white dark:bg-zinc-700 border-2 dark:border-zinc-600 border-gray-200 dark:border-gray-600': youAreOwed === 0
                     }">
-                    <div class="flex items-center justify-center gap-2">
-                        <svg class="w-3.5 h-3.5" [ngClass]="youAreOwed > 0 ? 'text-green-600' : 'text-gray-400'" 
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                        </svg>
-                        <span class="text-xs font-medium" [ngClass]="youAreOwed > 0 ? 'text-green-600' : 'text-gray-500'">
-                            You're Owed
-                        </span>
+                    <div class="relative py-4 px-4">
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="p-2 rounded-xl transition-colors" 
+                                [ngClass]="youAreOwed > 0 ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-600'">
+                                <svg class="w-5 h-5 transition-transform group-hover:translate-y-1" 
+                                    [ngClass]="youAreOwed > 0 ? 'text-white' : 'text-gray-400 dark:text-gray-500'" 
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                                </svg>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-sm font-bold block mb-1" 
+                                    [ngClass]="youAreOwed > 0 ? 'text-white' : 'text-gray-500 dark:text-gray-400'">
+                                    You're Owed
+                                </span>
+                                <span class="text-xs font-semibold opacity-90" 
+                                    [ngClass]="youAreOwed > 0 ? 'text-white' : 'text-gray-400 dark:text-gray-500'">
+                                    {{ youAreOwed | currency:'INR':'symbol': '1.2-2' }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Groups Section -->
+    <!-- Groups Section - Enhanced Cards -->
     <div class="px-4 pb-4">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-gray-900">Recent Groups</h2>
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Recent Groups</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage your shared expenses</p>
+            </div>
+            
+            <!-- DIFFERENTIATED: Create Group Button - Primary Emerald -->
             <button (click)="createGroup.emit()"
-                class="bg-purple-500 text-white p-2 rounded-lg shadow-md active:scale-95 transition-transform">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                class="relative group bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 text-white p-3.5 rounded-2xl shadow-xl shadow-purple-500/40 dark:shadow-purple-500/30 active:scale-95 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/50">
+                <svg class="w-6 h-6 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                 </svg>
+                <div class="absolute inset-0 rounded-2xl bg-white/20 opacity-0 group-active:opacity-100"></div>
             </button>
         </div>
 
         @if (groups && groups.length) {
-        <div class="space-y-3">
+        <div class="space-y-4">
             @for (group of displayGroups; track group.groupId) {
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden active:scale-98 transition-transform">
-                <a [routerLink]="['/group', userId, group.groupId]" class="block p-4">
-                    <div class="flex items-center justify-between">
-                        <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0 mr-3">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                                </path>
-                            </svg>
+            <div class="group relative backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 rounded-[1.75rem] shadow-xl shadow-gray-900/10 dark:shadow-gray-900/20 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden active:scale-98 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/20 dark:hover:shadow-emerald-500/10">
+                <!-- Gradient Accent -->
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
+                
+                <a [routerLink]="['/group', userId, group.groupId]" class="block p-5">
+                    <div class="flex items-center gap-4">
+                        <!-- Enhanced Group Icon -->
+                        <div class="relative">
+                            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 dark:shadow-emerald-500/20 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <!-- Status Indicator -->
+                            <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-gray-800 shadow-sm"
+                                [ngClass]="{
+                                    'bg-emerald-400': group.netBalance > 0,
+                                    'bg-red-400': group.netBalance < 0,
+                                    'bg-gray-400': group.netBalance === 0
+                                }">
+                            </div>
                         </div>
+                        
+                        <!-- Group Info -->
                         <div class="flex-1 min-w-0">
-                            <h3 class="font-semibold text-gray-900 text-sm truncate mb-0.5">{{ group.groupName }}</h3>
-                            <p class="text-xs text-gray-500 truncate">{{ getGroupStatus(group.netBalance) }}</p>
+                            <h3 class="font-bold text-gray-900 dark:text-white text-base truncate mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                {{ group.groupName }}
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+                                    [ngClass]="{
+                                        'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300': group.netBalance > 0,
+                                        'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300': group.netBalance < 0,
+                                        'bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-300': group.netBalance === 0
+                                    }">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <circle cx="10" cy="10" r="6"/>
+                                    </svg>
+                                    {{ getGroupStatus(group.netBalance) }}
+                                </span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+                        
+                        <!-- Amount & Action -->
+                        <div class="flex items-center gap-3 flex-shrink-0">
                             <div class="text-right">
-                                <span class="font-semibold text-sm" [ngClass]="{
-                                    'text-green-600': group.netBalance > 0,
-                                    'text-red-600': group.netBalance < 0,
-                                    'text-gray-600': group.netBalance === 0
+                                <span class="block font-black text-lg tracking-tight" [ngClass]="{
+                                    'text-emerald-600 dark:text-emerald-400': group.netBalance > 0,
+                                    'text-red-600 dark:text-red-400': group.netBalance < 0,
+                                    'text-gray-600 dark:text-gray-400': group.netBalance === 0
                                 }">
                                     {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
                                 </span>
+                                <span class="text-[0.65rem] text-gray-500 dark:text-gray-400 font-medium">Balance</span>
                             </div>
+                            
+                            <!-- DIFFERENTIATED: Add Expense Button - Outlined Style -->
                             <button
                                 (click)="$event.preventDefault(); $event.stopPropagation(); addExpense.emit(group.groupId)"
-                                class="bg-gray-200 text-gray-500 p-1.5 rounded-full active:scale-95 transition-all hover:bg-gray-300">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                class="relative group/btn backdrop-blur-xl bg-gradient-to-br from-orange-500 to-red-600 text-white p-2.5 rounded-xl active:scale-95 transition-all duration-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:shadow-lg hover:shadow-orange-500/30">
+                                <svg class="w-5 h-5 transition-transform group-hover/btn:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                                 </svg>
                             </button>
@@ -132,95 +221,155 @@
 
             @if (groups.length > 2) {
             <button (click)="viewAllGroups.emit()"
-                class="w-full bg-white text-gray-700 font-medium text-sm py-3 rounded-xl border border-gray-200 active:scale-98 transition-transform hover:bg-gray-50">
-                View All Groups ({{ groups.length }})
+                class="w-full backdrop-blur-xl bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-gray-200 font-bold text-sm py-4 rounded-2xl border-2 border-dashed border-emerald-300 dark:border-emerald-600 active:scale-98 transition-all duration-300 hover:bg-white dark:hover:bg-gray-700 hover:border-emerald-500 dark:hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/20 dark:hover:shadow-emerald-500/10">
+                <span class="inline-flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                    View All Groups ({{ groups.length }})
+                </span>
             </button>
             }
         </div>
         } @else {
-        <div class="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-200">
-            <div class="text-6xl mb-3">👥</div>
-            <h3 class="font-semibold text-gray-900 mb-2">No groups yet</h3>
-            <p class="text-sm text-gray-500 mb-4">Create a group to start splitting expenses</p>
-            <button (click)="createGroup.emit()"
-                class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2.5 rounded-xl font-medium active:scale-95 transition-all">
-                Create Your First Group
-            </button>
+        <!-- Empty State - Enhanced -->
+        <div class="relative backdrop-blur-xl bg-white/95 dark:bg-gray-800/95 rounded-[2rem] p-10 text-center shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 dark:from-emerald-500/10 dark:to-green-500/10"></div>
+            <div class="relative">
+                <div class="text-7xl mb-4 animate-bounce">👥</div>
+                <h3 class="text-xl font-black text-gray-900 dark:text-white mb-2">No groups yet</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-xs mx-auto">Start your journey by creating a group to split expenses with friends</p>
+                <button (click)="createGroup.emit()"
+                    class="inline-flex items-center gap-2 bg-gradient-to-br from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-4 rounded-2xl font-bold active:scale-95 transition-all duration-300 shadow-xl shadow-emerald-500/40 dark:shadow-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Create Your First Group
+                </button>
+            </div>
         </div>
         }
     </div>
 </div>
 
-<!-- Debts Detail Modal -->
+<!-- Debts Detail Modal - Enhanced Slide-up Design -->
 @if (showDebtsModal) {
-<div class="fixed inset-0 bg-black/60 z-50 lg:hidden" (click)="closeDebtsModal()">
-    <div class="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl max-h-[80vh] overflow-hidden"
+<div class="fixed inset-0 bg-gradient-to-b from-black/70 to-black/80 backdrop-blur-sm z-50 lg:hidden animate-fadeIn" 
+    (click)="closeDebtsModal()">
+    <div class="absolute inset-x-0 bottom-0 bg-white dark:bg-zinc-800 rounded-t-[2.5rem] max-h-[85vh] overflow-hidden shadow-2xl animate-slideUp"
         (click)="$event.stopPropagation()">
-        <div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center justify-between">
-            <h2 class="text-xl font-bold text-gray-900">{{ debtsType === 'owe' ? 'You Owe' : 'You Are Owed' }}</h2>
-            <button (click)="closeDebtsModal()" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        
+        <!-- Drag Handle -->
+        <div class="flex justify-center pt-3 pb-2">
+            <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+        </div>
+        
+        <!-- Header -->
+        <div class="sticky top-0 bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-6 py-5 flex items-center justify-between z-10">
+            <div>
+                <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                    {{ debtsType === 'owe' ? 'You Owe' : "You're Owed" }}
+                </h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {{ debtsType === 'owe' ? 'Outstanding payments' : 'Money to collect' }}
+                </p>
+            </div>
+            <button (click)="closeDebtsModal()" 
+                class="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-2xl transition-all duration-300 hover:rotate-90 active:scale-95">
+                <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
 
-        <div class="p-4 overflow-y-auto max-h-[calc(80vh-4rem)]">
+        <!-- Content -->
+        <div class="p-6 overflow-y-auto max-h-[calc(85vh-7rem)] space-y-4">
             @if (debtsType === 'owe' && oweTo && oweTo.length) {
-            <div class="space-y-3">
-                @for (person of oweTo; track person.name) {
-                <div class="bg-white rounded-2xl p-4 border-2 border-red-100 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-white font-bold text-sm">{{ getInitials(person.name) }}</span>
+            @for (person of oweTo; track person.name) {
+            <div class="group relative backdrop-blur-xl bg-white dark:bg-zinc-800 rounded-[1.75rem] p-5 border-2 border-red-200/50 dark:border-red-800/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <!-- Animated Background -->
+                <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-rose-500/10 dark:from-red-500/10 dark:to-rose-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div class="relative flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/30 dark:shadow-red-500/20">
+                                <span class="text-white font-black text-base">{{ getInitials(person.name) }}</span>
                             </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900">{{ person.name }}</h3>
-                                <p class="text-sm text-gray-600">Outstanding debt</p>
-                            </div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-red-400 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-xl font-bold text-red-600">{{ person.amount | currency:'INR':'symbol': '1.2-2' }}</div>
-                            <button class="text-xs text-red-500 font-medium mt-1 hover:underline">Settle up</button>
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white text-base">{{ person.name }}</h3>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                Outstanding debt
+                            </p>
                         </div>
                     </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-black text-red-600 dark:text-red-400 mb-1">
+                            {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
+                        </div>
+                        <button class="inline-flex items-center gap-1 text-xs text-white bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all shadow-md hover:shadow-lg">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Settle up
+                        </button>
+                    </div>
                 </div>
-                }
             </div>
+            }
             } @else if (debtsType === 'owed' && owedFrom && owedFrom.length) {
-            <div class="space-y-3">
-                @for (person of owedFrom; track person.name) {
-                <div class="bg-white rounded-2xl p-4 border-2 border-green-100 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span class="text-white font-bold text-sm">{{ getInitials(person.name) }}</span>
+            @for (person of owedFrom; track person.name) {
+            <div class="group relative backdrop-blur-xl bg-white dark:bg-gray-800 rounded-[1.75rem] p-5 border-2 border-emerald-200/50 dark:border-emerald-700/50 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <!-- Animated Background -->
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/10 dark:from-emerald-500/10 dark:to-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div class="relative flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/30 dark:shadow-emerald-500/20">
+                                <span class="text-white font-black text-base">{{ getInitials(person.name) }}</span>
                             </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900">{{ person.name }}</h3>
-                                <p class="text-sm text-gray-600">Owes you money</p>
-                            </div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white dark:border-gray-800 animate-pulse"></div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-xl font-bold text-green-600">{{ person.amount | currency:'INR':'symbol': '1.2-2' }}</div>
-                            <button class="text-xs text-green-500 font-medium mt-1 hover:underline"
-                                    (click)="sendReminder.emit(person)">
-                                Remind
-                            </button>
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white text-base">{{ person.name }}</h3>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                Owes you money
+                            </p>
                         </div>
                     </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mb-1">
+                            {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
+                        </div>
+                        <button (click)="sendReminder.emit(person)"
+                            class="inline-flex items-center gap-1 text-xs text-white bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all shadow-md hover:shadow-lg">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            Remind
+                        </button>
+                    </div>
                 </div>
-                }
             </div>
+            }
             } @else {
-            <div class="text-center py-12">
-                <div class="text-6xl mb-4">{{ debtsType === 'owe' ? '🎉' : '💸' }}</div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                    {{ debtsType === 'owe' ? 'You owe nothing!' : 'No one owes you!' }}
+            <!-- Empty State -->
+            <div class="text-center py-16 px-6">
+                <div class="text-8xl mb-6 animate-bounce">{{ debtsType === 'owe' ? '🎉' : '💸' }}</div>
+                <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-3">
+                    {{ debtsType === 'owe' ? 'All Clear!' : 'Nothing Yet!' }}
                 </h3>
-                <p class="text-gray-600">
-                    {{ debtsType === 'owe' ? 'All caught up with payments' : 'Time to add some expenses' }}
+                <p class="text-gray-600 dark:text-gray-400 text-sm max-w-xs mx-auto">
+                    {{ debtsType === 'owe' ? "You don't owe anyone. Keep up the good work!" : 'No pending money to collect. Add some expenses to get started.' }}
                 </p>
             </div>
             }
