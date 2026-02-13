@@ -43,22 +43,48 @@
               </div>
 
               <div class="flex-shrink-0">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors"
-                      [ngClass]="activity.impact.type === 'get_back' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : (activity.impact.type === 'owe' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300')">
-                  
-                  @if (activity.impact.type === 'get_back') {
+                <!-- For get_back impact (green) -->
+                @if (activity.impact.type === 'get_back') {
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                     You get back ₹{{ activity.impact.amount | number:'1.2-2' }}
-                  }
-                  @if (activity.impact.type === 'owe') {
+                  </span>
+                }
+                
+                <!-- For owe impact (red) -->
+                @if (activity.impact.type === 'owe') {
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
                     You owe ₹{{ activity.impact.amount | number:'1.2-2' }}
+                  </span>
+                }
+                
+                <!-- For info impact - check action type -->
+                @if (activity.impact.type === 'info') {
+                  <!-- Settled up -->
+                  @if (activity.action === 'settled up') {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                      Settled ₹{{ activity.impact.amount | number:'1.2-2' }}
+                    </span>
                   }
-                  @if (activity.impact.type === 'info') {
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                    You settled up ₹{{ activity.impact.amount | number:'1.2-2' }}
+                  
+                  <!-- Updated -->
+                  @if (activity.action === 'updated') {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                      Updated
+                    </span>
                   }
-                </span>
+                  
+                  <!-- Deleted -->
+                  @if (activity.action === 'deleted') {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      Deleted
+                    </span>
+                  }
+                }
               </div>
             </div>
           </div>
