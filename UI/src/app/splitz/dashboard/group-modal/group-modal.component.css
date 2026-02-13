@@ -1,5 +1,5 @@
 
-@layer utilities {
+
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
@@ -9,7 +9,7 @@
   .animate-slideIn {
     animation: slideIn 0.3s ease-out;
   }
-}
+
 
 @keyframes fadeIn {
   from { opacity: 0; }

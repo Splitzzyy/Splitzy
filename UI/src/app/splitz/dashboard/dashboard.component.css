@@ -1,5 +1,4 @@
-@layer utilities {
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
-}
