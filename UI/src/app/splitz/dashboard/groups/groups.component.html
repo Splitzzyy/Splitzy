@@ -3,7 +3,7 @@
 
   <!-- Header Section - Glassmorphism -->
   <div
-    class="relative overflow-hidden backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 border-b border-gray-200 dark:border-gray-700">
+    class="relative z-40 backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 border-b border-gray-200 dark:border-gray-700">
 
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between py-4 sm:py-5 gap-4">
@@ -67,6 +67,16 @@
             <span>Add Expense</span>
           </button>
 
+          <button (click)="exportToExcel()"
+            class="group inline-flex items-center gap-2 px-5 py-3 backdrop-blur-xl bg-white/90 dark:bg-zinc-700/90 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-600/50 text-sm font-bold text-gray-700 dark:text-gray-200 transition-all duration-300 hover:bg-white dark:hover:bg-gray-600 hover:shadow-xl active:scale-95">
+            <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Export</span>
+          </button>
+
           <button (click)="openAddMemberModal()"
             class="group inline-flex items-center gap-2 px-5 py-3 backdrop-blur-xl bg-white/90 dark:bg-zinc-700/90 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-600/50 text-sm font-bold text-gray-700 dark:text-gray-200 transition-all duration-300 hover:bg-white dark:hover:bg-gray-600 hover:shadow-xl active:scale-95">
             <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
@@ -102,16 +112,51 @@
             </svg>
           </button>
 
-          <button (click)="openDeleteGroupModal()"
-            class="group inline-flex items-center p-3 bg-gradient-to-br from-red-500 to-rose-600 dark:from-red-600 dark:to-rose-700 rounded-2xl shadow-lg shadow-red-500/40 dark:shadow-red-500/30 text-white transition-all duration-300 hover:shadow-xl hover:shadow-red-500/50 active:scale-95"
-            aria-label="Delete group">
-            <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-              </path>
-            </svg>
-          </button>
+          <!-- Mobile More Options Menu -->
+          <div class="relative">
+            <button (click)="toggleGroupMenu($event)"
+              class="group inline-flex items-center p-3 backdrop-blur-xl bg-white/90 dark:bg-zinc-700/90 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-600/50 text-gray-700 dark:text-gray-200 transition-all duration-300 hover:bg-white dark:hover:bg-gray-600 hover:shadow-xl active:scale-95"
+              aria-label="More options">
+              <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 13a1 1 0 100-2 1 1 0 000 2zM12 20a1 1 0 100-2 1 1 0 000 2zM12 6a1 1 0 100-2 1 1 0 000 2z">
+                </path>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            @if (showGroupMenu) {
+            <div
+              class="absolute right-0 mt-3 w-56 backdrop-blur-xl bg-white/95 dark:bg-zinc-800/95 rounded-2xl shadow-2xl z-50 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden origin-top-right animate-in fade-in zoom-in-95 duration-200">
+
+              <button (click)="exportToExcel(); showGroupMenu = false"
+                class="w-full text-left px-4 py-3.5 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-zinc-700/50 flex items-center space-x-3 transition-colors border-b border-gray-100 dark:border-gray-700/50">
+                <div
+                  class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                  </svg>
+                </div>
+                <span>Export Expenses</span>
+              </button>
+
+              <button (click)="openDeleteGroupModal(); showGroupMenu = false"
+                class="w-full text-left px-4 py-3.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 transition-colors">
+                <div
+                  class="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                  </svg>
+                </div>
+                <span>Delete Group</span>
+              </button>
+            </div>
+            }
+          </div>
         </div>
       </div>
     </div>
