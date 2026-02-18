@@ -1,123 +1,123 @@
-<div
-  class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 dark:bg-zinc-900">
   <div class="max-w-md w-full space-y-8">
     <!-- Header -->
     <div class="text-center">
       <div class="mx-auto h-16 w-16 bg-emerald-900 rounded-full flex items-center justify-center shadow-lg">
         <i class="fas fa-receipt text-white text-2xl"></i>
       </div>
-      <h2 class="mt-6 text-3xl font-bold text-gray-900">Welcome back</h2>
-      <p class="mt-2 text-sm text-gray-600">Please sign in to your account</p>
+      <h2 class="mt-6 text-3xl font-bold text-gray-900 dark:text-white">Welcome back</h2>
+      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Please sign in to your account</p>
     </div>
 
     <!-- Login Form -->
     @if (showLoader) {
-      <app-loader></app-loader>
+    <app-loader></app-loader>
     }
     @if (!showLoader) {
-      <div class="bg-white rounded-xl shadow-lg p-8">
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-          <!-- Error Message -->
-          @if (errorMessage) {
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div class="flex">
-                <i class="fas fa-exclamation-circle text-red-400 mt-0.5 mr-3"></i>
-                <div>
-                  <h3 class="text-sm font-medium text-red-800">Login Failed</h3>
-                  <p class="mt-1 text-sm text-red-700">{{ errorMessage }}</p>
-                </div>
-              </div>
-            </div>
-          }
-          <!-- Email Field -->
-          <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i class="fas fa-envelope text-gray-400"></i>
-              </div>
-                        <input id="email" type="email" formControlName="email" placeholder="Enter your email" [class]="'block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors ' + 
-                       (email?.invalid && email?.touched ? 'border-red-300 bg-red-50' : 'border-gray-300')"
-                autocomplete="email">
-              </div>
-              @if (email?.invalid && email?.touched) {
-                <div class="mt-1 text-sm text-red-600">
-                  {{ getErrorMessage('email') }}
-                </div>
-              }
-            </div>
-            <!-- Password Field -->
+    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-8">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Error Message -->
+        @if (errorMessage) {
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div class="flex">
+            <i class="fas fa-exclamation-circle text-red-400 mt-0.5 mr-3"></i>
             <div>
-              <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <i class="fas fa-lock text-gray-400"></i>
-                </div>
-                <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
-                            placeholder="Enter your password" [class]="'block w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors ' + 
-                       (password?.invalid && password?.touched ? 'border-red-300 bg-red-50' : 'border-gray-300')"
-                  autocomplete="current-password">
-                  <button type="button" (click)="togglePasswordVisibility()"
-                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
-                    class="text-gray-400 hover:text-gray-600"></i>
-                  </button>
-                </div>
-                @if (password?.invalid && password?.touched) {
-                  <div class="mt-1 text-sm text-red-600">
-                    {{ getErrorMessage('password') }}
-                  </div>
-                }
-              </div>
-              <!-- Remember Me & Forgot Password -->
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <input id="remember-me" type="checkbox"
-                    class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
-                    <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-                      Remember me
-                    </label>
-                  </div>
-                  <div class="text-sm">
-                    <a href="/forgot-password" class="font-medium text-emerald-600 hover:text-emerald-500">
-                      Forgot password?
-                    </a>
-                  </div>
-                </div>
-                <!-- Submit Button -->
-                <div>
-                  <button type="submit" [disabled]="isLoading"
-                    class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-emerald-900 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                    @if (isLoading) {
-                      <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <i class="fas fa-spinner fa-spin text-white"></i>
-                      </span>
-                    }
-                    @if (!isLoading) {
-                      <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <i class="fas fa-sign-in-alt text-white group-hover:text-emerald-400"></i>
-                      </span>
-                    }
-                    {{ isLoading ? 'Signing in...' : 'Sign in' }}
-                  </button>
-                </div>
-                <!-- Sign Up Link -->
-                <div class="text-center space-y-4">
-                  <!-- New Google SSO button -->
-                  <div id="g_id_signin"></div>
-                  <p class="text-sm text-gray-600">
-                    Don't have an account?
-                    <a href="/register" class="font-medium text-emerald-600 hover:text-emerald-500 ml-1">
-                      Sign up here
-                    </a>
-                  </p>
-                </div>
-              </form>
+              <h3 class="text-sm font-medium text-red-800 dark:text-red-200">Login Failed</h3>
+              <p class="mt-1 text-sm text-red-700 dark:text-red-300">{{ errorMessage }}</p>
             </div>
+          </div>
+        </div>
+        }
+        <!-- Email Field -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Email Address
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-envelope text-gray-400"></i>
+            </div>
+            <input id="email" type="email" formControlName="email" placeholder="Enter your email"
+              [class]="'block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors dark:bg-zinc-700 dark:text-white ' + 
+                       (email?.invalid && email?.touched ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20' : 'border-gray-300 dark:border-zinc-600')" autocomplete="email">
+          </div>
+          @if (email?.invalid && email?.touched) {
+          <div class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('email') }}
+          </div>
           }
         </div>
-      </div>
+        <!-- Password Field -->
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Password
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-lock text-gray-400"></i>
+            </div>
+            <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
+              placeholder="Enter your password"
+              [class]="'block w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors dark:bg-zinc-700 dark:text-white ' + 
+                       (password?.invalid && password?.touched ? 'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20' : 'border-gray-300 dark:border-zinc-600')"
+              autocomplete="current-password">
+            <button type="button" (click)="togglePasswordVisibility()"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer">
+              <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"></i>
+            </button>
+          </div>
+          @if (password?.invalid && password?.touched) {
+          <div class="mt-1 text-sm text-red-600">
+            {{ getErrorMessage('password') }}
+          </div>
+          }
+        </div>
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <input id="remember-me" type="checkbox"
+              class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded">
+            <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Remember me
+            </label>
+          </div>
+          <div class="text-sm">
+            <a href="/forgot-password" class="font-medium text-emerald-600 hover:text-emerald-500">
+              Forgot password?
+            </a>
+          </div>
+        </div>
+        <!-- Submit Button -->
+        <div>
+          <button type="submit" [disabled]="isLoading"
+            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-emerald-900 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            @if (isLoading) {
+            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+              <i class="fas fa-spinner fa-spin text-white"></i>
+            </span>
+            }
+            @if (!isLoading) {
+            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+              <i class="fas fa-sign-in-alt text-white group-hover:text-emerald-400"></i>
+            </span>
+            }
+            {{ isLoading ? 'Signing in...' : 'Sign in' }}
+          </button>
+        </div>
+        <!-- Sign Up Link -->
+        <div class="text-center space-y-4">
+          <!-- New Google SSO button -->
+          <div id="g_id_signin"></div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Don't have an account?
+            <a href="/register" class="font-medium text-emerald-600 hover:text-emerald-500 ml-1">
+              Sign up here
+            </a>
+          </p>
+        </div>
+      </form>
+    </div>
+    }
+  </div>
+</div>

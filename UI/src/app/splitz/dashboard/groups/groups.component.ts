@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { SplitzService } from '../../services/splitz.service';
@@ -46,21 +46,23 @@ export class GroupsComponent implements OnInit {
   showConfirmModal: boolean = false;
   confirmModalConfig: any = {};
   expenseId: number | null = null;
-  pendingDeleteAction: () => void = () => {};
+  pendingDeleteAction: () => void = () => { };
   expandedExpenseMenu: number | null = null;
   userName: string | null = null;
   addOrEdit: 'Add' | 'Edit' | null = 'Add';
   expandedExpenseOverview: number | null = null;
   expenseDetailsCache: Map<number, any> = new Map();
   settlements: any[] = [];
+
   combinedActivities: any[] = [];
+  showGroupMenu: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private location: Location,
     public splitzService: SplitzService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getDataFromRouteParams();
@@ -71,7 +73,7 @@ export class GroupsComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.userId = params['userId'];
       this.groupId = +params['groupId'];
-      
+
       if (!this.groupData) {
         this.fetchGroupData(this.groupId);
       }
@@ -296,7 +298,7 @@ export class GroupsComponent implements OnInit {
     let totalAmount = 0.0;
     this.expenses.forEach((expense: any) => {
       if (totalOrMonthly === 'total') return totalAmount += expense.amount;
-      
+
       const expenseDate = new Date(expense.createdAt);
       if (expenseDate.getMonth() === currentMonth &&
         expenseDate.getFullYear() === currentYear) {
@@ -345,6 +347,19 @@ export class GroupsComponent implements OnInit {
     this.expandedExpenseMenu = null;
     this.expandedExpenseOverview = null;
   }
+
+  toggleGroupMenu(event: Event): void {
+    event.stopPropagation();
+    this.showGroupMenu = !this.showGroupMenu;
+  }
+
+  // Close menus when clicking outside
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.showGroupMenu = false;
+    this.expandedExpenseMenu = null;
+  }
+
   getGroupedActivities(): { date: string, displayDate: string, activities: any[] }[] {
     const grouped = new Map<string, any[]>();
 
@@ -391,5 +406,44 @@ export class GroupsComponent implements OnInit {
         year: 'numeric'
       });
     }
+  }
+
+  // Export to Excel / CSV
+  exportToExcel(): void {
+    if (!this.groupData || !this.expenses || this.expenses.length === 0) {
+      if (this.splitzService) {
+        this.splitzService.show('No expenses to export', 'info');
+      }
+      return;
+    }
+
+    // Define CSV headers
+    const headers = ['Date', 'Expense Name', 'Amount', 'Paid By', 'You Owe', 'You Lent'];
+
+    // Format data rows
+    const rows = this.expenses.map(expense => {
+      const date = new Date(expense.createdAt).toLocaleDateString();
+      const name = `"${(expense.name || '').replace(/"/g, '""')}"`; // Escape quotes
+      const amount = expense.amount;
+      const paidBy = `"${(expense.paidBy || '').replace(/"/g, '""')}"`;
+      const youOwe = expense.youOwe;
+      const youLent = expense.youLent;
+
+      return [date, name, amount, paidBy, youOwe, youLent].join(',');
+    });
+
+    // Combine headers and rows
+    const csvContent = [headers.join(','), ...rows].join('\n');
+
+    // Create a Blob and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${this.groupData.name}_Expenses.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
