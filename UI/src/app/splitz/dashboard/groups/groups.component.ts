@@ -46,7 +46,7 @@ export class GroupsComponent implements OnInit {
   showConfirmModal: boolean = false;
   confirmModalConfig: any = {};
   expenseId: number | null = null;
-  pendingDeleteAction: () => void = () => {};
+  pendingDeleteAction: () => void = () => { };
   expandedExpenseMenu: number | null = null;
   userName: string | null = null;
   addOrEdit: 'Add' | 'Edit' | null = 'Add';
@@ -60,7 +60,7 @@ export class GroupsComponent implements OnInit {
     private router: Router,
     private location: Location,
     public splitzService: SplitzService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getDataFromRouteParams();
@@ -71,7 +71,7 @@ export class GroupsComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.userId = params['userId'];
       this.groupId = +params['groupId'];
-      
+
       if (!this.groupData) {
         this.fetchGroupData(this.groupId);
       }
@@ -296,7 +296,7 @@ export class GroupsComponent implements OnInit {
     let totalAmount = 0.0;
     this.expenses.forEach((expense: any) => {
       if (totalOrMonthly === 'total') return totalAmount += expense.amount;
-      
+
       const expenseDate = new Date(expense.createdAt);
       if (expenseDate.getMonth() === currentMonth &&
         expenseDate.getFullYear() === currentYear) {

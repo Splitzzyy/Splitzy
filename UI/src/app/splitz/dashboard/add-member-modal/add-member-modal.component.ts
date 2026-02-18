@@ -30,7 +30,7 @@ export class AddMemberModalComponent {
     this.save.emit(addMemberRequest);
   }
   onClose() {
-   this.close.emit();
+    this.close.emit();
   }
   isValid(): boolean {
     const validEmails = this.userEmails.filter(email => {

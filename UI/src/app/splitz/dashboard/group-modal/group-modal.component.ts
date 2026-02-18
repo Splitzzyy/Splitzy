@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-group-modal',
@@ -16,7 +16,7 @@ export class GroupModalComponent implements OnInit {
   groupName: string = '';
   userEmails: string[] = [''];
   spltizService: any;
-  
+
   ngOnInit() {
     // Initialize with empty email field
   }
@@ -39,12 +39,12 @@ export class GroupModalComponent implements OnInit {
     if (this.groupName.trim() === '') {
       return false;
     }
-    
+
     // Validate at least one email is provided and valid
     const validEmails = this.userEmails.filter(email => {
       return email.trim() !== '' && this.isValidEmail(email);
     });
-    
+
     return validEmails.length > 0;
   }
 

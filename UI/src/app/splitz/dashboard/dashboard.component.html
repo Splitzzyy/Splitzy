@@ -1,283 +1,304 @@
 @if (showLoader) {
-  <app-loader></app-loader>
+<app-loader></app-loader>
 }
 @if (!showLoader) {
-  <app-mobile-dashboard 
-    class="lg:hidden"
-    [userName]="userName"
-    [totalBalance]="totalBalance"
-    [youOwe]="youOwe"
-    [youAreOwed]="youAreOwed"
-    [groups]="groups"
-    [oweTo]="oweTo"
-    [owedFrom]="owedFrom"
-    [userId]="userId"
-    [userEmail]="userEmail"
-    (createGroup)="openCreateGroupModal()"
-    (sendReminder)="sendReminder($event.id, $event.amount)"
-    (addExpense)="openAddExpenseModal($event)"
-    (viewAllGroups)="navigateToAllGroups()">
-  </app-mobile-dashboard>
+<app-mobile-dashboard class="lg:hidden" [userName]="userName" [totalBalance]="totalBalance" [youOwe]="youOwe"
+  [youAreOwed]="youAreOwed" [groups]="groups" [oweTo]="oweTo" [owedFrom]="owedFrom" [userId]="userId"
+  [userEmail]="userEmail" (createGroup)="openCreateGroupModal()" (sendReminder)="sendReminder($event.id, $event.amount)"
+  (addExpense)="openAddExpenseModal($event)" (viewAllGroups)="navigateToAllGroups()">
+</app-mobile-dashboard>
 
-  <div class="hidden lg:block p-6 min-h-[85vh] lg:min-h-[100vh]">
-    <div class="grid gap-6 grid-cols-1 xl:grid-cols-[2fr_1fr] h-full">
-      
-      <div class="flex flex-col gap-6">
-        
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-[0_1px_3px_0_rgba(0,0,0,0.1)] border border-zinc-100 dark:border-zinc-700 p-4 md:p-6">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 class="text-2xl md:text-[1.875rem] font-bold text-zinc-900 dark:text-zinc-100 m-0 mb-1">Welcome to Splitzy</h1>
-              <p class="text-sm text-zinc-500 dark:text-zinc-400 m-0">Here's your expense overview</p>
-            </div>
-            <div class="flex flex-col items-start md:items-end w-full md:w-auto">
-              <span class="text-xs text-zinc-400">Last updated</span>
-              <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ getCurrentDate() }}</span>
-            </div>
+<div class="hidden lg:block p-6 min-h-[85vh] lg:min-h-[100vh]">
+  <div class="grid gap-6 grid-cols-1 xl:grid-cols-[2fr_1fr] h-full">
+
+    <div class="flex flex-col gap-6">
+
+      <div
+        class="bg-white dark:bg-zinc-800 rounded-2xl shadow-[0_1px_3px_0_rgba(0,0,0,0.1)] border border-zinc-100 dark:border-zinc-700 p-4 md:p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl md:text-[1.875rem] font-bold text-zinc-900 dark:text-zinc-100 m-0 mb-1">Welcome to
+              Splitzy</h1>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400 m-0">Here's your expense overview</p>
           </div>
-        </div>
-
-        <div class="grid gap-6 grid-cols-1 md:grid-cols-3">
-          
-          <div class="rounded-2xl p-4 md:p-6 text-white shadow-md hover:-translate-y-1 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-zinc-600 to-zinc-700">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 rounded-xl bg-white/20">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                </svg>
-              </div>
-              <div class="flex flex-col items-end">
-                <span class="text-xs uppercase tracking-wider opacity-90 mb-1">Total Balance</span>
-                <span class="text-2xl md:text-4xl xl:text-2xl font-bold">{{ totalBalance | currency:'INR':'symbol': '1.2-2' }}</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 text-sm opacity-90">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-              </svg>
-              <span>Overall financial position</span>
-            </div>
-          </div>
-
-          <div class="rounded-2xl p-4 md:p-6 text-white shadow-md hover:-translate-y-1 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-orange-500 to-red-600">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 rounded-xl bg-white/20">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                </svg>
-              </div>
-              <div class="flex flex-col items-end">
-                <span class="text-xs uppercase tracking-wider opacity-90 mb-1">You Owe</span>
-                <span class="text-2xl md:text-4xl xl:text-2xl font-bold">{{ youOwe | currency:'INR':'symbol': '1.2-2' }}</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 text-sm opacity-90">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>Amount to pay back</span>
-            </div>
-          </div>
-
-          <div class="rounded-2xl p-4 md:p-6 text-white shadow-md hover:-translate-y-1 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-emerald-500 to-emerald-600">
-            <div class="flex items-center justify-between mb-4">
-              <div class="p-3 rounded-xl bg-white/20">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                </svg>
-              </div>
-              <div class="flex flex-col items-end">
-                <span class="text-xs uppercase tracking-wider opacity-90 mb-1">You Are Owed</span>
-                <span class="text-2xl md:text-4xl xl:text-2xl font-bold">{{ youAreOwed | currency:'INR':'symbol': '1.2-2' }}</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 text-sm opacity-90">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>Amount to receive</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid gap-6 grid-cols-1 md:grid-cols-2">
-          
-          <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 overflow-hidden flex flex-col">
-            <div class="p-4 md:p-6 border-b border-red-300 dark:border-red-900/50">
-              <div class="flex items-center gap-3">
-                <div class="bg-red-600 p-2 rounded-lg">
-                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-                  </svg>
-                </div>
-                <h2 class="text-xl font-bold m-0 text-red-800 dark:text-red-400">You Owe</h2>
-              </div>
-            </div>
-            <div class="p-4 md:p-6 overflow-y-auto max-h-[400px] custom-scrollbar flex-1">
-              @if (oweTo && oweTo.length) {
-                <div class="flex flex-col gap-3">
-                  @for (person of oweTo; track trackByPersonName($index, person)) {
-                    <div class="flex flex-col md:flex-row md:items-center justify-between p-4 border-2 border-transparent rounded-xl transition-all duration-200 gap-3 md:gap-0 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 hover:border-red-200 dark:hover:border-red-900/50">
-                      <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0 bg-red-600">
-                          <span>{{ getInitials(person.name) }}</span>
-                        </div>
-                        <div class="flex flex-col">
-                          <span class="text-base font-semibold text-zinc-900 dark:text-zinc-100">{{ person.name }}</span>
-                          <span class="text-sm text-zinc-500 dark:text-zinc-400">Outstanding debt</span>
-                        </div>
-                      </div>
-                      <div class="flex flex-col items-start md:items-end gap-1 w-full md:w-auto">
-                        <span class="text-base font-bold text-red-600 dark:text-red-400">
-                          {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
-                        </span>
-                        <button class="text-xs font-medium bg-transparent border-none cursor-pointer p-0 transition-opacity duration-200 hover:opacity-70 text-red-600 dark:text-red-400">
-                          Settle up
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <div class="flex flex-col items-center justify-center py-12 px-4">
-                  <div class="text-6xl mb-4">🎉</div>
-                  <span class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">You owe nothing!</span>
-                  <span class="text-sm text-zinc-400 text-center">You're all caught up with payments</span>
-                </div>
-              }
-            </div>
-          </div>
-
-          <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 overflow-hidden flex flex-col">
-            <div class="p-4 md:p-6 border-b border-emerald-300 dark:border-emerald-900/50">
-              <div class="flex items-center gap-3">
-                <div class="bg-emerald-500 p-2 rounded-lg">
-                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-                  </svg>
-                </div>
-                <h2 class="text-xl font-bold m-0 text-emerald-800 dark:text-emerald-400">You Are Owed</h2>
-              </div>
-            </div>
-            <div class="p-4 md:p-6 overflow-y-auto max-h-[400px] custom-scrollbar flex-1">
-              @if (owedFrom && owedFrom.length) {
-                <div class="flex flex-col gap-3">
-                  @for (person of owedFrom; track trackByPersonName($index, person)) {
-                    <div class="flex flex-col md:flex-row md:items-center justify-between p-4 border-2 border-transparent rounded-xl transition-all duration-200 gap-3 md:gap-0 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 hover:border-emerald-200 dark:hover:border-emerald-900/50">
-                      <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0 bg-emerald-500">
-                          <span>{{ getInitials(person.name) }}</span>
-                        </div>
-                        <div class="flex flex-col">
-                          <span class="text-base font-semibold text-zinc-900 dark:text-zinc-100">{{ person.name }}</span>
-                          <span class="text-sm text-zinc-500 dark:text-zinc-400">Owes you money</span>
-                        </div>
-                      </div>
-                      <div class="flex flex-col items-start md:items-end gap-1 w-full md:w-auto">
-                        <span class="text-base font-bold text-emerald-500 dark:text-emerald-400">
-                          {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
-                        </span>
-                        <button class="text-xs font-medium bg-transparent border-none cursor-pointer p-0 transition-opacity duration-200 hover:opacity-70 text-emerald-500 dark:text-emerald-400" 
-                                (click)="sendReminder(person.id , person.amount)">
-                          Remind
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <div class="flex flex-col items-center justify-center py-12 px-4">
-                  <div class="text-6xl mb-4">💸</div>
-                  <span class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">No one owes you!</span>
-                  <span class="text-sm text-zinc-400 text-center">Time to add some expenses</span>
-                </div>
-              }
-            </div>
+          <div class="flex flex-col items-start md:items-end w-full md:w-auto">
+            <span class="text-xs text-zinc-400">Last updated</span>
+            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ getCurrentDate() }}</span>
           </div>
         </div>
       </div>
 
-      <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 overflow-hidden flex flex-col xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)]">
-        <div class="p-4 md:p-6 border-b border-purple-300 dark:border-purple-800/50 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="bg-purple-500 p-2 rounded-lg">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+      <div class="grid gap-6 grid-cols-1 md:grid-cols-3">
+
+        <div
+          class="rounded-2xl p-4 md:p-6 text-white shadow-md hover:-translate-y-1 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-zinc-600 to-zinc-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="p-3 rounded-xl bg-white/20">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
               </svg>
             </div>
-            <h2 class="text-xl font-bold m-0 text-purple-900 dark:text-purple-400">Groups</h2>
+            <div class="flex flex-col items-end">
+              <span class="text-xs uppercase tracking-wider opacity-90 mb-1">Total Balance</span>
+              <span class="text-2xl md:text-4xl xl:text-2xl font-bold">{{ totalBalance | currency:'INR':'symbol':
+                '1.2-2' }}</span>
+            </div>
           </div>
-          <button (click)="openCreateGroupModal()" class="text-white bg-purple-500 hover:bg-purple-600 hover:scale-105 border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0">
+          <div class="flex items-center gap-2 text-sm opacity-90">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+              </path>
             </svg>
-          </button>
+            <span>Overall financial position</span>
+          </div>
         </div>
-        <div class="p-4 md:p-6 overflow-y-auto flex-1 xl:max-h-[500px] custom-scrollbar">
-          @if (groups && groups.length) {
+
+        <div
+          class="rounded-2xl p-4 md:p-6 text-white shadow-md hover:-translate-y-1 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-orange-500 to-red-600">
+          <div class="flex items-center justify-between mb-4">
+            <div class="p-3 rounded-xl bg-white/20">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18">
+                </path>
+              </svg>
+            </div>
+            <div class="flex flex-col items-end">
+              <span class="text-xs uppercase tracking-wider opacity-90 mb-1">You Owe</span>
+              <span class="text-2xl md:text-4xl xl:text-2xl font-bold">{{ youOwe | currency:'INR':'symbol': '1.2-2'
+                }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-sm opacity-90">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Amount to pay back</span>
+          </div>
+        </div>
+
+        <div
+          class="rounded-2xl p-4 md:p-6 text-white shadow-md hover:-translate-y-1 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-emerald-500 to-emerald-600">
+          <div class="flex items-center justify-between mb-4">
+            <div class="p-3 rounded-xl bg-white/20">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
+                </path>
+              </svg>
+            </div>
+            <div class="flex flex-col items-end">
+              <span class="text-xs uppercase tracking-wider opacity-90 mb-1">You Are Owed</span>
+              <span class="text-2xl md:text-4xl xl:text-2xl font-bold">{{ youAreOwed | currency:'INR':'symbol': '1.2-2'
+                }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 text-sm opacity-90">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+              </path>
+            </svg>
+            <span>Amount to receive</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-6 grid-cols-1 md:grid-cols-2">
+
+        <div
+          class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 overflow-hidden flex flex-col">
+          <div class="p-4 md:p-6 border-b border-red-300 dark:border-red-900/50">
+            <div class="flex items-center gap-3">
+              <div class="bg-red-600 p-2 rounded-lg">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18">
+                  </path>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold m-0 text-red-800 dark:text-red-400">You Owe</h2>
+            </div>
+          </div>
+          <div class="p-4 md:p-6 overflow-y-auto max-h-[400px] custom-scrollbar flex-1">
+            @if (oweTo && oweTo.length) {
             <div class="flex flex-col gap-3">
-              @for (group of groups; track trackByGroupId($index, group)) {
-                <div class="flex items-center justify-between p-4 border-2 border-transparent rounded-xl transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-800/50 hover:shadow-sm group">
-                  <a [routerLink]="['/group', userId, group.groupId]" class="flex items-center gap-3 no-underline min-w-0 flex-1">
-                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
-                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                      </svg>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                      <span class="text-base font-semibold text-zinc-900 dark:text-zinc-100 transition-colors duration-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 whitespace-nowrap overflow-hidden text-ellipsis">{{ group.groupName }}</span>
-                      <span class="text-sm text-zinc-500 dark:text-zinc-400">{{ getGroupStatus(group.netBalance) }}</span>
-                    </div>
-                  </a>
-                  <div class="flex items-center gap-3">
-                    <div class="flex flex-col items-end">
-                      <span class="text-base font-bold" [ngClass]="{
+              @for (person of oweTo; track trackByPersonName($index, person)) {
+              <div
+                class="flex flex-col md:flex-row md:items-center justify-between p-4 border-2 border-transparent rounded-xl transition-all duration-200 gap-3 md:gap-0 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 hover:border-red-200 dark:hover:border-red-900/50">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0 bg-red-600">
+                    <span>{{ getInitials(person.name) }}</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-base font-semibold text-zinc-900 dark:text-zinc-100">{{ person.name }}</span>
+                    <span class="text-sm text-zinc-500 dark:text-zinc-400">Outstanding debt</span>
+                  </div>
+                </div>
+                <div class="flex flex-col items-start md:items-end gap-1 w-full md:w-auto">
+                  <span class="text-base font-bold text-red-600 dark:text-red-400">
+                    {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
+                  </span>
+                  <button
+                    class="text-xs font-medium bg-transparent border-none cursor-pointer p-0 transition-opacity duration-200 hover:opacity-70 text-red-600 dark:text-red-400">
+                    Settle up
+                  </button>
+                </div>
+              </div>
+              }
+            </div>
+            } @else {
+            <div class="flex flex-col items-center justify-center py-12 px-4">
+              <div class="text-6xl mb-4">🎉</div>
+              <span class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">You owe nothing!</span>
+              <span class="text-sm text-zinc-400 text-center">You're all caught up with payments</span>
+            </div>
+            }
+          </div>
+        </div>
+
+        <div
+          class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 overflow-hidden flex flex-col">
+          <div class="p-4 md:p-6 border-b border-emerald-300 dark:border-emerald-900/50">
+            <div class="flex items-center gap-3">
+              <div class="bg-emerald-500 p-2 rounded-lg">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
+                  </path>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold m-0 text-emerald-800 dark:text-emerald-400">You Are Owed</h2>
+            </div>
+          </div>
+          <div class="p-4 md:p-6 overflow-y-auto max-h-[400px] custom-scrollbar flex-1">
+            @if (owedFrom && owedFrom.length) {
+            <div class="flex flex-col gap-3">
+              @for (person of owedFrom; track trackByPersonName($index, person)) {
+              <div
+                class="flex flex-col md:flex-row md:items-center justify-between p-4 border-2 border-transparent rounded-xl transition-all duration-200 gap-3 md:gap-0 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 hover:border-emerald-200 dark:hover:border-emerald-900/50">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0 bg-emerald-500">
+                    <span>{{ getInitials(person.name) }}</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-base font-semibold text-zinc-900 dark:text-zinc-100">{{ person.name }}</span>
+                    <span class="text-sm text-zinc-500 dark:text-zinc-400">Owes you money</span>
+                  </div>
+                </div>
+                <div class="flex flex-col items-start md:items-end gap-1 w-full md:w-auto">
+                  <span class="text-base font-bold text-emerald-500 dark:text-emerald-400">
+                    {{ person.amount | currency:'INR':'symbol': '1.2-2' }}
+                  </span>
+                  <button
+                    class="text-xs font-medium bg-transparent border-none cursor-pointer p-0 transition-opacity duration-200 hover:opacity-70 text-emerald-500 dark:text-emerald-400"
+                    (click)="sendReminder(person.id , person.amount)">
+                    Remind
+                  </button>
+                </div>
+              </div>
+              }
+            </div>
+            } @else {
+            <div class="flex flex-col items-center justify-center py-12 px-4">
+              <div class="text-6xl mb-4">💸</div>
+              <span class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">No one owes you!</span>
+              <span class="text-sm text-zinc-400 text-center">Time to add some expenses</span>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-700 overflow-hidden flex flex-col xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)]">
+      <div class="p-4 md:p-6 border-b border-purple-300 dark:border-purple-800/50 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-purple-500 p-2 rounded-lg">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+              </path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold m-0 text-purple-900 dark:text-purple-400">Groups</h2>
+        </div>
+        <button (click)="openCreateGroupModal()"
+          class="text-white bg-purple-500 hover:bg-purple-600 hover:scale-105 border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 md:p-6 overflow-y-auto flex-1 xl:max-h-[500px] custom-scrollbar">
+        @if (groups && groups.length) {
+        <div class="flex flex-col gap-3">
+          @for (group of groups; track trackByGroupId($index, group)) {
+          <div
+            class="flex items-center justify-between p-4 border-2 border-transparent rounded-xl transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-800/50 hover:shadow-sm group">
+            <a [routerLink]="['/group', userId, group.groupId]"
+              class="flex items-center gap-3 no-underline min-w-0 flex-1">
+              <div
+                class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                  </path>
+                </svg>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <span
+                  class="text-base font-semibold text-zinc-900 dark:text-zinc-100 transition-colors duration-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 whitespace-nowrap overflow-hidden text-ellipsis">{{
+                  group.groupName }}</span>
+                <span class="text-sm text-zinc-500 dark:text-zinc-400">{{ getGroupStatus(group.netBalance) }}</span>
+              </div>
+            </a>
+            <div class="flex items-center gap-3">
+              <div class="flex flex-col items-end">
+                <span class="text-base font-bold" [ngClass]="{
                         'text-emerald-500 dark:text-emerald-400': group.netBalance > 0,
                         'text-red-600 dark:text-red-400': group.netBalance < 0,
                         'text-zinc-500 dark:text-zinc-400': group.netBalance === 0
                       }">
-                        {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
-                      </span>
-                    </div>
-                    <button (click)="openAddExpenseModal(group.groupId)" class="text-white bg-gradient-to-br from-orange-500 to-red-600 hover:scale-110 hover:shadow-[0_4px_6px_-1px_rgba(249,115,22,0.3)] border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="flex flex-col items-center justify-center py-12 px-4">
-              <div class="text-6xl mb-4">👥</div>
-              <span class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">No groups yet!</span>
-              <span class="text-sm text-zinc-400 text-center mb-4">Create a group to start splitting expenses</span>
-              <button (click)="openCreateGroupModal()" class="bg-purple-500 hover:bg-purple-600 hover:-translate-y-[1px] text-white border-none py-3 px-6 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200">
-                Create Group
+                  {{ group.netBalance | currency:'INR':'symbol': '1.2-2' }}
+                </span>
+              </div>
+              <button (click)="openAddExpenseModal(group.groupId)"
+                class="text-white bg-gradient-to-br from-orange-500 to-red-600 hover:scale-110 hover:shadow-[0_4px_6px_-1px_rgba(249,115,22,0.3)] border-none rounded-full w-8 h-8 flex items-center justify-center cursor-pointer transition-all duration-200 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
               </button>
             </div>
+          </div>
           }
         </div>
+        } @else {
+        <div class="flex flex-col items-center justify-center py-12 px-4">
+          <div class="text-6xl mb-4">👥</div>
+          <span class="font-semibold mb-2 text-zinc-900 dark:text-zinc-100">No groups yet!</span>
+          <span class="text-sm text-zinc-400 text-center mb-4">Create a group to start splitting expenses</span>
+          <button (click)="openCreateGroupModal()"
+            class="bg-purple-500 hover:bg-purple-600 hover:-translate-y-[1px] text-white border-none py-3 px-6 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200">
+            Create Group
+          </button>
+        </div>
+        }
       </div>
     </div>
   </div>
+</div>
 }
 
 @if (showExpenseModal) {
-  <app-expense-modal
-    [groupId]="selectedGroupId!"
-    [members]="selectedGroupMembers"
-    [addOrEdit]="addOrEdit"
-    [currentUserId]="userId!"
-    (close)="closeExpenseModal()"
-    (save)="onExpenseSaved($event)">
-  </app-expense-modal>
+<app-expense-modal [groupId]="selectedGroupId!" [members]="selectedGroupMembers" [addOrEdit]="addOrEdit"
+  [currentUserId]="userId!" (close)="closeExpenseModal()" (save)="onExpenseSaved($event)">
+</app-expense-modal>
 }
 
 @if (showGroupModal) {
-  <app-group-modal
-    (close)="closeGroupModal()"
-    (save)="onGroupSaved($event)">
-  </app-group-modal>
+<app-group-modal (close)="closeGroupModal()" (save)="onGroupSaved($event)">
+</app-group-modal>
 }

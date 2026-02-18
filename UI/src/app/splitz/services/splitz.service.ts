@@ -51,7 +51,7 @@ export class SplitzService {
     const tokenStr = token.toString();
     this.tokenStorageService.setToken(tokenStr);
     this.tokenSubject.next(tokenStr);
-    
+
     // Start auto-refresh when token is set
     this.tokenRefreshService.startAutoRefresh();
   }
@@ -160,13 +160,13 @@ export class SplitzService {
             // Store received credentials from backend
             localStorage.setItem('userId', response.data.id);
             this.tokenStorageService.setToken(response.data.token);
-            
+
             this.userIdSubject.next(response.data.id);
             this.tokenSubject.next(response.data.token);
-            
+
             // Start auto-refresh with new token
             this.tokenRefreshService.startAutoRefresh();
-            
+
             this.router.navigateByUrl('/dashboard', { replaceUrl: true });
           }
           else {
