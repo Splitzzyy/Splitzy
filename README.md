@@ -18,6 +18,9 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 - **💳 Settlement Tracking**: Keep track of payments and settle debts
 - **📈 Expense Analytics**: Visual insights into spending patterns
 - **🔐 Secure Authentication**: Safe and secure user authentication
+- **📸 Smart Receipt Scanning**: AI-powered OCR to automatically extract expense details from receipts
+- **📤 Export to Excel**: Download group expenses to CSV/Excel for offline records
+- **🔔 Smart Reminders**: Send gentle notifications to remind friends about pending settlements
 - **📧 Notifications**: Email reminders for pending expenses and settlements
 
 ## Tech Stack
@@ -196,9 +199,9 @@ docker run -p 3000:3000 splitzy
 ## Roadmap
 
 - [ ] Mobile app (React Native/Flutter)
-- [ ] Receipt scanning with OCR
+- [x] Receipt scanning with OCR
 - [ ] Multiple currency support
-- [ ] Expense categories and budgeting
+- [x] Expense categories and budgeting
 - [ ] Integration with banking APIs
 - [ ] Advanced analytics and reporting
 - [ ] Recurring expenses

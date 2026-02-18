@@ -6,40 +6,40 @@
 
   <!-- Navigation -->
   <nav>
-  <div class="nav-container">
+    <div class="nav-container">
 
-    <!-- Logo -->
-    <a routerLink="/" class="logo" (click)="closeMobileMenu()">
-      <div class="logo-icon">
-        <i class="fas fa-receipt"></i>
+      <!-- Logo -->
+      <a routerLink="/" class="logo" (click)="closeMobileMenu()">
+        <div class="logo-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <span class="logo-text">Splitzy</span>
+      </a>
+
+      <!-- Desktop Links -->
+      <ul class="nav-links" [class.mobile-open]="isMobileMenuOpen">
+        <li><a (click)="scrollToFeatures()">Features</a></li>
+        <li>
+          <a href="https://github.com/Splitzzyy/Splitzy" target="_blank">Source Code</a>
+        </li>
+        <li>
+          <a href="https://github.com/Splitzzyy/Splitzy/issues" target="_blank">Raise an Issue</a>
+        </li>
+      </ul>
+
+      <!-- Desktop CTA -->
+      <div class="nav-cta" [class.mobile-open]="isMobileMenuOpen">
+        <button (click)="navigateToLogin()" class="btn-nav btn-login">Log in</button>
+        <button (click)="navigateToRegister()" class="btn-nav btn-signup">Sign up</button>
       </div>
-      <span class="logo-text">Splitzy</span>
-    </a>
 
-    <!-- Desktop Links -->
-    <ul class="nav-links" [class.mobile-open]="isMobileMenuOpen">
-      <li><a (click)="scrollToFeatures()">Features</a></li>
-      <li>
-        <a href="https://github.com/Splitzzyy/Splitzy" target="_blank">Source Code</a>
-      </li>
-      <li>
-        <a href="https://github.com/Splitzzyy/Splitzy/issues" target="_blank">Raise an Issue</a>
-      </li>
-    </ul>
+      <!-- Hamburger -->
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
+        <i class="fas" [ngClass]="isMobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
+      </button>
 
-    <!-- Desktop CTA -->
-    <div class="nav-cta" [class.mobile-open]="isMobileMenuOpen">
-      <button (click)="navigateToLogin()" class="btn-nav btn-login">Log in</button>
-      <button (click)="navigateToRegister()" class="btn-nav btn-signup">Sign up</button>
     </div>
-
-    <!-- Hamburger -->
-    <button class="mobile-menu-btn" (click)="toggleMobileMenu()">
-      <i class="fas" [ngClass]="isMobileMenuOpen ? 'fa-times' : 'fa-bars'"></i>
-    </button>
-
-  </div>
-</nav>
+  </nav>
 
 
   <!-- Hero Section -->
@@ -164,6 +164,28 @@
         <h3>Smart Balances</h3>
         <p>See exactly who owes what at a glance. Our smart algorithm simplifies debts to minimize the number of
           transactions needed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-file-export"></i>
+        </div>
+        <h3>Export to Excel</h3>
+        <p>Need a hard copy? Export your group expenses to CSV/Excel format for easy record-keeping and sharing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-camera"></i>
+        </div>
+        <h3>Smart Receipt Scanning</h3>
+        <p>Snap a photo of your receipt and let our AI automatically extract the amount, date, and merchant details.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fas fa-bell"></i>
+        </div>
+        <h3>Send Reminders</h3>
+        <p>Nudge friends who forget to pay. Send gentle reminders with a single click to settle up outstanding debts.
+        </p>
       </div>
     </div>
   </section>
