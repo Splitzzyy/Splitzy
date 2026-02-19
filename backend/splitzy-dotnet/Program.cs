@@ -1,5 +1,7 @@
-﻿using Serilog;
+﻿using Middleware.APM;
+using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
 using splitzy_dotnet.Application;
 
 try
@@ -23,6 +25,23 @@ try
             rollingInterval: RollingInterval.Day,
             retainedFileCountLimit: 14,
             shared: true)
+        .WriteTo.OpenTelemetry(options =>
+        {
+            options.Endpoint = Environment.GetEnvironmentVariable("MW_TARGET")
+                               ?? builder.Configuration["MW:TargetURL"]
+                               ?? "http://localhost:9319/v1/logs";
+            options.Protocol = OtlpProtocol.HttpProtobuf;
+            options.Headers = new Dictionary<string, string>
+            {
+                ["Authorization"] = $"Bearer {Environment.GetEnvironmentVariable("MW_API_KEY") ?? builder.Configuration["MW:ApiKey"]}"
+            };
+            options.ResourceAttributes = new Dictionary<string, object>
+            {
+                ["service.name"] = Environment.GetEnvironmentVariable("SERVICE_NAME")
+                                   ?? builder.Configuration["MW:ServiceName"]
+                                   ?? "unknown_service"
+            };
+        })
         .CreateLogger();
 
     // Replace default logging with Serilog
@@ -38,7 +57,11 @@ try
 
     var app = builder.Build();
 
+    Logger.Init(app.Services.GetRequiredService<ILoggerFactory>());
+
     startup.Configure(app);
+
+    Logger.LogInformation("Starting Splitzy API...");
 
     app.Run();
 }
