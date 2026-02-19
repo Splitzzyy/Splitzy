@@ -44,6 +44,13 @@ namespace splitzy_dotnet.Extensions
         public string Password { get; set; } = default!;
     }
 
+    public class MWSettings
+    {
+        public string ApiKey { get; set; } = null!;
+        public string TargetUrl { get; set; } = null!;
+        public string ServiceName { get; set; } = null!;
+    }
+
     public interface ISplitzyConfig
     {
         GoogleSettings Google { get; }
@@ -51,6 +58,7 @@ namespace splitzy_dotnet.Extensions
         OtpJwtSettings OtpJwt { get; }
         EmailSettings Email { get; }
         MessagingSettings Messaging { get; }
+        MWSettings MW { get; }
     }
 
     public class SplitzyConfig : ISplitzyConfig
@@ -60,19 +68,22 @@ namespace splitzy_dotnet.Extensions
         public OtpJwtSettings OtpJwt { get; }
         public EmailSettings Email { get; }
         public MessagingSettings Messaging { get; }
+        public MWSettings MW { get; }
 
         public SplitzyConfig(
             IOptionsMonitor<GoogleSettings> google,
             IOptionsMonitor<JwtSettings> jwt,
             IOptionsMonitor<OtpJwtSettings> otpJwt,
             IOptionsMonitor<EmailSettings> email,
-            IOptionsMonitor<MessagingSettings> messaging)
+            IOptionsMonitor<MessagingSettings> messaging,
+            IOptionsMonitor<MWSettings> mw)
         {
             Google = google.CurrentValue;
             Jwt = jwt.CurrentValue;
             OtpJwt = otpJwt.CurrentValue;
             Email = email.CurrentValue;
             Messaging = messaging.CurrentValue;
+            MW = mw.CurrentValue;
         }
     }
 }

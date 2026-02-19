@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Middleware.APM;
 using Serilog;
 using Serilog.Context;
 using splitzy_dotnet.Extensions;
@@ -51,6 +52,19 @@ namespace splitzy_dotnet.Application
             services.Configure<OtpJwtSettings>(_config.GetSection("OtpJwt"));
             services.Configure<EmailSettings>(_config.GetSection("Email"));
             services.Configure<MessagingSettings>(_config.GetSection("MessagingService"));
+
+            // ============================
+            // MW Instrumentation
+            // ============================
+            var mwSettings = _config.GetSection("MW").Get<MWSettings>();
+            if (mwSettings is not null)
+            {
+                Environment.SetEnvironmentVariable("MW_API_KEY", mwSettings.ApiKey);
+                Environment.SetEnvironmentVariable("MW_TARGET", mwSettings.TargetUrl);
+                Environment.SetEnvironmentVariable("MW_SERVICE_NAME", mwSettings.ServiceName);
+            }
+            services.ConfigureMWInstrumentation(_config);
+
             services.AddSingleton<ISplitzyConfig, SplitzyConfig>();
 
             // Auth
