@@ -73,3 +73,18 @@ export interface SplitMember {
   avatarLetter: string;
   customAmount?: number;
 }
+
+export enum ExpenseCategory {
+    Uncategorized = 0,
+    Food = 1,
+    Travel = 2,
+    Utilities = 3,
+    Entertainment = 4,
+    Housing = 5,
+    Healthcare = 6,
+    Shopping = 7,
+    Transportation = 8,
+    Education = 9,
+    Personal = 10,
+    Other = 11,
+}

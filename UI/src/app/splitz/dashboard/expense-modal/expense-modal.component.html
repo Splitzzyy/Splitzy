@@ -77,7 +77,30 @@
               class="w-full py-3.5 px-4 border-2 border-zinc-200 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-orange-500 focus:ring-[3px] focus:ring-orange-500/10 dark:focus:ring-orange-500/20"
               placeholder="e.g., Dinner, Coffee, Movie tickets">
           </div>
-
+          <div class="mb-6">
+            <label class="flex items-center gap-2 font-semibold text-zinc-700 dark:text-zinc-300 mb-2 text-sm">
+              <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                </path>
+              </svg>
+              Category
+            </label>
+            <div class="relative">
+              <select [(ngModel)]="selectedCategory"
+                class="w-full py-3.5 pr-12 pl-4 border-2 border-zinc-200 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white rounded-xl text-base bg-white cursor-pointer transition-all duration-200 appearance-none focus:outline-none focus:border-orange-500 focus:ring-[3px] focus:ring-orange-500/10 dark:focus:ring-orange-500/20">
+                @for (cat of categoryList; track cat.value) {
+                  <option [ngValue]="cat.value">
+                    {{ cat.label }}
+                  </option>
+                }
+              </select>
+              <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 pointer-events-none"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
           <div class="mb-6">
             <label class="flex items-center gap-2 font-semibold text-zinc-700 dark:text-zinc-300 mb-2 text-sm">
               <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
