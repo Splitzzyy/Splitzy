@@ -40,37 +40,38 @@ namespace splitzy_dotnet.Controllers
             if (user == null)
                 return NotFound("User not found");
 
+            // Get user's group memberships
             var groupMemberships = await _context.GroupMembers
                 .AsNoTracking()
                 .Include(gm => gm.Group)
                 .Where(gm => gm.UserId == userId)
                 .ToListAsync();
 
-            var balances = await _context.GroupBalances
-                .AsNoTracking()
-                .Where(b => b.UserId == userId)
-                .ToListAsync();
+            var userGroupIds = groupMemberships.Select(gm => gm.GroupId).ToList();
 
-            var users = await _context.Users
-                .AsNoTracking()
-                .ToDictionaryAsync(u => u.UserId, u => u.Name);
-
-            decimal totalBalance = balances.Sum(b => b.NetBalance);
-
-            decimal youAreOwed = balances
-                .Where(b => b.NetBalance > 0)
-                .Sum(b => b.NetBalance);
-
-            decimal youOwe = balances
-                .Where(b => b.NetBalance < 0)
-                .Sum(b => Math.Abs(b.NetBalance));
-
-            var oweTo = new List<PersonAmount>();
-            var owedFrom = new List<PersonAmount>();
-
+            // Only load balances for groups this user is in
             var allGroupBalances = await _context.GroupBalances
                 .AsNoTracking()
+                .Where(b => userGroupIds.Contains(b.GroupId))
                 .ToListAsync();
+
+            // Current user's balances per group
+            var myBalances = allGroupBalances.Where(b => b.UserId == userId).ToList();
+
+            decimal totalBalance = myBalances.Sum(b => b.NetBalance);
+            decimal youAreOwed = myBalances.Where(b => b.NetBalance > 0).Sum(b => b.NetBalance);
+            decimal youOwe = myBalances.Where(b => b.NetBalance < 0).Sum(b => Math.Abs(b.NetBalance));
+
+            // Only load users relevant to these groups
+            var relevantUserIds = allGroupBalances.Select(b => b.UserId).Distinct().ToList();
+            var users = await _context.Users
+                .AsNoTracking()
+                .Where(u => relevantUserIds.Contains(u.UserId))
+                .ToDictionaryAsync(u => u.UserId, u => u.Name);
+
+            // Run simplifier per group and aggregate globally
+            var oweToMap = new Dictionary<int, decimal>();
+            var owedFromMap = new Dictionary<int, decimal>();
 
             foreach (var group in allGroupBalances.GroupBy(b => b.GroupId))
             {
@@ -80,26 +81,48 @@ namespace splitzy_dotnet.Controllers
                 foreach (var s in settlements)
                 {
                     if (s.FromUser == userId)
-                        oweTo.Add(new PersonAmount { Id = s.ToUser, Name = users[s.ToUser], Amount = s.Amount });
+                    {
+                        if (!oweToMap.ContainsKey(s.ToUser)) oweToMap[s.ToUser] = 0;
+                        oweToMap[s.ToUser] += s.Amount;
+                    }
                     else if (s.ToUser == userId)
-                        owedFrom.Add(new PersonAmount { Id = s.FromUser, Name = users[s.FromUser], Amount = s.Amount });
+                    {
+                        if (!owedFromMap.ContainsKey(s.FromUser)) owedFromMap[s.FromUser] = 0;
+                        owedFromMap[s.FromUser] += s.Amount;
+                    }
                 }
             }
 
-            var groupWiseSummary = groupMemberships
-                                        .Select(gm =>
-                                        {
-                                            var balance = balances
-                                                .FirstOrDefault(b => b.GroupId == gm.GroupId);
+            // Net out people who appear in both maps (owe each other across different groups)
+            var allPeople = oweToMap.Keys.Union(owedFromMap.Keys).ToList();
 
-                                            return new GroupSummary
-                                            {
-                                                GroupId = gm.GroupId,
-                                                GroupName = gm.Group.Name,
-                                                NetBalance = balance?.NetBalance ?? 0
-                                            };
-                                        })
-                                        .ToList();
+            var oweTo = new List<PersonAmount>();
+            var owedFrom = new List<PersonAmount>();
+
+            foreach (var personId in allPeople)
+            {
+                decimal fromThem = owedFromMap.GetValueOrDefault(personId, 0);
+                decimal toThem = oweToMap.GetValueOrDefault(personId, 0);
+                decimal net = fromThem - toThem;
+
+                if (net > 0)
+                    owedFrom.Add(new PersonAmount { Id = personId, Name = users[personId], Amount = net });
+                else if (net < 0)
+                    oweTo.Add(new PersonAmount { Id = personId, Name = users[personId], Amount = Math.Abs(net) });
+            }
+
+            var groupWiseSummary = groupMemberships
+                .Select(gm =>
+                {
+                    var balance = myBalances.FirstOrDefault(b => b.GroupId == gm.GroupId);
+                    return new GroupSummary
+                    {
+                        GroupId = gm.GroupId,
+                        GroupName = gm.Group.Name,
+                        NetBalance = balance?.NetBalance ?? 0
+                    };
+                })
+                .ToList();
 
             return Ok(new UserDTO
             {
