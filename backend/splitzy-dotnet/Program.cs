@@ -16,6 +16,9 @@ try
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
         .Enrich.FromLogContext()
         .Enrich.WithEnvironmentName()
+        .Enrich.WithMachineName()           // adds MachineName
+        .Enrich.WithProcessId()             // adds ProcessId
+        .Enrich.WithProcessName()           // adds ProcessName
         .Enrich.WithThreadId()
         .WriteTo.Console(
             outputTemplate:
