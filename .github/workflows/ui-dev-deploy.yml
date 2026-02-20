@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - dev
+      - grv/dev
   pull_request: 
     branches:
       - dev
-  
+      - grv/dev
 jobs:
   build-deploy-ui:
     runs-on: [self-hosted, splitzy]
@@ -26,6 +27,13 @@ jobs:
       - name: Install dependencies
         working-directory: UI
         run: npm ci
+      
+      - name: Generate environment file        # ADD THIS
+        working-directory: UI
+        env:
+          FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
+        run: |
+          echo "$FRONTEND_ENV" > src/environments/environment.prod.ts
 
       - name: Build Angular (prod)
         working-directory: UI
