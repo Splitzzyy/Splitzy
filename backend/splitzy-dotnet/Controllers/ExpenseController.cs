@@ -55,7 +55,8 @@ namespace splitzy_dotnet.Controllers
                 GroupId = dto.GroupId,
                 PaidByUserId = dto.PaidByUserId,
                 SplitPer = JsonSerializer.Serialize(dto.SplitDetails),
-                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                Category = dto.Category
             };
 
             _context.Expenses.Add(expense);
@@ -221,6 +222,7 @@ namespace splitzy_dotnet.Controllers
             expense.Amount = Helper.Normalize(dto.Amount);
             expense.PaidByUserId = dto.PaidByUserId;
             expense.SplitPer = JsonSerializer.Serialize(dto.SplitDetails);
+            expense.Category = dto.Category;
 
             _context.ExpenseSplits.RemoveRange(expense.ExpenseSplits);
             _context.ExpenseSplits.AddRange(
@@ -289,7 +291,7 @@ namespace splitzy_dotnet.Controllers
                 ExpenseId = expense.ExpenseId,
                 Name = expense.Name,
                 Amount = expense.Amount,
-
+                Category = expense.Category,
                 PaidBy = new PaidByDto
                 {
                     UserId = expense.PaidByUserId,

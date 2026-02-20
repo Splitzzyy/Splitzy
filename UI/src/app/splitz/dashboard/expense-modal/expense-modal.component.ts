@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SplitzService } from '../../services/splitz.service';
 import { OcrService } from '../../services/ocr.service';
-import { SplitMember } from '../../splitz.model';
+import { ExpenseCategory, SplitMember } from '../../splitz.model';
 @Component({
   selector: 'app-expense-modal',
   standalone: true,
@@ -28,6 +28,13 @@ export class ExpenseModalComponent implements OnInit {
   selectAllChecked: boolean = false;
   isUnequalSplit: boolean = false;
   isScanning: boolean = false;
+  selectedCategory: ExpenseCategory = ExpenseCategory.Uncategorized;
+
+  ExpenseCategory = ExpenseCategory;
+  categoryList = Object.entries(ExpenseCategory)
+    .filter(([, value]) => typeof value === 'number')
+    .map(([key, value]) => ({ label: key, value: value as ExpenseCategory }));
+
   constructor(
     private splitzService: SplitzService,
     private ocrService: OcrService
@@ -55,6 +62,8 @@ export class ExpenseModalComponent implements OnInit {
             this.description = response.data.name;
             this.amount = response.data.amount;
             this.paidBy = response.data.paidBy.userId;
+            this.selectedCategory = response.data.category ?? ExpenseCategory.Uncategorized;
+
 
             const splits = response.data.splits;
             const firstSplitAmount = splits[0]?.amount || 0;
@@ -209,6 +218,7 @@ export class ExpenseModalComponent implements OnInit {
       amount: this.amount,
       name: this.description,
       paidByUserId: this.paidBy,
+      category: this.selectedCategory,        
       splitDetails: this.splitMembers
         .filter(m => m.isSelected)
         .map(m => ({

@@ -1,4 +1,6 @@
-﻿namespace splitzy_dotnet.DTO
+﻿using splitzy_dotnet.Models;
+
+namespace splitzy_dotnet.DTO
 {
     public class ExpensesDTO
     {
@@ -13,6 +15,7 @@
         public int PaidByUserId { get; set; }
         public decimal Amount { get; set; }
         public string Name { get; set; } = string.Empty;
+        public ExpenseCategory Category { get; set; }
         public List<SplitDetailDto> SplitDetails { get; set; } = new(); // UserId → Amount
     }
     public class SplitDetailDto
@@ -27,6 +30,7 @@
         public int PaidByUserId { get; set; }
         public decimal Amount { get; set; }
         public string Name { get; set; } = string.Empty;
+        public ExpenseCategory Category { get; set; }
         public List<SplitDetailDto> SplitDetails { get; set; } = new();
     }
 
@@ -35,7 +39,7 @@
         public int ExpenseId { get; set; }
         public string Name { get; set; }
         public decimal Amount { get; set; }
-
+        public ExpenseCategory Category { get; set; }
         public PaidByDto PaidBy { get; set; }
         public List<ExpenseSplitDto> Splits { get; set; }
     }
