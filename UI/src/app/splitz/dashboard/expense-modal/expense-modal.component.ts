@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SplitzService } from '../../services/splitz.service';
@@ -13,7 +13,7 @@ import { categorizeExpense } from '../../utils/expense-categorizer.util';
   templateUrl: './expense-modal.component.html',
   styleUrls: ['./expense-modal.component.css']
 })
-export class ExpenseModalComponent implements OnInit, OnDestroy {
+export class ExpenseModalComponent implements OnInit {
   @Input() groupId!: number;
   @Input() members: any[] = [];
   @Input() currentUserId!: number;

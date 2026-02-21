@@ -56,7 +56,7 @@ namespace splitzy_dotnet.Application
             services.AddScoped<IMessageProducer, RabbitMqProducer>();
             services.AddScoped<IJWTService, JWTService>();
             services.AddScoped<IRefreshTokenCleanupService, RefreshTokenCleanupService>();
-            //services.AddHostedService<EmailConsumer>();
+            services.AddHostedService<EmailConsumer>();
             services.AddHostedService<RefreshTokenBackgroundCleanupService>();
 
             // Config bindings
@@ -335,6 +335,8 @@ namespace splitzy_dotnet.Application
             // 4. Authentication & Authorization
             //    Must run BEFORE LogEnrichmentMiddleware so context.User is populated
             // ============================
+
+            app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -376,7 +378,6 @@ namespace splitzy_dotnet.Application
             app.UseStatusCodePages();
             app.UseSwagger();
             app.UseSwaggerUI();
-            app.UseCors("AllowFrontend");
             app.UseHttpsRedirection();
             app.UseRateLimiter();
 
