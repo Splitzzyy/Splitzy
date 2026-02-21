@@ -47,3 +47,4 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     secrets:
       APP_SETTINGS: ${{ secrets.APP_SETTINGS }}
+      FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
