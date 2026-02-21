@@ -1,4 +1,4 @@
-## Architectural Overview: Hybrid Query Routing & Execution
+﻿## Architectural Overview: Hybrid Query Routing & Execution
 
 This architecture balances high-speed response times with deep-data flexibility by using an AI "Dispatcher" to route user queries through two distinct processing pipelines.
 
@@ -77,3 +77,15 @@ Once data is retrieved (from either path), it is sent to the **Final AI Formatte
 * **Example:** `{"count": 4}` becomes *"You had 4 successful transactions last week."*
 
 ---
+
+## PROBLEMS ⚠️
+
+1. Security — (biggest concern) AI could generate `DROP TABLE, DELETE,` or data-leaking queries across users if not sandboxed properly
+You must run queries through a read-only DB user with strict permissions
+Must enforce `WHERE userId = @userId` on every generated query — AI can forget this
+
+2. Accuracy - AI can generate wrong SQL, especially for complex joins or edge cases
+You need to validate the SQL before executing it
+
+3. Performance - Every question hits the DB directly 
+4. Cost - You need to send the full schema in every system prompt — that's a lot of tokens every single request
