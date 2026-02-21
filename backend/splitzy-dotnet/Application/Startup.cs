@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.BackgroundServices;
 using splitzy_dotnet.Services.Interfaces;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -38,12 +40,23 @@ namespace splitzy_dotnet.Application
         {
             services.AddControllers();
 
+            // ============================
+            // Forwarded Headers (fixes ClientIp showing ::1 behind nginx/proxy)
+            // ============================
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                // Clear default networks to trust all proxies, or restrict to specific IPs:
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
             // Core services
             services.AddScoped<IEmailService, EMailService>();
             services.AddScoped<IMessageProducer, RabbitMqProducer>();
             services.AddScoped<IJWTService, JWTService>();
             services.AddScoped<IRefreshTokenCleanupService, RefreshTokenCleanupService>();
-            services.AddHostedService<EmailConsumer>();
+            //services.AddHostedService<EmailConsumer>();
             services.AddHostedService<RefreshTokenBackgroundCleanupService>();
 
             // Config bindings
@@ -99,12 +112,20 @@ namespace splitzy_dotnet.Application
                 {
                     OnAuthenticationFailed = ctx =>
                     {
-                        Console.WriteLine("AUTH FAILED: " + ctx.Exception.Message);
+                        // Structured log instead of Console.WriteLine
+                        Log.Warning("JWT authentication failed for {RequestPath}: {ErrorMessage}",
+                            ctx.HttpContext.Request.Path,
+                            ctx.Exception.Message);
                         return Task.CompletedTask;
                     },
                     OnTokenValidated = ctx =>
                     {
-                        Console.WriteLine("TOKEN VALIDATED");
+                        var userId = ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier)
+                                  ?? ctx.Principal?.FindFirstValue("sub")
+                                  ?? "unknown";
+                        Log.Debug("JWT token validated for UserId={UserId} on {RequestPath}",
+                            userId,
+                            ctx.HttpContext.Request.Path);
                         return Task.CompletedTask;
                     }
                 };
@@ -145,17 +166,17 @@ namespace splitzy_dotnet.Application
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                {
-                    new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference
+                        new OpenApiSecurityScheme
                         {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
-                }
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
                 });
             });
 
@@ -245,12 +266,34 @@ namespace splitzy_dotnet.Application
         // ============================
         public void Configure(WebApplication app)
         {
+            // ============================
+            // 1. Forwarded Headers — must be FIRST
+            //    Fixes ClientIp showing ::1 behind nginx/reverse proxy
+            // ============================
+            app.UseForwardedHeaders();
+
+            // ============================
+            // 2. Exception Handler — catches unhandled exceptions
+            //    Now with structured logging to middleware.io
+            // ============================
             app.UseExceptionHandler(errorApp =>
             {
                 errorApp.Run(async context =>
                 {
                     var feature = context.Features.Get<IExceptionHandlerFeature>();
                     var exception = feature?.Error;
+
+                    var userId = context.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+                              ?? context.User?.FindFirstValue("sub")
+                              ?? "anonymous";
+
+                    // Structured error log — all fields searchable in middleware.io
+                    Log.Error(exception,
+                        "Unhandled {ExceptionType} on {RequestMethod} {RequestPath} by UserId={UserId}",
+                        exception?.GetType().Name,
+                        context.Request.Method,
+                        context.Request.Path,
+                        userId);
 
                     var problem = new ProblemDetails
                     {
@@ -262,12 +305,18 @@ namespace splitzy_dotnet.Application
                             : "An internal server error occurred",
                         Instance = context.Request.Path
                     };
-                    context.Response.StatusCode = problem.Status.Value;
+
+                    context.Response.StatusCode = problem.Status!.Value;
                     context.Response.ContentType = "application/problem+json";
                     await context.Response.WriteAsJsonAsync(problem);
                 });
             });
 
+            // ============================
+            // 3. Correlation ID middleware
+            //    Reads X-Correlation-Id header or generates one,
+            //    pushes into Serilog LogContext for every log in the request
+            // ============================
             app.Use(async (context, next) =>
             {
                 var correlationId =
@@ -283,27 +332,54 @@ namespace splitzy_dotnet.Application
             });
 
             // ============================
-            // Serilog request logging
+            // 4. Authentication & Authorization
+            //    Must run BEFORE LogEnrichmentMiddleware so context.User is populated
+            // ============================
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            // ============================
+            // 5. Serilog Request Logging
+            //    EnrichDiagnosticContext runs AFTER auth, so UserId is always real
+            //    This replaces LogEnrichmentMiddleware for request-scoped properties
             // ============================
             app.UseSerilogRequestLogging(options =>
             {
                 options.MessageTemplate =
                     "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+
+                options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+                {
+                    // User identity — populated because UseAuthentication ran first
+                    var userId = httpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+                              ?? httpContext.User?.FindFirstValue("sub")
+                              ?? "anonymous";
+
+                    // Real client IP — resolved correctly via UseForwardedHeaders above
+                    var clientIp =
+                        httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()
+                        ?? httpContext.Connection.RemoteIpAddress?.ToString()
+                        ?? "unknown";
+
+                    diagnosticContext.Set("UserId", userId);
+                    diagnosticContext.Set("ClientIp", clientIp);
+                    diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].FirstOrDefault() ?? "unknown");
+                    diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+                    diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+                    diagnosticContext.Set("ContentType", httpContext.Request.ContentType ?? "none");
+                };
             });
 
             // ============================
-            // ProblemDetails (replaces generic handler)
-            // ===========================
+            // 6. Remaining middleware pipeline
+            // ============================
             app.UseStatusCodePages();
-
             app.UseSwagger();
             app.UseSwaggerUI();
-
             app.UseCors("AllowFrontend");
             app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
             app.UseRateLimiter();
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseMiniProfiler();
@@ -312,7 +388,9 @@ namespace splitzy_dotnet.Application
             app.MapHealthChecks("/health").DisableRateLimiting();
             app.MapControllers();
 
-            #region Auto DB Migration (Non-Prod Friendly)
+            // ============================
+            // 7. Auto DB Migration
+            // ============================
             using (var scope = app.Services.CreateScope())
             {
                 try
@@ -323,11 +401,10 @@ namespace splitzy_dotnet.Application
                 catch (Exception ex)
                 {
                     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                    logger.LogCritical(ex, "Database migration failed");
+                    logger.LogCritical(ex, "Database migration failed on startup");
                     throw;
                 }
             }
-            #endregion
         }
     }
 }
