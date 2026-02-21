@@ -14,6 +14,9 @@ public partial class Expense
 
     public int PaidByUserId { get; set; }
 
+    [Column("updated_by_userid")]
+    public int UpdatedByUserId { get; set; }
+
     public string SplitPer { get; set; } = null!;
 
     public DateTime? CreatedAt { get; set; }
