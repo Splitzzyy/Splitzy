@@ -1,9 +1,11 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SplitzService } from '../../services/splitz.service';
 import { OcrService } from '../../services/ocr.service';
 import { ExpenseCategory, SplitMember } from '../../splitz.model';
+import { categorizeExpense } from '../../utils/expense-categorizer.util';
+
 @Component({
   selector: 'app-expense-modal',
   standalone: true,
@@ -11,7 +13,7 @@ import { ExpenseCategory, SplitMember } from '../../splitz.model';
   templateUrl: './expense-modal.component.html',
   styleUrls: ['./expense-modal.component.css']
 })
-export class ExpenseModalComponent implements OnInit {
+export class ExpenseModalComponent implements OnInit, OnDestroy {
   @Input() groupId!: number;
   @Input() members: any[] = [];
   @Input() currentUserId!: number;
@@ -30,6 +32,9 @@ export class ExpenseModalComponent implements OnInit {
   isScanning: boolean = false;
   selectedCategory: ExpenseCategory = ExpenseCategory.Uncategorized;
 
+  private categoryDebounceTimer: any = null;
+  private isManualCategory: boolean = false;
+
   ExpenseCategory = ExpenseCategory;
   categoryList = Object.entries(ExpenseCategory)
     .filter(([, value]) => typeof value === 'number')
@@ -39,8 +44,8 @@ export class ExpenseModalComponent implements OnInit {
     private splitzService: SplitzService,
     private ocrService: OcrService
   ) { }
+
   ngOnInit() {
-    // Initialize members with avatar letters
     this.splitMembers = this.members.map(member => ({
       name: member.memberName || member.name || 'Unknown',
       avatarLetter: (member.memberName || member.name || 'Unknown').charAt(0).toUpperCase(),
@@ -49,11 +54,11 @@ export class ExpenseModalComponent implements OnInit {
       amount: 0,
       customAmount: 0
     }));
-    // Set current user as paidBy by default
+
     if (this.currentUserId) {
       this.paidBy = this.currentUserId;
     }
-    // Fetch and populate data for Edit mode
+
     if (this.addOrEdit === 'Edit' && this.expenseId) {
       this.splitzService.onGetExpenseDetails(this.expenseId).subscribe({
         next: (response) => {
@@ -63,7 +68,7 @@ export class ExpenseModalComponent implements OnInit {
             this.amount = response.data.amount;
             this.paidBy = response.data.paidBy.userId;
             this.selectedCategory = response.data.category ?? ExpenseCategory.Uncategorized;
-
+            this.isManualCategory = true; // ✅ Lock: preserve API category, typing won't override
 
             const splits = response.data.splits;
             const firstSplitAmount = splits[0]?.amount || 0;
@@ -81,7 +86,7 @@ export class ExpenseModalComponent implements OnInit {
                 }
               }
             });
-            // Update select all checkbox
+
             this.selectAllChecked = this.splitMembers.every(m => m.isSelected);
           } else {
             this.splitzService.show(response.message, 'error');
@@ -95,66 +100,79 @@ export class ExpenseModalComponent implements OnInit {
     }
   }
 
-  getSplitAmount(member: SplitMember): number {
-    if (!member.isSelected) {
-      return 0;
+  ngOnDestroy() {
+    clearTimeout(this.categoryDebounceTimer); // ✅ Cleanup on modal destroy
+  }
+
+  // ✅ Fixed: removed the old === Uncategorized guard
+  // Now re-detects every time description changes, unless user manually picked
+  onDescriptionChange() {
+    clearTimeout(this.categoryDebounceTimer);
+
+    if (!this.description?.trim()) {
+      // Description cleared → reset everything
+      this.isManualCategory = false;
+      this.selectedCategory = ExpenseCategory.Uncategorized;
+      return;
     }
+
+    if (this.isManualCategory) return; // User picked manually → don't override
+
+    this.categoryDebounceTimer = setTimeout(() => {
+      this.selectedCategory = categorizeExpense(this.description); // ✅ Always re-detect
+    }, 300);
+  }
+
+  // ✅ User manually changed dropdown → lock auto-detect
+  onCategoryChange() {
+    this.isManualCategory = true;
+  }
+
+  getSplitAmount(member: SplitMember): number {
+    if (!member.isSelected) return 0;
 
     if (this.isUnequalSplit) {
       return member.customAmount || 0;
     } else {
       const selectedMembers = this.splitMembers.filter(m => m.isSelected).length;
-      return selectedMembers > 0 ? parseFloat(((this.amount / selectedMembers).toFixed(2))) : 0;
+      return selectedMembers > 0 ? parseFloat((this.amount / selectedMembers).toFixed(2)) : 0;
     }
   }
 
   setSplitMode(isUnequal: boolean) {
-    if (this.isUnequalSplit === isUnequal) {
-      return; // Already in the requested mode
-    }
+    if (this.isUnequalSplit === isUnequal) return;
 
     this.isUnequalSplit = isUnequal;
 
     if (this.isUnequalSplit) {
       this.initializeUnequalSplit();
     } else {
-      this.splitMembers.forEach(member => {
-        member.customAmount = 0;
-      });
+      this.splitMembers.forEach(member => member.customAmount = 0);
     }
   }
 
   initializeUnequalSplit() {
     const selectedMembers = this.splitMembers.filter(m => m.isSelected);
-    if (selectedMembers.length === 0 || this.amount === 0) {
-      return;
-    }
+    if (selectedMembers.length === 0 || this.amount === 0) return;
 
     const equalAmount = parseFloat((this.amount / selectedMembers.length).toFixed(2));
-    selectedMembers.forEach(member => {
-      member.customAmount = equalAmount;
-    });
+    selectedMembers.forEach(member => member.customAmount = equalAmount);
   }
 
   toggleSelectAll() {
-    this.splitMembers.forEach(member => {
-      member.isSelected = this.selectAllChecked;
-    });
+    this.splitMembers.forEach(member => member.isSelected = this.selectAllChecked);
     this.onMemberToggle();
   }
 
   onAmountChange() {
     if (this.isUnequalSplit && this.amount > 0) {
       const selectedCount = this.splitMembers.filter(m => m.isSelected).length;
-      if (selectedCount > 0) {
-        this.initializeUnequalSplit();
-      }
+      if (selectedCount > 0) this.initializeUnequalSplit();
     }
   }
 
   onMemberToggle() {
-    const allSelected = this.splitMembers.every(m => m.isSelected);
-    this.selectAllChecked = allSelected;
+    this.selectAllChecked = this.splitMembers.every(m => m.isSelected);
 
     if (this.isUnequalSplit && this.amount > 0) {
       const selectedCount = this.splitMembers.filter(m => m.isSelected).length;
@@ -191,16 +209,13 @@ export class ExpenseModalComponent implements OnInit {
   }
 
   isSplitValid(): boolean {
-    if (!this.isUnequalSplit) {
-      return true;
-    }
-
-    const remaining = this.getRemainingAmount();
-    return Math.abs(remaining) < 0.02;
+    if (!this.isUnequalSplit) return true;
+    return Math.abs(this.getRemainingAmount()) < 0.02;
   }
 
   isValid(): boolean {
-    const basicValid = this.amount > 0 &&
+    const basicValid =
+      this.amount > 0 &&
       this.description.trim() !== '' &&
       this.paidBy !== null &&
       this.splitMembers.some(m => m.isSelected);
@@ -209,16 +224,14 @@ export class ExpenseModalComponent implements OnInit {
   }
 
   saveExpense() {
-    if (!this.isValid()) {
-      return;
-    }
+    if (!this.isValid()) return;
 
     const expense = {
       groupId: this.groupId,
       amount: this.amount,
       name: this.description,
       paidByUserId: this.paidBy,
-      category: this.selectedCategory,        
+      category: this.selectedCategory,
       splitDetails: this.splitMembers
         .filter(m => m.isSelected)
         .map(m => ({
@@ -230,15 +243,16 @@ export class ExpenseModalComponent implements OnInit {
     if (this.addOrEdit === 'Add') {
       this.save.emit(expense);
     } else {
-      // Include expenseId for edit operation
       this.edit.emit({ ...expense, expenseId: this.expenseId });
     }
+
     this.closeModal();
   }
 
   closeModal() {
     this.close.emit();
   }
+
   getAvatarColor(letter: string): string {
     const colors: { [key: string]: string } = {
       'A': 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
@@ -251,22 +265,17 @@ export class ExpenseModalComponent implements OnInit {
       'H': 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
       'S': 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
     };
-
     return colors[letter] || 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)';
   }
 
   triggerScan() {
     const fileInput = document.getElementById('receiptInput') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
+    if (fileInput) fileInput.click();
   }
 
   async onFileSelected(event: any) {
     const file = event.target.files[0];
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     this.isScanning = true;
     this.splitzService.show('Scanning receipt... Please wait.', 'info');
@@ -282,12 +291,12 @@ export class ExpenseModalComponent implements OnInit {
       }
 
       if (result.date) {
-        // Optional: Use date in description or a date field if we add one later
         console.log('Detected Date:', result.date);
       }
 
       if (result.merchantName) {
         this.description = result.merchantName;
+        this.onDescriptionChange(); // ✅ Trigger auto-categorize after OCR sets description
       } else if (!this.description) {
         this.description = 'Scanned Receipt';
       }
@@ -297,7 +306,6 @@ export class ExpenseModalComponent implements OnInit {
       this.splitzService.show('Failed to scan receipt', 'error');
     } finally {
       this.isScanning = false;
-      // Reset input
       event.target.value = '';
     }
   }
