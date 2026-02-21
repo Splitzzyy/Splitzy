@@ -54,6 +54,7 @@ namespace splitzy_dotnet.Controllers
                 Amount = Helper.Normalize(dto.Amount),
                 GroupId = dto.GroupId,
                 PaidByUserId = dto.PaidByUserId,
+                UpdatedByUserId = dto.PaidByUserId,
                 SplitPer = JsonSerializer.Serialize(dto.SplitDetails),
                 CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                 Category = dto.Category
@@ -120,6 +121,8 @@ namespace splitzy_dotnet.Controllers
         {
             using var tx = await _context.Database.BeginTransactionAsync();
 
+            int userId = HttpContext.GetCurrentUserId();
+
             var expense = await _context.Expenses
                 .Include(e => e.ExpenseSplits)
                 .FirstOrDefaultAsync(e => e.ExpenseId == expenseId);
@@ -150,7 +153,7 @@ namespace splitzy_dotnet.Controllers
             _context.ActivityLogs.Add(new ActivityLog
             {
                 GroupId = expense.GroupId,
-                UserId = expense.PaidByUserId,
+                UserId = userId,
                 ActionType = "DeleteExpense",
                 Description = expense.Name,
                 ExpenseId = expenseId,
@@ -179,7 +182,7 @@ namespace splitzy_dotnet.Controllers
         public async Task<IActionResult> UpdateExpense([FromBody] UpdateExpenseDto dto)
         {
             using var tx = await _context.Database.BeginTransactionAsync();
-
+            int userId = HttpContext.GetCurrentUserId();
             var expense = await _context.Expenses
                 .Include(e => e.ExpenseSplits)
                 .FirstOrDefaultAsync(e => e.ExpenseId == dto.ExpenseId);
@@ -223,6 +226,7 @@ namespace splitzy_dotnet.Controllers
             expense.PaidByUserId = dto.PaidByUserId;
             expense.SplitPer = JsonSerializer.Serialize(dto.SplitDetails);
             expense.Category = dto.Category;
+            expense.UpdatedByUserId = userId;
 
             _context.ExpenseSplits.RemoveRange(expense.ExpenseSplits);
             _context.ExpenseSplits.AddRange(
@@ -237,7 +241,7 @@ namespace splitzy_dotnet.Controllers
             _context.ActivityLogs.Add(new ActivityLog
             {
                 GroupId = dto.GroupId,
-                UserId = dto.PaidByUserId,
+                UserId = userId,
                 ActionType = "UpdateExpense",
                 Description = dto.Name,
                 ExpenseId = expense.ExpenseId,
