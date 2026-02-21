@@ -73,7 +73,7 @@
               </svg>
               Description
             </label>
-            <input type="text" [(ngModel)]="description"
+            <input type="text" [(ngModel)]="description" (ngModelChange)="onDescriptionChange()"
               class="w-full py-3.5 px-4 border-2 border-zinc-200 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white rounded-xl text-base transition-all duration-200 focus:outline-none focus:border-orange-500 focus:ring-[3px] focus:ring-orange-500/10 dark:focus:ring-orange-500/20"
               placeholder="e.g., Dinner, Coffee, Movie tickets">
           </div>
