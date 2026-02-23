@@ -361,26 +361,29 @@ export class GroupsComponent implements OnInit {
   }
 
   getGroupedActivities(): { date: string, displayDate: string, activities: any[] }[] {
-    const grouped = new Map<string, any[]>();
+  const grouped = new Map<string, any[]>();
 
-    this.combinedActivities.forEach(activity => {
-      const date = new Date(activity.createdAt);
-      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+  this.combinedActivities.forEach(activity => {
+    const date = new Date(activity.createdAt);
 
-      if (!grouped.has(dateKey)) {
-        grouped.set(dateKey, []);
-      }
-      grouped.get(dateKey)!.push(activity);
-    });
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateKey = `${year}-${month}-${day}`;
 
-    // Convert to array and sort by date (newest first)
-    return Array.from(grouped.entries())
-      .map(([date, activities]) => ({
-        date,
-        displayDate: this.formatGroupDate(date),
-        activities
-      }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (!grouped.has(dateKey)) {
+      grouped.set(dateKey, []);
+    }
+    grouped.get(dateKey)!.push(activity);
+  });
+
+  return Array.from(grouped.entries())
+    .map(([date, activities]) => ({
+      date,
+      displayDate: this.formatGroupDate(date),
+      activities
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   formatGroupDate(dateString: string): string {
