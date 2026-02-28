@@ -18,6 +18,12 @@ export interface Group {
   createdDate?: Date;
 }
 
+export interface MonthlyChartData {
+  month: string;
+  shortMonth: string;
+  amount: number;
+}
+
 @Component({
   selector: 'app-groups',
   imports: [
@@ -56,6 +62,18 @@ export class GroupsComponent implements OnInit {
 
   combinedActivities: any[] = [];
   showGroupMenu: boolean = false;
+
+  // Chart state
+  chartData: MonthlyChartData[] = [];
+  chartMaxAmount: number = 1;
+  chartSelectedMonth: MonthlyChartData | null = null;
+  chartHoveredMonth: string | null = null;
+  chartGridLines: number[] = [];
+  chartTotalAmount: number = 0;
+  chartYear: number = new Date().getFullYear();
+  Math = Math;
+
+  private readonly CHART_BAR_HEIGHT = 150;
 
   constructor(
     private route: ActivatedRoute,
@@ -103,52 +121,113 @@ export class GroupsComponent implements OnInit {
         ...this.settlements.map((s: any) => ({ ...s, type: 'settlement' }))
       ].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+      this.buildChartData();
     } catch (error) {
       console.error('Error fetching group data:', error);
       this.groupData = null;
     }
   }
 
-  // Navigation helper methods
-  goBack(): void {
-    this.location.back();
+  // ===================== CHART LOGIC =====================
+  private buildChartData(): void {
+    const monthNames = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+    const shortNames = ['Jan','Feb','Mar','Apr','May','Jun',
+                        'Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    const now = new Date();
+    this.chartYear = now.getFullYear();
+
+    const monthMap = new Map<number, number>();
+    for (let i = 0; i < 12; i++) monthMap.set(i, 0);
+
+    this.expenses.forEach(expense => {
+      const date = new Date(expense.createdAt + 'Z');
+      const istDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      if (istDate.getFullYear() === this.chartYear) {
+        const m = istDate.getMonth();
+        monthMap.set(m, (monthMap.get(m) || 0) + expense.amount);
+      }
+    });
+
+    this.chartData = Array.from(monthMap.entries()).map(([idx, amount]) => ({
+      month: monthNames[idx],
+      shortMonth: shortNames[idx],
+      amount
+    }));
+
+    this.chartMaxAmount = Math.max(...this.chartData.map(d => d.amount), 1);
+    this.chartTotalAmount = this.chartData.reduce((sum, d) => sum + d.amount, 0);
+
+    this.chartGridLines = [
+      this.chartMaxAmount,
+      this.chartMaxAmount * 0.75,
+      this.chartMaxAmount * 0.5,
+      this.chartMaxAmount * 0.25
+    ];
+
+    const currentMonthName = monthNames[now.getMonth()];
+    this.chartSelectedMonth = this.chartData.find(d => d.month === currentMonthName) || null;
   }
 
+  getBarHeight(amount: number): number {
+    if (this.chartMaxAmount === 0) return 0;
+    return Math.max((amount / this.chartMaxAmount) * this.CHART_BAR_HEIGHT, amount > 0 ? 4 : 0);
+  }
+
+  selectChartMonth(data: MonthlyChartData): void {
+    this.chartSelectedMonth = this.chartSelectedMonth?.month === data.month ? null : data;
+  }
+
+  getChartMonthChange(): number | null {
+    if (!this.chartSelectedMonth) return null;
+    const idx = this.chartData.findIndex(d => d.month === this.chartSelectedMonth!.month);
+    if (idx <= 0) return null;
+    const prev = this.chartData[idx - 1].amount;
+    if (prev === 0) return null;
+    return Math.round(((this.chartSelectedMonth.amount - prev) / prev) * 100);
+  }
+
+  formatYAxisLabel(value: number): string {
+    if (value >= 100000) return (value / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
+    if (value >= 1000) return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return Math.round(value).toString();
+  }
+
+  getPeakMonth(): string {
+    if (this.chartTotalAmount === 0) return '—';
+    const peak = this.chartData.find(d => d.amount === this.chartMaxAmount);
+    return peak?.shortMonth || '—';
+  }
+
+  getPrevMonthShortName(): string {
+    if (!this.chartSelectedMonth) return '';
+    const idx = this.chartData.findIndex(d => d.month === this.chartSelectedMonth!.month);
+    if (idx <= 0) return '';
+    return this.chartData[idx - 1]?.shortMonth || '';
+  }
+  // ===================== END CHART LOGIC =====================
+
+  goBack(): void { this.location.back(); }
+
   navigateToExpenses(): void {
-    if (this.groupData) {
-      this.router.navigate(['/group', this.groupData.id, 'expenses']);
-    }
+    if (this.groupData) this.router.navigate(['/group', this.groupData.id, 'expenses']);
   }
 
   navigateToMembers(): void {
-    if (this.groupData) {
-      this.router.navigate(['/group', this.groupData.id, 'members']);
-    }
+    if (this.groupData) this.router.navigate(['/group', this.groupData.id, 'members']);
   }
 
-  // Tab management
-  setActiveTab(tab: string): void {
-    this.activeTab = tab;
-  }
+  setActiveTab(tab: string): void { this.activeTab = tab; }
 
-  openExpenseModal() {
-    this.addOrEdit = 'Add';
-    this.showExpenseModal = true;
-  }
-
-  openSettleModal() {
-    this.showSettleModal = true;
-  }
-
-  openAddMemberModal() {
-    this.errorMessage = '';
-    this.showAddMemberModal = true;
-  }
+  openExpenseModal() { this.addOrEdit = 'Add'; this.showExpenseModal = true; }
+  openSettleModal() { this.showSettleModal = true; }
+  openAddMemberModal() { this.errorMessage = ''; this.showAddMemberModal = true; }
 
   handleExpenseSave(expense: any) {
     this.showExpenseModal = false;
     this.splitzService.onSaveExpense(expense).subscribe({
-      next: (response) => {
+      next: () => {
         this.fetchGroupData(this.groupId);
         if (navigator.onLine) {
           this.splitzService.show('Expense Added Successfully!', 'success');
@@ -156,23 +235,24 @@ export class GroupsComponent implements OnInit {
           this.splitzService.show('Expense saved offline. Will sync automatically.', 'info');
         }
       },
-      error: (error) => {
-        console.error('Error saving expense:', error);
-      }
+      error: (error) => console.error('Error saving expense:', error)
     });
   }
+
   handleExpenseEdit(expense: any) {
     this.showExpenseModal = false;
     this.splitzService.onUpdateExpense(expense).subscribe({
-      next: (response: any) => {
+      next: () => {
         this.splitzService.show('Expense Updated Successfully!', 'success');
         this.fetchGroupData(this.groupId);
-      }, error: (error) => {
+      },
+      error: (error) => {
         this.splitzService.show(error.error, 'error');
         console.error('Error updating expense', error.error);
       }
-    })
+    });
   }
+
   onSettleUpSaved(expense: any) {
     this.splitzService.onSettleExpense(expense).subscribe({
       next: (response: any) => {
@@ -181,41 +261,33 @@ export class GroupsComponent implements OnInit {
           this.showSettleModal = false;
           this.fetchGroupData(this.groupId);
         } else {
-          console.error('Settle up failed:', response?.message);
-          this.splitzService.show(`Settle up failed: ${response?.message}`, 'success');
+          this.splitzService.show(`Settle up failed: ${response?.message}`, 'error');
         }
       },
       error: (error) => {
-        // HTTP or unexpected error
-        const errorMessage = error.error || 'Settle Up Failed';
-        this.splitzService.show(errorMessage, 'error');
-        console.error('Error settling up expense:', error);
-      },
+        this.splitzService.show(error.error || 'Settle Up Failed', 'error');
+      }
     });
   }
-  onAddMembers(memebers: any) {
-    this.splitzService.onAddMemeber(memebers).subscribe({
+
+  onAddMembers(members: any) {
+    this.splitzService.onAddMemeber(members).subscribe({
       next: (response: any) => {
-        if (response) {
-          this.splitzService.show('Memeber Added Successfully', 'success');
-        }
+        if (response) this.splitzService.show('Member Added Successfully', 'success');
         this.showAddMemberModal = false;
-      }, error: (error) => {
-        console.error("Add members failed", error);
-        this.splitzService.show(`Add members failed: ${error?.error}`, 'success');
+      },
+      error: (error) => {
+        this.splitzService.show(`Add members failed: ${error?.error}`, 'error');
         this.errorMessage = error.error;
       }
-    })
+    });
   }
 
-  // Delete Group functionality
   openDeleteGroupModal(): void {
     this.confirmModalConfig = {
       title: 'Delete Group',
       message: `Are you sure you want to delete <strong>${this.groupData?.name}</strong>?<br>This action cannot be undone.`,
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      isDanger: true
+      confirmText: 'Delete', cancelText: 'Cancel', isDanger: true
     };
     this.pendingDeleteAction = () => this.deleteGroup();
     this.showConfirmModal = true;
@@ -223,35 +295,27 @@ export class GroupsComponent implements OnInit {
 
   private deleteGroup(): void {
     this.splitzService.onDeleteGroup(this.groupId).subscribe({
-      next: (response: any) => {
+      next: () => {
         this.splitzService.show('Group deleted successfully', 'success');
         this.showConfirmModal = false;
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
-        console.error('Error deleting group:', error);
-        const errorMessage = error?.error?.message || 'Failed to delete group';
-        this.splitzService.show(errorMessage, 'error');
+        this.splitzService.show(error?.error?.message || 'Failed to delete group', 'error');
       }
     });
   }
 
-
-
-  // Delete Expense functionality
   openDeleteExpenseModal(expenseId: number, expenseName: string): void {
     this.confirmModalConfig = {
       title: 'Delete Expense',
-      message: `Are you sure you want to delete <strong>"${expenseName}"</strong> expense?<br> This action cannot be undone.`,
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      isDanger: true
+      message: `Are you sure you want to delete <strong>"${expenseName}"</strong> expense?<br>This action cannot be undone.`,
+      confirmText: 'Delete', cancelText: 'Cancel', isDanger: true
     };
     this.pendingDeleteAction = () => this.deleteExpense(expenseId);
     this.showConfirmModal = true;
   }
 
-  // Update Expense Functionality
   openEditExpenseModal(expenseId: number) {
     this.addOrEdit = 'Edit';
     this.showExpenseModal = true;
@@ -260,26 +324,18 @@ export class GroupsComponent implements OnInit {
 
   private deleteExpense(expenseId: number): void {
     this.splitzService.onDeleteExpense(expenseId).subscribe({
-      next: (response: any) => {
+      next: () => {
         this.splitzService.show('Expense deleted successfully', 'success');
         this.showConfirmModal = false;
         this.expandedExpenseMenu = null;
         this.fetchGroupData(this.groupId);
       },
-      error: (error) => {
-        console.error('Error deleting expense:', error);
-        this.splitzService.show('Failed to delete expense', 'error');
-      }
+      error: () => this.splitzService.show('Failed to delete expense', 'error')
     });
   }
 
-  onConfirmDelete(): void {
-    this.pendingDeleteAction();
-  }
-
-  onCancelDelete(): void {
-    this.showConfirmModal = false;
-  }
+  onConfirmDelete(): void { this.pendingDeleteAction(); }
+  onCancelDelete(): void { this.showConfirmModal = false; }
 
   toggleExpenseMenu(expenseId: number): void {
     this.expandedExpenseMenu = this.expandedExpenseMenu === expenseId ? null : expenseId;
@@ -291,35 +347,33 @@ export class GroupsComponent implements OnInit {
     const parts = fullName.split(' ');
     return parts.length > 1 ? `${parts[0]} ${parts[1][0]}.` : fullName;
   }
+
   getTotalBalance(totalOrMonthly: string): number {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     let totalAmount = 0.0;
-    this.expenses.forEach((expense: any) => {
-      if (totalOrMonthly === 'total') return totalAmount += expense.amount;
 
-      const expenseDate = new Date(expense.createdAt);
-      if (expenseDate.getMonth() === currentMonth &&
-        expenseDate.getFullYear() === currentYear) {
+    this.expenses.forEach((expense: any) => {
+      if (totalOrMonthly === 'total') { totalAmount += expense.amount; return; }
+      const expenseDate = new Date(expense.createdAt + 'Z');
+      const expenseIST = new Date(expenseDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      if (expenseIST.getMonth() === currentMonth && expenseIST.getFullYear() === currentYear) {
         totalAmount += expense.amount;
       }
     });
+
     return totalAmount;
   }
-  closeExpenseModal(): void {
-    this.showExpenseModal = false;
-    this.addOrEdit = null;
-  }
+
+  closeExpenseModal(): void { this.showExpenseModal = false; this.addOrEdit = null; }
+
   toggleExpenseOverview(expenseId: number, event: Event): void {
     event.stopPropagation();
-
     if (this.expandedExpenseOverview === expenseId) {
       this.expandedExpenseOverview = null;
     } else {
       this.expandedExpenseOverview = expenseId;
-
-      // Fetch expense details if not already cached
       if (!this.expenseDetailsCache.has(expenseId)) {
         this.splitzService.onGetExpenseDetails(expenseId).subscribe({
           next: (response) => {
@@ -331,7 +385,6 @@ export class GroupsComponent implements OnInit {
             }
           },
           error: (error) => {
-            console.error('Error Getting Expense Detail', error);
             this.splitzService.show(error.error, 'error');
             this.expandedExpenseOverview = null;
           }
@@ -339,9 +392,9 @@ export class GroupsComponent implements OnInit {
       }
     }
   }
+
   getExpenseSplits(expenseId: number): any[] {
-    const details = this.expenseDetailsCache.get(expenseId);
-    return details?.splits || [];
+    return this.expenseDetailsCache.get(expenseId)?.splits || [];
   }
   closeExpenseMenu(): void {
     this.expandedExpenseMenu = null;
@@ -361,78 +414,44 @@ export class GroupsComponent implements OnInit {
   }
 
   getGroupedActivities(): { date: string, displayDate: string, activities: any[] }[] {
-  const grouped = new Map<string, any[]>();
+    const grouped = new Map<string, any[]>();
+    this.combinedActivities.forEach(activity => {
+      const istDateStr = new Date(activity.createdAt + 'Z')
+        .toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      if (!grouped.has(istDateStr)) grouped.set(istDateStr, []);
+      grouped.get(istDateStr)!.push(activity);
+    });
 
-  this.combinedActivities.forEach(activity => {
-    const date = new Date(activity.createdAt);
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateKey = `${year}-${month}-${day}`;
-
-    if (!grouped.has(dateKey)) {
-      grouped.set(dateKey, []);
-    }
-    grouped.get(dateKey)!.push(activity);
-  });
-
-  return Array.from(grouped.entries())
-    .map(([date, activities]) => ({
-      date,
-      displayDate: this.formatGroupDate(date),
-      activities
-    }))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return Array.from(grouped.entries())
+      .map(([date, activities]) => ({ date, displayDate: this.formatGroupDate(date), activities }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   formatGroupDate(dateString: string): string {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const [year, month, day] = dateString.split('-').map(Number);
+    const dateIST = new Date(year, month - 1, day);
+    const now = new Date();
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayMidnight = new Date(todayMidnight);
+    yesterdayMidnight.setDate(yesterdayMidnight.getDate() - 1);
 
-    // Reset time parts for comparison
-    today.setHours(0, 0, 0, 0);
-    yesterday.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
+    if (dateIST.getTime() === todayMidnight.getTime()) return 'Today';
+    if (dateIST.getTime() === yesterdayMidnight.getTime()) return 'Yesterday';
 
-    if (date.getTime() === today.getTime()) {
-      return 'Today';
-    } else if (date.getTime() === yesterday.getTime()) {
-      return 'Yesterday';
-    } else {
-      // Format as "Month DD, YYYY" (e.g., "February 12, 2026")
-      return date.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    }
+    return dateIST.toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' });
   }
 
-  // Export to Excel / CSV
   exportToExcel(): void {
-    if (!this.groupData || !this.expenses || this.expenses.length === 0) {
-      if (this.splitzService) {
-        this.splitzService.show('No expenses to export', 'info');
-      }
+    if (!this.groupData || !this.expenses?.length) {
+      this.splitzService.show('No expenses to export', 'info');
       return;
     }
-
-    // Define CSV headers
     const headers = ['Date', 'Expense Name', 'Amount', 'Paid By', 'You Owe', 'You Lent'];
-
-    // Format data rows
     const rows = this.expenses.map(expense => {
-      const date = new Date(expense.createdAt).toLocaleDateString();
-      const name = `"${(expense.name || '').replace(/"/g, '""')}"`; // Escape quotes
-      const amount = expense.amount;
+      const date = new Date(expense.createdAt + 'Z').toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+      const name = `"${(expense.name || '').replace(/"/g, '""')}"`;
       const paidBy = `"${(expense.paidBy || '').replace(/"/g, '""')}"`;
-      const youOwe = expense.youOwe;
-      const youLent = expense.youLent;
-
-      return [date, name, amount, paidBy, youOwe, youLent].join(',');
+      return [date, name, expense.amount, paidBy, expense.youOwe, expense.youLent].join(',');
     });
 
     // Combine headers and rows
