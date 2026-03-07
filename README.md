@@ -1,4 +1,4 @@
-<img width="1536" height="1024" alt="ChatGPT Image Dec 26, 2025, 02_12_24 PM" src="https://github.com/user-attachments/assets/3fc5f000-7918-4bc9-b418-8dd3a2a20fe8" />
+<img width="1536" height="1024" alt="Splitzy Enterprise" src="https://github.com/user-attachments/assets/3fc5f000-7918-4bc9-b418-8dd3a2a20fe8" />
 
 ## Overview
 
@@ -23,205 +23,81 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 - **🔔 Smart Reminders**: Send gentle notifications to remind friends about pending settlements
 - **📧 Notifications**: Email reminders for pending expenses and settlements
 
-## Tech Stack
+## Technology Stack
 
-- **Frontend**: Angular
-- **Backend**: DotNet
-- **Database**: PostgreSQL
-- **Authentication**: OAuth
-- **Deployment**: Docker
+| Component | Version | Details |
+|-----------|---------|---------|
+| **Backend** | .NET 8.0 (SDK 8.0.416) | ASP.NET Core Web API |
+| **Frontend** | Angular 20.1.3 | Standalone Components |
+| **Database** | PostgreSQL | Relational DBMS |
+| **TypeScript** | 5.8.3 | Type Safety |
+| **Node.js** | 20+ | Build & Runtime |
+| **Authentication** | OAuth 2.0 | Identity Management |
+| **Containerization** | Docker | Deployment & Orchestration |
+| **CI/CD** | GitHub Actions | Automated Pipelines |
 
-## Getting Started
+## Architecture
 
-### Prerequisites
+### Backend Services
+- RESTful API built on ASP.NET Core 8.0
+- Entity Framework Core for data persistence
+- JWT-based authentication with refresh token support
+- Comprehensive logging and error handling
 
-- Node.js (v14 or higher)
-- npm or yarn
-- [Database system] installed and running
+### Frontend Application
+- Angular 20 with standalone components
+- Tailwind CSS for responsive UI
+- Service Worker for offline support
+- IndexedDB for client-side caching
 
-### Installation
+### Data Storage
+- PostgreSQL with Entity Framework migrations
+- Normalized schema for financial data integrity
+- Audit logging for compliance
 
-1. **Clone the repository**
+## CI/CD Pipelines
 
-   ```bash
-   git clone https://github.com/shubhamashish33/Splitzy.git
-   cd Splitzy
-   ```
+| Pipeline | Trigger | Purpose |
+|----------|---------|---------|
+| **PR Build** (`pr-build.yml`) | Pull requests to `main` | Build and test validation |
+| **Backend Build** (`backend.yml`) | Manual/workflow call | Docker image build and push |
+| **Full Deploy** (`build_and_deploy.yml`) | Push to `main` | Orchestrated production deployment |
+| **Dev Deploy** (`ui-dev-deploy.yml`) | Push to `dev` branch | Development environment deployment |
 
-2. **Install dependencies**
+## Security
 
-   ```bash
-   # Install backend dependencies
-   npm install
-
-   # Install frontend dependencies (if separate)
-   cd client
-   npm install
-   cd ..
-   ```
-
-3. **Environment Setup**
-
-   ```bash
-   # Copy environment template
-   cp .env.example .env
-
-   # Edit .env with your configuration
-   nano .env
-   ```
-
-4. **Database Setup**
-
-   ```bash
-   # Run database migrations
-   npm run migrate
-
-   # Seed initial data (optional)
-   npm run seed
-   ```
-
-5. **Start the application**
-
-   ```bash
-   # Development mode
-   npm run dev
-
-   # Production mode
-   npm run start
-   ```
-
-The application will be available at `http://localhost:3000`
-
-## Usage
-
-### Creating Your First Group
-
-1. Sign up or log in to your account
-2. Click "Create Group" on the dashboard
-3. Add group members by email
-4. Start adding expenses!
-
-### Adding Expenses
-
-1. Select your group
-2. Click "Add Expense"
-3. Enter expense details (amount, description, date)
-4. Choose how to split the expense
-5. Save and notify group members
-
-### Settling Up
-
-1. View your balance in any group
-2. Click "Settle Up" to record payments
-3. Choose payment method and amount
-4. Confirm settlement
-
-## API Documentation
-
-### Authentication Endpoints
-
-```
-POST /api/auth/register - Register new user
-POST /api/auth/login - User login
-POST /api/auth/logout - User logout
-GET /api/auth/me - Get current user
-```
-
-### Group Endpoints
-
-```
-GET /api/groups - Get user's groups
-POST /api/groups - Create new group
-GET /api/groups/:id - Get group details
-PUT /api/groups/:id - Update group
-DELETE /api/groups/:id - Delete group
-POST /api/groups/:id/members - Add member to group
-```
-
-### Expense Endpoints
-
-```
-GET /api/groups/:id/expenses - Get group expenses
-POST /api/groups/:id/expenses - Create new expense
-PUT /api/expenses/:id - Update expense
-DELETE /api/expenses/:id - Delete expense
-```
-
-## Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Write clean, documented code
-- Follow the existing code style
-- Add tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-```
+- Industry-standard encryption for data at rest and in transit
+- OAuth 2.0 for secure authentication
+- Comprehensive audit logging for all transactions
+- Email verification for user accounts
 
 ## Deployment
 
-### Using Docker
+### Production Environment
+- Containerized deployment via Docker
+- Self-hosted runner with GitHub Actions
+- Automatic version tagging and image cleanup
+- Zero-downtime deployments
 
-```bash
-# Build the image
-docker build -t splitzy .
-
-# Run the container
-docker run -p 3000:3000 splitzy
-```
-
-### Manual Deployment
-
-1. Set production environment variables
-2. Build the application: `npm run build`
-3. Start the production server: `npm run start`
+### Development Environment
+- Automated deployment on `dev` branch push
+- MinIO object storage integration
+- Continuous integration testing
 
 ## Roadmap
 
-- [ ] Mobile app (React Native/Flutter)
-- [x] Receipt scanning with OCR
-- [ ] Multiple currency support
-- [x] Expense categories and budgeting
-- [ ] Integration with banking APIs
-- [ ] Advanced analytics and reporting
-- [ ] Recurring expenses
+- [ ] Mobile application
+- [ ] Advanced analytics dashboard
+- [ ] Multi-currency support
+- [ ] Integration with payment systems
+- [ ] Recurring expense automation
 - [ ] Expense approval workflows
 
-## FAQ
+## Support & Contribution
 
-**Q: How are expenses calculated?**
-A: Splitzy automatically calculates the optimal way to settle debts, minimizing the number of transactions needed.
+**Issues & Bugs**: [GitHub Issues](https://github.com/Splitzzyy/Splitzy/issues)
 
-**Q: Can I use Splitzy offline?**
-A: Currently, Splitzy requires an internet connection. Offline support is planned for future releases.
-
-**Q: Is my financial data secure?**
-A: Yes, we use industry-standard encryption and security practices to protect your data.
-
-## Support
-
-- 🐛 Issues: [GitHub Issues](https://github.com/Splitzzyy/Splitzy/issues)
-- 📚 Documentation: [Wiki](https://github.com/Splitzzyy/Splitzy/wiki)
+**Documentation**: [Wiki](https://github.com/Splitzzyy/Splitzy/wiki)
 
 ## License
 
