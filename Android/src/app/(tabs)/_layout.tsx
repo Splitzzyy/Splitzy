@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function TabBarIcon({
   name,
@@ -15,6 +16,9 @@ function TabBarIcon({
 }
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 8);
+
   return (
     <Tabs
       screenOptions={{
@@ -28,8 +32,8 @@ export default function TabsLayout() {
           borderTopWidth: 1,
           position: "absolute",
           elevation: 0,
-          height: Platform.OS === "ios" ? 88 : 64,
-          paddingBottom: Platform.OS === "ios" ? 28 : 8,
+          height: 56 + bottomPadding,
+          paddingBottom: bottomPadding,
           paddingTop: 8,
         },
         tabBarBackground: () =>

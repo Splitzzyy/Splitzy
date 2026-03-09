@@ -78,6 +78,7 @@ export default function DashboardScreen() {
         title="Dashboard"
         showAvatar
         avatarName={dashboard?.userName ?? ""}
+        onAvatarPress={() => router.push("/(tabs)/profile")}
       />
 
       <ScrollView
@@ -99,6 +100,8 @@ export default function DashboardScreen() {
           totalBalance={dashboard?.totalBalance ?? 0}
           youAreOwed={dashboard?.youAreOwed ?? 0}
           youOwe={dashboard?.youOwe ?? 0}
+          owedFrom={dashboard?.owedFrom ?? []}
+          oweTo={dashboard?.oweTo ?? []}
         />
 
         {/* Add Expense CTA */}

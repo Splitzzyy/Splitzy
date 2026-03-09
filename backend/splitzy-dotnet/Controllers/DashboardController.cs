@@ -124,13 +124,17 @@ namespace splitzy_dotnet.Controllers
                 })
                 .ToList();
 
+            // Recalculate from netted person lists so numbers are consistent with breakdowns
+            decimal nettedYouAreOwed = owedFrom.Sum(p => p.Amount);
+            decimal nettedYouOwe = oweTo.Sum(p => p.Amount);
+
             return Ok(new UserDTO
             {
                 UserId = user.UserId,
                 UserName = user.Name,
                 TotalBalance = totalBalance,
-                YouOwe = youOwe,
-                YouAreOwed = youAreOwed,
+                YouOwe = nettedYouOwe,
+                YouAreOwed = nettedYouAreOwed,
                 OweTo = oweTo,
                 OwedFrom = owedFrom,
                 GroupWiseSummary = groupWiseSummary

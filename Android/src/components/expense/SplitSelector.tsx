@@ -89,7 +89,7 @@ export function SplitSelector({
               </View>
               {method === "equal" ? (
                 <Text style={styles.amountText}>
-                  ${displayAmount.toFixed(2)}
+                  ₹{displayAmount.toFixed(2)}
                 </Text>
               ) : (
                 <View style={styles.customInputWrap}>

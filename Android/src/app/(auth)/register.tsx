@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -5,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
   StyleSheet,
   Alert,
 } from "react-native";
@@ -12,17 +14,56 @@ import { Link, useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
 import { ScreenWrapper } from "@/components/layout";
 import { Input, Button } from "@/components/ui";
 import { useAuthStore } from "@/stores/auth.store";
 import { registerSchema, type RegisterFormData } from "@/utils/validators";
 import { colors } from "@/theme";
 import { useHaptics } from "@/hooks/useHaptics";
+import { GOOGLE_WEB_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from "@/constants/auth";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function RegisterScreen() {
-  const { register: signup, isLoading, error, clearError } = useAuthStore();
+  const { register: signup, googleLogin, isLoading, error, clearError } = useAuthStore();
   const router = useRouter();
   const haptics = useHaptics();
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const [, googleResponse, promptGoogleAsync] = Google.useIdTokenAuthRequest({
+    clientId: GOOGLE_WEB_CLIENT_ID,
+    ...(GOOGLE_ANDROID_CLIENT_ID ? { androidClientId: GOOGLE_ANDROID_CLIENT_ID } : {}),
+  });
+
+  useEffect(() => {
+    if (googleResponse?.type === "success") {
+      const idToken = googleResponse.params.id_token;
+      handleGoogleToken(idToken);
+    } else if (googleResponse?.type === "error" || googleResponse?.type === "dismiss") {
+      setIsGoogleLoading(false);
+    }
+  }, [googleResponse]);
+
+  const handleGoogleToken = async (idToken: string) => {
+    clearError();
+    try {
+      await googleLogin({ idToken });
+      haptics.success();
+    } catch {
+      haptics.error();
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const handleGooglePress = async () => {
+    clearError();
+    setIsGoogleLoading(true);
+    haptics.light();
+    await promptGoogleAsync();
+  };
 
   const {
     control,
@@ -78,6 +119,30 @@ export default function RegisterScreen() {
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
+
+          {/* Google Sign-Up */}
+          <TouchableOpacity
+            style={styles.googleButton}
+            onPress={handleGooglePress}
+            disabled={isLoading || isGoogleLoading}
+            activeOpacity={0.8}
+          >
+            {isGoogleLoading ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <>
+                <MaterialCommunityIcons name="google" size={20} color="#ffffff" />
+                <Text style={styles.googleButtonText}>Continue with Google</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
           <View style={styles.form}>
             <Controller
@@ -135,7 +200,7 @@ export default function RegisterScreen() {
             <Button
               title="Create Account"
               onPress={handleSubmit(onSubmit)}
-              loading={isLoading}
+              loading={isLoading && !isGoogleLoading}
               style={{ marginTop: 8 }}
             />
           </View>
@@ -171,6 +236,39 @@ const styles = StyleSheet.create({
     borderRadius: 12, padding: 12, marginBottom: 20,
   },
   errorText: { color: "#ef4444", fontSize: 13, fontFamily: "Inter-Medium", flex: 1 },
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  googleButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontFamily: "Inter-SemiBold",
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 24,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+  },
+  dividerText: {
+    color: "#64748b",
+    fontSize: 12,
+    fontFamily: "Inter-Medium",
+    letterSpacing: 1,
+  },
   form: { gap: 16 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 32 },
   footerText: { color: "#64748b", fontSize: 14, fontFamily: "Inter" },

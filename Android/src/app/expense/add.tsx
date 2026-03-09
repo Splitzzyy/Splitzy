@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   Modal,
   FlatList,
+  Keyboard,
   StyleSheet,
-  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -17,7 +17,6 @@ import { Header } from "@/components/layout/Header";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { CategoryPicker } from "@/components/expense/CategoryPicker";
 import {
   SplitSelector,
@@ -27,6 +26,7 @@ import { useGroupsStore } from "@/stores/groups.store";
 import { useExpensesStore } from "@/stores/expenses.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUIStore } from "@/stores/ui.store";
+import { useDashboardStore } from "@/stores/dashboard.store";
 import { ExpenseCategory } from "@/constants/categories";
 import { colors } from "@/theme";
 import type { GroupMember, SplitDetailDto } from "@/types/api.types";
@@ -38,6 +38,9 @@ export default function AddExpenseScreen() {
   const { addExpense } = useExpensesStore();
   const { userId } = useAuthStore();
   const { showToast } = useUIStore();
+  const { fetchDashboard, fetchRecentActivity } = useDashboardStore();
+
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(
     params.groupId ? parseInt(params.groupId, 10) : null
@@ -55,6 +58,25 @@ export default function AddExpenseScreen() {
   const [showGroupPicker, setShowGroupPicker] = useState(false);
   const [showPaidByPicker, setShowPaidByPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      if (splitMethod !== "equal") {
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [splitMethod]);
 
   useEffect(() => {
     if (groups.length === 0) fetchGroups();
@@ -135,6 +157,12 @@ export default function AddExpenseScreen() {
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showToast("Expense added!", "success");
+
+      // Refresh data in background
+      fetchGroupOverview(selectedGroupId);
+      fetchDashboard();
+      fetchRecentActivity();
+
       router.back();
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -152,19 +180,20 @@ export default function AddExpenseScreen() {
     <ScreenWrapper>
       <Header title="Add Expense" showBack />
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         {/* Group Picker */}
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>Group</Text>
           <TouchableOpacity
             style={styles.picker}
-            onPress={() => setShowGroupPicker(true)}
-            activeOpacity={0.7}
+            onPress={() => !params.groupId && setShowGroupPicker(true)}
+            activeOpacity={params.groupId ? 1 : 0.7}
           >
             <MaterialCommunityIcons
               name="account-group"
@@ -179,11 +208,13 @@ export default function AddExpenseScreen() {
             >
               {selectedGroup?.groupName ?? "Select a group"}
             </Text>
-            <MaterialCommunityIcons
-              name="chevron-down"
-              size={20}
-              color="#64748b"
-            />
+            {!params.groupId && (
+              <MaterialCommunityIcons
+                name="chevron-down"
+                size={20}
+                color="#64748b"
+              />
+            )}
           </TouchableOpacity>
         </View>
 
@@ -192,13 +223,15 @@ export default function AddExpenseScreen() {
           <Text style={styles.fieldLabel}>Amount</Text>
           <View style={styles.amountRow}>
             <Text style={styles.currencySymbol}>₹</Text>
-            <Input
-              placeholder="0.00"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              style={styles.amountInput}
-            />
+            <View style={{ flex: 1 }}>
+              <Input
+                placeholder="0.00"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="decimal-pad"
+                style={styles.amountInput}
+              />
+            </View>
           </View>
         </View>
 
@@ -258,7 +291,7 @@ export default function AddExpenseScreen() {
           style={styles.submitBtn}
         />
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: keyboardHeight > 0 ? keyboardHeight : 40 }} />
       </ScrollView>
 
       {/* Group Picker Modal */}

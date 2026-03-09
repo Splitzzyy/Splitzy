@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { IconButton } from "../ui/IconButton";
 import { Avatar } from "../ui/Avatar";
@@ -9,6 +9,7 @@ interface HeaderProps {
   showAvatar?: boolean;
   avatarName?: string;
   avatarUri?: string;
+  onAvatarPress?: () => void;
   rightAction?: React.ReactNode;
 }
 
@@ -18,6 +19,7 @@ export function Header({
   showAvatar = false,
   avatarName = "",
   avatarUri,
+  onAvatarPress,
   rightAction,
 }: HeaderProps) {
   return (
@@ -31,7 +33,13 @@ export function Header({
           />
         )}
         {showAvatar && (
-          <Avatar name={avatarName} uri={avatarUri} size={36} />
+          onAvatarPress ? (
+            <TouchableOpacity onPress={onAvatarPress} activeOpacity={0.7}>
+              <Avatar name={avatarName} uri={avatarUri} size={36} />
+            </TouchableOpacity>
+          ) : (
+            <Avatar name={avatarName} uri={avatarUri} size={36} />
+          )
         )}
         <Text style={styles.title} numberOfLines={1}>
           {title}

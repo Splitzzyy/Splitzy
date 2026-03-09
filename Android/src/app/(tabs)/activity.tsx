@@ -46,16 +46,26 @@ export default function ActivityScreen() {
     await fetchRecentActivity();
   }, [fetchRecentActivity]);
 
-  // Group activities by date
+  // Filter then group activities by date
   const sections: ActivitySection[] = useMemo(() => {
+    let filtered = recentActivity;
+    if (filter === "groups") {
+      filtered = recentActivity.filter((item) => item.groupName && item.groupName.trim() !== "");
+    } else if (filter === "friends") {
+      filtered = recentActivity.filter((item) => {
+        const action = (item.action ?? "").toLowerCase();
+        return action.includes("settle") || action.includes("paid");
+      });
+    }
+
     const grouped: Record<string, RecentActivityDTO[]> = {};
-    for (const item of recentActivity) {
+    for (const item of filtered) {
       const key = formatDateGroup(item.createdAt);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(item);
     }
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
-  }, [recentActivity]);
+  }, [recentActivity, filter]);
 
   if (isLoading && recentActivity.length === 0) {
     return (
