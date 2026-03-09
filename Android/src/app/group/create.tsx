@@ -5,7 +5,6 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Alert,
   StyleSheet,
 } from "react-native";
 import { router } from "expo-router";
@@ -17,11 +16,13 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useGroupsStore } from "@/stores/groups.store";
+import { useDashboardStore } from "@/stores/dashboard.store";
 import { useUIStore } from "@/stores/ui.store";
 import { colors } from "@/theme";
 
 export default function CreateGroupScreen() {
   const { createGroup, fetchGroups } = useGroupsStore();
+  const { fetchDashboard } = useDashboardStore();
   const { showToast } = useUIStore();
   const [groupName, setGroupName] = useState("");
   const [emailInput, setEmailInput] = useState("");
@@ -64,6 +65,7 @@ export default function CreateGroupScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showToast("Group created!", "success");
       await fetchGroups();
+      fetchDashboard();
       router.back();
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

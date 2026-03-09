@@ -97,6 +97,7 @@ export default function GroupsScreen() {
         title="Groups"
         showAvatar
         avatarName={dashboard?.userName ?? ""}
+        onAvatarPress={() => router.push("/(tabs)/profile")}
         rightAction={
           <TouchableOpacity style={styles.addBtn} onPress={handleCreateGroup}>
             <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />

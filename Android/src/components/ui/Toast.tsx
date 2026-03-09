@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Text, StyleSheet } from "react-native";
+import { Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MotiView, AnimatePresence } from "moti";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -21,10 +21,10 @@ const COLOR_MAP: Record<string, string> = {
 };
 
 const BG_MAP: Record<string, string> = {
-  success: "rgba(52, 211, 153, 0.15)",
-  error: "rgba(251, 113, 133, 0.15)",
-  warning: "rgba(251, 191, 36, 0.15)",
-  info: "rgba(37, 106, 244, 0.15)",
+  success: "#0d2818",
+  error: "#2a0f13",
+  warning: "#2a2008",
+  info: "#0c1a30",
 };
 
 export function Toast() {
@@ -49,20 +49,26 @@ export function Toast() {
           style={[
             styles.container,
             {
-              top: insets.top + 12,
+              top: insets.top + 8,
               backgroundColor: BG_MAP[toast.type] ?? BG_MAP.info,
               borderColor: COLOR_MAP[toast.type] ?? COLOR_MAP.info,
             },
           ]}
         >
-          <MaterialCommunityIcons
-            name={ICON_MAP[toast.type] ?? "information"}
-            size={20}
-            color={COLOR_MAP[toast.type] ?? COLOR_MAP.info}
-          />
-          <Text style={styles.message} numberOfLines={2}>
-            {toast.message}
-          </Text>
+          <TouchableOpacity
+            style={styles.touchable}
+            onPress={hideToast}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons
+              name={ICON_MAP[toast.type] ?? "information"}
+              size={20}
+              color={COLOR_MAP[toast.type] ?? COLOR_MAP.info}
+            />
+            <Text style={styles.message} numberOfLines={2}>
+              {toast.message}
+            </Text>
+          </TouchableOpacity>
         </MotiView>
       )}
     </AnimatePresence>
@@ -75,18 +81,21 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     zIndex: 9999,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 10,
+  },
+  touchable: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   message: {
     flex: 1,

@@ -1,2 +1,28 @@
+# IDE
 .vs/
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Angular
 UI/src/environments/environment.prod.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# APK / AAB build outputs
+*.apk
+*.aab
+
+# Keystores
+*.jks
+*.keystore
+google-services.json

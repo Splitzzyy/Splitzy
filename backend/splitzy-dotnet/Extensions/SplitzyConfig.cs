@@ -6,6 +6,7 @@ namespace splitzy_dotnet.Extensions
     public class GoogleSettings
     {
         public string ClientId { get; set; } = null!;
+        public string? AndroidClientId { get; set; }
     }
 
     public class JwtSettings

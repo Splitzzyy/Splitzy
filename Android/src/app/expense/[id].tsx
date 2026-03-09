@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  Modal,
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
@@ -17,6 +17,8 @@ import { Avatar } from "@/components/ui/Avatar";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useExpensesStore } from "@/stores/expenses.store";
+import { useGroupsStore } from "@/stores/groups.store";
+import { useDashboardStore } from "@/stores/dashboard.store";
 import { useUIStore } from "@/stores/ui.store";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { CATEGORY_CONFIG } from "@/constants/categories";
@@ -34,7 +36,10 @@ export default function ExpenseDetailScreen() {
     clearCurrentExpense,
   } = useExpensesStore();
   const { showToast } = useUIStore();
+  const { currentGroup, fetchGroupOverview } = useGroupsStore();
+  const { fetchDashboard, fetchRecentActivity } = useDashboardStore();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchExpenseDetails(expenseId);
@@ -42,35 +47,30 @@ export default function ExpenseDetailScreen() {
   }, [expenseId]);
 
   const handleDelete = () => {
-    Alert.alert(
-      "Delete Expense",
-      "Are you sure you want to delete this expense? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await deleteExpense(expenseId);
-              Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Success
-              );
-              showToast("Expense deleted", "success");
-              router.back();
-            } catch (error: any) {
-              Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Error
-              );
-              showToast(error.message || "Failed to delete", "error");
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ]
-    );
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteExpense(expenseId);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast("Expense deleted", "success");
+      setShowDeleteModal(false);
+
+      if (currentGroup?.groupId) {
+        fetchGroupOverview(currentGroup.groupId);
+      }
+      fetchDashboard();
+      fetchRecentActivity();
+
+      router.back();
+    } catch (error: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast(error.message || "Failed to delete", "error");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (isLoading && !currentExpense) {
@@ -195,6 +195,48 @@ export default function ExpenseDetailScreen() {
           </View>
         </GlassCard>
       </ScrollView>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !isDeleting && setShowDeleteModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.deleteOverlay}
+          activeOpacity={1}
+          onPress={() => !isDeleting && setShowDeleteModal(false)}
+        >
+          <View style={styles.deleteCard}>
+            <View style={styles.deleteIconWrap}>
+              <MaterialCommunityIcons name="delete-alert-outline" size={40} color="#fb7185" />
+            </View>
+            <Text style={styles.deleteModalTitle}>Delete Expense</Text>
+            <Text style={styles.deleteMessage}>
+              Are you sure you want to delete "{currentExpense.name}"? This action cannot be undone.
+            </Text>
+            <View style={styles.deleteActions}>
+              <TouchableOpacity
+                style={styles.deleteCancelBtn}
+                onPress={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+              >
+                <Text style={styles.deleteCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.deleteConfirmBtn, isDeleting && { opacity: 0.5 }]}
+                onPress={confirmDelete}
+                disabled={isDeleting}
+              >
+                <Text style={styles.deleteConfirmText}>
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScreenWrapper>
   );
 }
@@ -302,6 +344,74 @@ const styles = StyleSheet.create({
   },
   splitAmount: {
     color: "#94a3b8",
+    fontSize: 15,
+    fontFamily: "Inter-SemiBold",
+  },
+  deleteOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+  },
+  deleteCard: {
+    width: "100%",
+    backgroundColor: "#0f1729",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+    gap: 12,
+  },
+  deleteIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "rgba(251, 113, 133, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  deleteModalTitle: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontFamily: "Inter-Bold",
+  },
+  deleteMessage: {
+    color: "#94a3b8",
+    fontSize: 14,
+    fontFamily: "Inter",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  deleteActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+    width: "100%",
+  },
+  deleteCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  deleteCancelText: {
+    color: "#94a3b8",
+    fontSize: 15,
+    fontFamily: "Inter-SemiBold",
+  },
+  deleteConfirmBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    backgroundColor: "#fb7185",
+  },
+  deleteConfirmText: {
+    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },

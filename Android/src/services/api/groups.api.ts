@@ -1,7 +1,6 @@
 import { apiClient } from "./client";
 import { ENDPOINTS } from "@/constants/endpoints";
 import type {
-  ApiResponse,
   CreateGroupRequest,
   AddUsersToGroupRequest,
   UserGroupInfo,
@@ -10,10 +9,10 @@ import type {
 
 export const groupsApi = {
   getAllGroups: () =>
-    apiClient.get<ApiResponse<UserGroupInfo[]>>(ENDPOINTS.ALL_GROUPS),
+    apiClient.get<UserGroupInfo[]>(ENDPOINTS.ALL_GROUPS),
 
   getGroupOverview: (groupId: number) =>
-    apiClient.get<ApiResponse<GroupOverview>>(
+    apiClient.get<GroupOverview>(
       `${ENDPOINTS.GROUP_OVERVIEW}/${groupId}`
     ),
 

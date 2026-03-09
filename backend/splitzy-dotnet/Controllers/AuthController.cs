@@ -342,6 +342,13 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
+            // Accept both web and Android client IDs as valid audiences
+            var validAudiences = new List<string> { googleClientId };
+            if (!string.IsNullOrWhiteSpace(_config.Google.AndroidClientId))
+            {
+                validAudiences.Add(_config.Google.AndroidClientId);
+            }
+
             GoogleJsonWebSignature.Payload payload;
 
             try
@@ -350,7 +357,7 @@ namespace splitzy_dotnet.Controllers
                     request.IdToken,
                     new GoogleJsonWebSignature.ValidationSettings
                     {
-                        Audience = new[] { googleClientId }
+                        Audience = validAudiences
                     });
 
                 _logger.LogInformation(

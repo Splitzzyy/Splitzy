@@ -1,11 +1,11 @@
 /**
  * Format a number as currency string.
- * Defaults to USD with 2 decimal places.
+ * Defaults to INR with 2 decimal places.
  */
 export function formatCurrency(
   amount: number,
-  currency: string = "USD",
-  locale: string = "en-US"
+  currency: string = "INR",
+  locale: string = "en-IN"
 ): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -16,7 +16,7 @@ export function formatCurrency(
 }
 
 /**
- * Format a number with sign prefix: +$100.00 or -$100.00
+ * Format a number with sign prefix: +₹100.00 or -₹100.00
  */
 export function formatSignedCurrency(amount: number): string {
   const formatted = formatCurrency(amount);

@@ -19,8 +19,8 @@ export const CATEGORY_CONFIG: Record<
 > = {
   [ExpenseCategory.Uncategorized]: {
     label: "Uncategorized",
-    icon: "help-circle-outline",
-    color: "#64748b",
+    icon: "cash-multiple",
+    color: "#94a3b8",
   },
   [ExpenseCategory.Food]: {
     label: "Food",
@@ -74,7 +74,7 @@ export const CATEGORY_CONFIG: Record<
   },
   [ExpenseCategory.Other]: {
     label: "Other",
-    icon: "dots-horizontal-circle",
-    color: "#6b7280",
+    icon: "cash-multiple",
+    color: "#94a3b8",
   },
 };

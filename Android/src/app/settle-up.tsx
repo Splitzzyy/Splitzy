@@ -29,7 +29,7 @@ export default function SettleUpScreen() {
 
   const { currentGroup, fetchGroupOverview } = useGroupsStore();
   const { userId } = useAuthStore();
-  const { fetchDashboard } = useDashboardStore();
+  const { fetchDashboard, fetchRecentActivity } = useDashboardStore();
   const showToast = useUIStore((s) => s.showToast);
 
   const [step, setStep] = useState<Step>("form");
@@ -89,6 +89,7 @@ export default function SettleUpScreen() {
       // Refresh data in background
       fetchGroupOverview(groupId);
       fetchDashboard();
+      fetchRecentActivity();
 
       router.back();
     } catch (error: any) {
@@ -99,7 +100,7 @@ export default function SettleUpScreen() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [groupId, paidByUserId, paidToUserId, parsedAmount, showToast, fetchGroupOverview, fetchDashboard]);
+  }, [groupId, paidByUserId, paidToUserId, parsedAmount, showToast, fetchGroupOverview, fetchDashboard, fetchRecentActivity]);
 
   const handleCancel = useCallback(() => {
     Haptics.selectionAsync();
