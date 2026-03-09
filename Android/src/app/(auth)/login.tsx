@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -13,17 +13,22 @@ import { Link } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import { ScreenWrapper } from "@/components/layout";
 import { Input, Button } from "@/components/ui";
 import { useAuthStore } from "@/stores/auth.store";
 import { loginSchema, type LoginFormData } from "@/utils/validators";
 import { colors } from "@/theme";
 import { useHaptics } from "@/hooks/useHaptics";
-import { GOOGLE_WEB_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from "@/constants/auth";
+import { GOOGLE_WEB_CLIENT_ID } from "@/constants/auth";
 
-WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: GOOGLE_WEB_CLIENT_ID,
+});
 
 export default function LoginScreen() {
   const { login, googleLogin, isLoading, error, clearError } = useAuthStore();
@@ -31,42 +36,28 @@ export default function LoginScreen() {
   const [showError, setShowError] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const [, googleResponse, promptGoogleAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_WEB_CLIENT_ID,
-    ...(GOOGLE_ANDROID_CLIENT_ID ? { androidClientId: GOOGLE_ANDROID_CLIENT_ID } : {}),
-  });
-
-  useEffect(() => {
-    if (googleResponse?.type === "success") {
-      const idToken = googleResponse.params.id_token;
-      handleGoogleToken(idToken);
-    } else if (googleResponse?.type === "error") {
-      setIsGoogleLoading(false);
-      setShowError(true);
-    } else if (googleResponse?.type === "dismiss") {
-      setIsGoogleLoading(false);
-    }
-  }, [googleResponse]);
-
-  const handleGoogleToken = async (idToken: string) => {
-    clearError();
-    try {
-      await googleLogin({ idToken });
-      haptics.success();
-    } catch {
-      haptics.error();
-      setShowError(true);
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  };
-
   const handleGooglePress = async () => {
     clearError();
     setShowError(false);
     setIsGoogleLoading(true);
     haptics.light();
-    await promptGoogleAsync();
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      const idToken = response.data?.idToken;
+      if (!idToken) throw new Error("No ID token received");
+      await googleLogin({ idToken });
+      haptics.success();
+    } catch (err) {
+      if (isErrorWithCode(err) && err.code === statusCodes.SIGN_IN_CANCELLED) {
+        // User cancelled — do nothing
+      } else {
+        haptics.error();
+        setShowError(true);
+      }
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   const {

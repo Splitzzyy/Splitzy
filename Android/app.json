@@ -34,7 +34,6 @@
       "expo-secure-store",
       "expo-font",
       "expo-image",
-      "expo-web-browser",
       [
         "expo-splash-screen",
         {
@@ -43,7 +42,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0a0f18"
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "extra": {
       "router": {},
