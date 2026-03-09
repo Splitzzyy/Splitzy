@@ -136,11 +136,14 @@ namespace splitzy_dotnet.Controllers
                 loginUser.UserId,
                 loginUser.Email);
 
+            var isMobile = Request.Headers["X-Platform"].ToString() == "mobile";
             return Ok(new ApiResponse<object>
             {
                 Success = true,
                 Message = "Login successful",
-                Data = new { Id = loginUser.UserId, Token = accessToken }
+                Data = isMobile
+                    ? new { Id = loginUser.UserId, Token = accessToken, RefreshToken = refreshToken }
+                    : new { Id = loginUser.UserId, Token = accessToken, RefreshToken = (string?)null }
             });
         }
 
@@ -259,9 +262,12 @@ namespace splitzy_dotnet.Controllers
         /// </remarks>
         [HttpPost("logout")]
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout([FromBody] MobileRefreshRequest? request = null)
         {
-            var refreshToken = Request.Cookies["refresh_token"];
+            var isMobile = Request.Headers["X-Platform"].ToString() == "mobile";
+            var refreshToken = isMobile && request != null
+                ? request.RefreshToken
+                : Request.Cookies["refresh_token"];
             if (string.IsNullOrEmpty(refreshToken))
                 return Ok(new { Message = "Already logged out" });
 
@@ -445,11 +451,14 @@ namespace splitzy_dotnet.Controllers
                 user.UserId,
                 user.Email);
 
+            var isMobileGoogle = Request.Headers["X-Platform"].ToString() == "mobile";
             return Ok(new ApiResponse<object>
             {
                 Success = true,
                 Message = "Login successful",
-                Data = new { Id = user.UserId, Token = accessToken }
+                Data = isMobileGoogle
+                    ? new { Id = user.UserId, Token = accessToken, RefreshToken = refreshToken }
+                    : new { Id = user.UserId, Token = accessToken, RefreshToken = (string?)null }
             });
         }
 
@@ -605,9 +614,12 @@ namespace splitzy_dotnet.Controllers
         [AllowAnonymous]
         [EnableRateLimiting("login")]
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> Refresh([FromBody] MobileRefreshRequest? request = null)
         {
-            var refreshToken = Request.Cookies["refresh_token"];
+            var isMobile = Request.Headers["X-Platform"].ToString() == "mobile";
+            var refreshToken = isMobile && request != null
+                ? request.RefreshToken
+                : Request.Cookies["refresh_token"];
             if (string.IsNullOrEmpty(refreshToken))
                 return Unauthorized();
 
@@ -652,10 +664,9 @@ namespace splitzy_dotnet.Controllers
                 Expires = DateTime.UtcNow.AddDays(30)
             });
 
-            return Ok(new
-            {
-                AccessToken = newAccessToken
-            });
+            return Ok(isMobile
+                ? new { AccessToken = newAccessToken, RefreshToken = newRefreshToken }
+                : new { AccessToken = newAccessToken, RefreshToken = (string?)null });
         }
 
         /// <summary>

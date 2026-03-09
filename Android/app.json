@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Splitzy",
+    "slug": "splitzzyy",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "splitzy",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0f18"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.splitzy.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0f18",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.splitzy.app",
+      "enableOnBackInvokedCallback": true,
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-image",
+      "expo-web-browser"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5c69f0f3-152a-4894-b433-1f2570a9aec7"
+      }
+    },
+    "owner": "aarshivv"
+  }
+}
