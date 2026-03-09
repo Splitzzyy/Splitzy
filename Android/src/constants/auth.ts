@@ -7,4 +7,5 @@ export const GOOGLE_WEB_CLIENT_ID =
 // Package name: com.splitzy.app
 // SHA-1: run `cd android && ./gradlew signingReport`
 // Leave empty to use Expo proxy flow (works but opens browser twice)
-export const GOOGLE_ANDROID_CLIENT_ID = "";
+export const GOOGLE_ANDROID_CLIENT_ID =
+  "181191664943-fp33jjr45jj0t4396vl7cc6rrnscio20.apps.googleusercontent.com";

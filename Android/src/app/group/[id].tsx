@@ -2,10 +2,12 @@ import { useEffect, useCallback, useState, useMemo } from "react";
 import {
   View,
   Text,
+  TextInput,
   SectionList,
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  ActivityIndicator,
   Modal,
   StyleSheet,
 } from "react-native";
@@ -43,6 +45,10 @@ export default function GroupDetailScreen() {
   const [activeTab, setActiveTab] = useState<Tab>("expenses");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [pendingEmails, setPendingEmails] = useState<string[]>([]);
+  const [isAddingMembers, setIsAddingMembers] = useState(false);
 
   useEffect(() => {
     fetchGroupOverview(groupId);
@@ -86,8 +92,53 @@ export default function GroupDetailScreen() {
   };
 
   const { showToast } = useUIStore();
-  const { deleteGroup, fetchGroups } = useGroupsStore();
+  const { deleteGroup, addUsersToGroup, fetchGroups } = useGroupsStore();
   const { fetchDashboard, fetchRecentActivity } = useDashboardStore();
+
+  const addEmail = () => {
+    const trimmed = emailInput.trim().toLowerCase();
+    if (!trimmed) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      showToast("Invalid email address", "error");
+      return;
+    }
+    if (pendingEmails.includes(trimmed)) {
+      showToast("Email already added", "warning");
+      return;
+    }
+    // Check if already a member
+    if (currentGroup?.members.some((m) => m.memberEmail.toLowerCase() === trimmed)) {
+      showToast("Already a member", "warning");
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPendingEmails([...pendingEmails, trimmed]);
+    setEmailInput("");
+  };
+
+  const removeEmail = (email: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPendingEmails(pendingEmails.filter((e) => e !== email));
+  };
+
+  const handleAddMembers = async () => {
+    if (pendingEmails.length === 0) return;
+    setIsAddingMembers(true);
+    try {
+      await addUsersToGroup(groupId, { userEmails: pendingEmails });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast(`Added ${pendingEmails.length} member${pendingEmails.length > 1 ? "s" : ""}`, "success");
+      setShowAddMemberModal(false);
+      setPendingEmails([]);
+      setEmailInput("");
+      await fetchGroupOverview(groupId);
+    } catch (e: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      showToast(e.message || "Failed to add members", "error");
+    } finally {
+      setIsAddingMembers(false);
+    }
+  };
 
   const handleDeleteGroup = () => {
     setShowDeleteModal(true);
@@ -234,6 +285,16 @@ export default function GroupDetailScreen() {
         ListFooterComponent={
           activeTab === "members" ? (
             <View style={styles.membersList}>
+              <TouchableOpacity
+                style={styles.addMemberBtn}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowAddMemberModal(true);
+                }}
+              >
+                <MaterialCommunityIcons name="account-plus-outline" size={20} color={colors.primary} />
+                <Text style={styles.addMemberBtnText}>Add Members</Text>
+              </TouchableOpacity>
               {currentGroup.members.map((m) => (
                 <MemberListItem
                   key={m.memberId}
@@ -320,6 +381,86 @@ export default function GroupDetailScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        </TouchableOpacity>
+      </Modal>
+      {/* Add Members Modal */}
+      <Modal
+        visible={showAddMemberModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => !isAddingMembers && setShowAddMemberModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.deleteOverlay}
+          activeOpacity={1}
+          onPress={() => !isAddingMembers && setShowAddMemberModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.addMemberCard}>
+            <Text style={styles.addMemberTitle}>Add Members</Text>
+            <Text style={styles.addMemberSubtitle}>
+              Enter email addresses of people to add
+            </Text>
+
+            <View style={styles.emailRow}>
+              <TextInput
+                style={styles.emailInput}
+                placeholder="Enter email address"
+                placeholderTextColor="#64748b"
+                value={emailInput}
+                onChangeText={setEmailInput}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                onSubmitEditing={addEmail}
+                returnKeyType="done"
+              />
+              <TouchableOpacity style={styles.addEmailBtn} onPress={addEmail}>
+                <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+
+            {pendingEmails.length > 0 && (
+              <View style={styles.emailChips}>
+                {pendingEmails.map((email) => (
+                  <View key={email} style={styles.emailChip}>
+                    <Text style={styles.emailChipText} numberOfLines={1}>
+                      {email}
+                    </Text>
+                    <TouchableOpacity onPress={() => removeEmail(email)}>
+                      <MaterialCommunityIcons name="close-circle" size={18} color="#94a3b8" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.deleteActions}>
+              <TouchableOpacity
+                style={styles.deleteCancelBtn}
+                onPress={() => {
+                  setShowAddMemberModal(false);
+                  setPendingEmails([]);
+                  setEmailInput("");
+                }}
+                disabled={isAddingMembers}
+              >
+                <Text style={styles.deleteCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.addMemberConfirmBtn, (isAddingMembers || pendingEmails.length === 0) && { opacity: 0.5 }]}
+                onPress={handleAddMembers}
+                disabled={isAddingMembers || pendingEmails.length === 0}
+              >
+                {isAddingMembers ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.deleteConfirmText}>
+                    Add ({pendingEmails.length})
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
     </ScreenWrapper>
@@ -469,5 +610,94 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
+  },
+  addMemberBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: "rgba(37, 106, 244, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(37, 106, 244, 0.2)",
+    marginBottom: 8,
+  },
+  addMemberBtnText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontFamily: "Inter-SemiBold",
+  },
+  addMemberCard: {
+    width: "100%",
+    backgroundColor: "#0f1729",
+    borderRadius: 20,
+    padding: 24,
+    gap: 12,
+  },
+  addMemberTitle: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontFamily: "Inter-Bold",
+  },
+  addMemberSubtitle: {
+    color: "#94a3b8",
+    fontSize: 14,
+    fontFamily: "Inter",
+    marginBottom: 4,
+  },
+  emailRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  emailInput: {
+    flex: 1,
+    height: 48,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    color: "#ffffff",
+    fontSize: 14,
+    fontFamily: "Inter",
+  },
+  addEmailBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emailChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  emailChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  emailChipText: {
+    color: "#cbd5e1",
+    fontSize: 13,
+    fontFamily: "Inter",
+    maxWidth: 200,
+  },
+  addMemberConfirmBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
   },
 });
