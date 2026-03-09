@@ -11,6 +11,8 @@ using Serilog;
 using Serilog.Context;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
+using splitzy_dotnet.Repository;
+using splitzy_dotnet.Repository.Interfaces;
 using splitzy_dotnet.Services;
 using splitzy_dotnet.Services.BackgroundServices;
 using splitzy_dotnet.Services.Interfaces;
@@ -42,8 +44,9 @@ namespace splitzy_dotnet.Application
             services.AddScoped<IEmailService, EMailService>();
             services.AddScoped<IMessageProducer, RabbitMqProducer>();
             services.AddScoped<IJWTService, JWTService>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRefreshTokenCleanupService, RefreshTokenCleanupService>();
-            services.AddHostedService<EmailConsumer>();
+            ///services.AddHostedService<EmailConsumer>();
             services.AddHostedService<RefreshTokenBackgroundCleanupService>();
 
             // Config bindings

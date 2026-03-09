@@ -74,4 +74,9 @@ namespace splitzy_dotnet.DTO
         public List<string> UserEmails { get; set; } = new();
     }
 
+    public class UserAllDetails
+    {
+        public ExpenseDetailsResponseDto ExpenseDetails { get; set; }
+    }
+
 }

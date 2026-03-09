@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
+using splitzy_dotnet.Repository.Interfaces;
 
 namespace splitzy_dotnet.Controllers
 {
@@ -16,11 +17,13 @@ namespace splitzy_dotnet.Controllers
     {
         private readonly SplitzyContext _context;
         private readonly ILogger<UserController> _logger;
+        private readonly IUserRepository _userRepo;
 
-        public UserController(SplitzyContext context, ILogger<UserController> logger)
+        public UserController(SplitzyContext context, ILogger<UserController> logger, IUserRepository userRepo)
         {
             _context = context;
             _logger = logger;
+            _userRepo = userRepo;
         }
 
         /// <summary>
@@ -60,47 +63,73 @@ namespace splitzy_dotnet.Controllers
         [ProducesResponseType(typeof(UserGroupExpenseDTO), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<UserGroupExpenseDTO>> GetUserGroupSummary()
+        public async Task<ActionResult<UserGroupExpenseDTO>> GetUserExpenseSummary()
         {
             int currentUserId = HttpContext.GetCurrentUserId();
+
             try
             {
-                var user = await _context.Users.FindAsync(currentUserId);
+                var user = await _context.Users
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserId == currentUserId);
+
                 if (user == null)
-                {
-                    _logger.LogError(
-                       "User not found while fetching group summary. UserId={UserId}",
-                       currentUserId);
-                    return NotFound($"User with ID {currentUserId} not found.");
-                }
+                    return NotFound("User not found.");
 
-                var groups = await _context.GroupMembers
-                    .Where(gm => gm.UserId == currentUserId)
-                    .Include(gm => gm.Group)
-                    .Select(gm => new UserGroupInfo
+                var groups = await _context.GroupMembers.Where(gm => gm.UserId == currentUserId).Include(gm => gm.Group).Select(gm => new UserGroupInfo { GroupId = gm.GroupId, GroupName = gm.Group.Name, JoinedAt = gm.JoinedAt }).ToListAsync();
+
+                var expenses = await _context.Expenses
+                    .AsNoTracking()
+                    .Where(e =>
+                        e.PaidByUserId == currentUserId ||
+                        e.ExpenseSplits.Any(es => es.UserId == currentUserId)
+                    )
+                    .Select(e => new UserExpenseInfo
                     {
-                        GroupId = gm.GroupId,
-                        GroupName = gm.Group.Name,
-                        JoinedAt = gm.JoinedAt
-                    }).ToListAsync();
+                        ExpenseId = e.ExpenseId,
+                        GroupId = e.GroupId,
+                        Description = e.Name,
+                        TotalAmount = e.Amount,
+                        PaidByUserId = e.PaidByUserId,
+                        CreatedAt = e.CreatedAt,
+                        Category = e.Category,
 
-                var totalPaid = await _context.Expenses
-                    .Where(e => e.PaidByUserId == currentUserId)
-                    .SumAsync(e => (decimal?)e.Amount) ?? 0;
+                        // Is user payer?
+                        IsPaidByCurrentUser = e.PaidByUserId == currentUserId,
+
+                        // How much user owes in this expense
+                        UserOwes = e.ExpenseSplits
+                                    .Where(es => es.UserId == currentUserId)
+                                    .Select(es => es.OwedAmount)
+                                    .FirstOrDefault()
+                    })
+                    .ToListAsync();
+
+                // Total paid
+                var totalPaid = expenses
+                    .Where(e => e.IsPaidByCurrentUser)
+                    .Sum(e => e.TotalAmount);
+
+                // Total owes
+                var totalOwes = expenses.Sum(e => (decimal)e.UserOwes);
 
                 var result = new UserGroupExpenseDTO
                 {
                     UserId = user.UserId,
                     UserName = user.Name,
                     Groups = groups,
-                    TotalPaid = totalPaid
+                    Expenses = expenses,
+                    TotalPaid = totalPaid,
+                    TotalOwes = totalOwes,
+                    NetBalance = totalPaid - totalOwes
                 };
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred while retrieving the summary: {ex.Message}");
+                _logger.LogError(ex, "Error fetching user expenses");
+                return StatusCode(500, "Internal server error.");
             }
         }
     }

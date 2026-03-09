@@ -4,6 +4,7 @@ using Moq;
 using splitzy_dotnet.Controllers;
 using splitzy_dotnet.DTO;
 using splitzy_dotnet.Models;
+using splitzy_dotnet.Repository.Interfaces;
 
 namespace spllitzy_dotnet_tests
 {
@@ -11,6 +12,7 @@ namespace spllitzy_dotnet_tests
     public class UserControllerTests
     {
         private SplitzyContext _context;
+        private IUserRepository _user;
         private UserController _controller;
         private Mock<ILogger<UserController>> _mockLogger;
 
@@ -19,7 +21,7 @@ namespace spllitzy_dotnet_tests
         {
             _context = TestHelper.CreateTestContext();
             _mockLogger = new Mock<ILogger<UserController>>();
-            _controller = new UserController(_context, _mockLogger.Object);
+            _controller = new UserController(_context, _mockLogger.Object, _user);
         }
 
         [TearDown]
