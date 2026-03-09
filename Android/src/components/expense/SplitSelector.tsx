@@ -97,7 +97,7 @@ export function SplitSelector({
                     <Text style={styles.percentSign}>%</Text>
                   )}
                   {method === "custom" && (
-                    <Text style={styles.dollarSign}>$</Text>
+                    <Text style={styles.dollarSign}>₹</Text>
                   )}
                   <TextInput
                     style={styles.customInput}
@@ -162,7 +162,7 @@ function RemainingIndicator({
   const isValid = Math.abs(remaining) < 0.01;
   return (
     <Text style={[styles.remaining, isValid ? styles.valid : styles.invalid]}>
-      {isValid ? "Fully split" : `$${remaining.toFixed(2)} remaining`}
+      {isValid ? "Fully split" : `₹${remaining.toFixed(2)} remaining`}
     </Text>
   );
 }

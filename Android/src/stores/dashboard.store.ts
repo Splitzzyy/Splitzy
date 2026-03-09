@@ -22,7 +22,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await dashboardApi.getDashboard();
-      set({ dashboard: response.data.data ?? null, isLoading: false });
+      set({ dashboard: response.data ?? null, isLoading: false });
     } catch (error: any) {
       set({
         error: error.response?.data?.message || "Failed to load dashboard",
@@ -34,7 +34,7 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   fetchRecentActivity: async () => {
     try {
       const response = await dashboardApi.getRecentActivity();
-      set({ recentActivity: response.data.data ?? [] });
+      set({ recentActivity: response.data ?? [] });
     } catch {
       // Silent fail for activity
     }

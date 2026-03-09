@@ -191,7 +191,7 @@ export default function AddExpenseScreen() {
         <View style={styles.amountSection}>
           <Text style={styles.fieldLabel}>Amount</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.currencySymbol}>$</Text>
+            <Text style={styles.currencySymbol}>₹</Text>
             <Input
               placeholder="0.00"
               value={amount}

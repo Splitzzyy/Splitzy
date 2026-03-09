@@ -30,7 +30,7 @@ export function SettleUpForm({
     <View style={styles.container}>
       {/* Amount input */}
       <View style={styles.amountSection}>
-        <Text style={styles.currencySymbol}>$</Text>
+        <Text style={styles.currencySymbol}>₹</Text>
         <TextInput
           style={styles.amountInput}
           value={amount}

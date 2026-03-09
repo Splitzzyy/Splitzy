@@ -34,7 +34,7 @@ export const useGroupsStore = create<GroupsState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await groupsApi.getAllGroups();
-      set({ groups: response.data.data ?? [], isLoading: false });
+      set({ groups: response.data ?? [], isLoading: false });
     } catch (error: any) {
       set({
         error: error.response?.data?.message || "Failed to load groups",
@@ -47,7 +47,7 @@ export const useGroupsStore = create<GroupsState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await groupsApi.getGroupOverview(groupId);
-      set({ currentGroup: response.data.data ?? null, isLoading: false });
+      set({ currentGroup: response.data ?? null, isLoading: false });
     } catch (error: any) {
       set({
         error: error.response?.data?.message || "Failed to load group",

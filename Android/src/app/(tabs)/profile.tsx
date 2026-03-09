@@ -102,7 +102,7 @@ export default function ProfileScreen() {
   const loadUserSummary = useCallback(async () => {
     try {
       const response = await usersApi.getUserSummary();
-      setUserSummary(response.data.data ?? null);
+      setUserSummary(response.data ?? null);
     } catch {
       // Silent fail
     }
