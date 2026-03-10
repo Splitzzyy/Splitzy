@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MotiView, AnimatePresence } from "moti";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUIStore } from "@/stores/ui.store";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 const ICON_MAP: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>["name"]> = {
   success: "check-circle",
@@ -13,23 +13,24 @@ const ICON_MAP: Record<string, React.ComponentProps<typeof MaterialCommunityIcon
   info: "information",
 };
 
-const COLOR_MAP: Record<string, string> = {
-  success: colors.semantic.positive,
-  error: colors.semantic.negative,
-  warning: colors.semantic.warning,
-  info: colors.primary,
-};
-
-const BG_MAP: Record<string, string> = {
-  success: "#0d2818",
-  error: "#2a0f13",
-  warning: "#2a2008",
-  info: "#0c1a30",
-};
-
 export function Toast() {
   const { toast, hideToast } = useUIStore();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+
+  const colorMap: Record<string, string> = {
+    success: colors.toastText.success,
+    error: colors.toastText.error,
+    warning: colors.toastText.warning,
+    info: colors.primary,
+  };
+
+  const bgMap: Record<string, string> = {
+    success: colors.toast.success,
+    error: colors.toast.error,
+    warning: colors.toast.warning,
+    info: colors.toast.info,
+  };
 
   useEffect(() => {
     if (toast.visible) {
@@ -50,8 +51,8 @@ export function Toast() {
             styles.container,
             {
               top: insets.top + 8,
-              backgroundColor: BG_MAP[toast.type] ?? BG_MAP.info,
-              borderColor: COLOR_MAP[toast.type] ?? COLOR_MAP.info,
+              backgroundColor: bgMap[toast.type] ?? bgMap.info,
+              borderColor: colorMap[toast.type] ?? colorMap.info,
             },
           ]}
         >
@@ -63,9 +64,9 @@ export function Toast() {
             <MaterialCommunityIcons
               name={ICON_MAP[toast.type] ?? "information"}
               size={20}
-              color={COLOR_MAP[toast.type] ?? COLOR_MAP.info}
+              color={colorMap[toast.type] ?? colorMap.info}
             />
-            <Text style={styles.message} numberOfLines={2}>
+            <Text style={[styles.message, { color: colors.text.primary }]} numberOfLines={2}>
               {toast.message}
             </Text>
           </TouchableOpacity>
@@ -99,7 +100,6 @@ const styles = StyleSheet.create({
   },
   message: {
     flex: 1,
-    color: "#ffffff",
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },

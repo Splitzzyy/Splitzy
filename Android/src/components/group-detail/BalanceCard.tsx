@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { GlassCard } from "../ui/GlassCard";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 interface BalanceCardProps {
   totalBalance: number;
@@ -10,12 +10,14 @@ interface BalanceCardProps {
 }
 
 export function BalanceCard({ totalBalance, youOwe, youAreOwed }: BalanceCardProps) {
+  const { colors } = useTheme();
+
   return (
     <GlassCard variant="panel" style={styles.card}>
       <View style={styles.content}>
         <View style={styles.row}>
           <View style={styles.item}>
-            <Text style={styles.label}>Total Balance</Text>
+            <Text style={[styles.label, { color: colors.text.secondary }]}>Total Balance</Text>
             <Text
               style={[
                 styles.value,
@@ -32,16 +34,16 @@ export function BalanceCard({ totalBalance, youOwe, youAreOwed }: BalanceCardPro
             </Text>
           </View>
         </View>
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.glass.border }]} />
         <View style={styles.row}>
           <View style={styles.item}>
-            <Text style={styles.label}>You Owe</Text>
+            <Text style={[styles.label, { color: colors.text.secondary }]}>You Owe</Text>
             <Text style={[styles.value, { color: colors.semantic.negative }]}>
               {formatCurrency(youOwe)}
             </Text>
           </View>
           <View style={styles.item}>
-            <Text style={[styles.label, { textAlign: "right" }]}>
+            <Text style={[styles.label, { color: colors.text.secondary, textAlign: "right" }]}>
               You Are Owed
             </Text>
             <Text
@@ -77,7 +79,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    color: "#94a3b8",
     fontSize: 12,
     fontFamily: "Inter-Medium",
     letterSpacing: 0.5,
@@ -88,6 +89,5 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
 });

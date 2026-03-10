@@ -18,6 +18,7 @@ import { Header } from "@/components/layout/Header";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { CategoryPicker } from "@/components/expense/CategoryPicker";
 import {
   SplitSelector,
@@ -25,41 +26,42 @@ import {
 } from "@/components/expense/SplitSelector";
 import { useGroupsStore } from "@/stores/groups.store";
 import { useExpensesStore } from "@/stores/expenses.store";
-import { useAuthStore } from "@/stores/auth.store";
 import { useUIStore } from "@/stores/ui.store";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { ExpenseCategory } from "@/constants/categories";
 import { useTheme } from "@/theme";
 import type { GroupMember, SplitDetailDto } from "@/types/api.types";
 
-export default function AddExpenseScreen() {
+export default function EditExpenseScreen() {
   const { colors } = useTheme();
-  const params = useLocalSearchParams<{ groupId?: string }>();
-  const { groups, fetchGroups, currentGroup, fetchGroupOverview } =
-    useGroupsStore();
-  const { addExpense } = useExpensesStore();
-  const { userId } = useAuthStore();
+  const params = useLocalSearchParams<{
+    expenseId: string;
+    groupId: string;
+  }>();
+  const expenseId = parseInt(params.expenseId!, 10);
+  const groupId = parseInt(params.groupId!, 10);
+
+  const { currentGroup, fetchGroupOverview } = useGroupsStore();
+  const { currentExpense, fetchExpenseDetails, updateExpense, clearCurrentExpense } =
+    useExpensesStore();
   const { showToast } = useUIStore();
   const { fetchDashboard, fetchRecentActivity } = useDashboardStore();
 
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(
-    params.groupId ? parseInt(params.groupId, 10) : null
-  );
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<ExpenseCategory>(
     ExpenseCategory.Uncategorized
   );
-  const [paidByUserId, setPaidByUserId] = useState<number>(userId ?? 0);
+  const [paidByUserId, setPaidByUserId] = useState<number>(0);
   const [splitMethod, setSplitMethod] = useState<SplitMethod>("equal");
   const [customAmounts, setCustomAmounts] = useState<Record<number, number>>(
     {}
   );
-  const [showGroupPicker, setShowGroupPicker] = useState(false);
   const [showPaidByPicker, setShowPaidByPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingExpense, setIsLoadingExpense] = useState(true);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
@@ -80,21 +82,50 @@ export default function AddExpenseScreen() {
     };
   }, [splitMethod]);
 
+  // Load group and expense data
   useEffect(() => {
-    if (groups.length === 0) fetchGroups();
-  }, []);
+    if (groupId && (!currentGroup || currentGroup.groupId !== groupId)) {
+      fetchGroupOverview(groupId);
+    }
+  }, [groupId]);
 
   useEffect(() => {
-    if (selectedGroupId) {
-      fetchGroupOverview(selectedGroupId);
+    fetchExpenseDetails(expenseId).finally(() => setIsLoadingExpense(false));
+    return () => clearCurrentExpense();
+  }, [expenseId]);
+
+  // Populate form when expense data loads
+  useEffect(() => {
+    if (currentExpense) {
+      setName(currentExpense.name);
+      setAmount(currentExpense.amount.toString());
+      setCategory(currentExpense.category);
+      setPaidByUserId(currentExpense.paidBy.userId);
+
+      // Determine split method
+      const members = currentGroup?.members ?? [];
+      if (members.length > 0) {
+        const equalAmount = currentExpense.amount / members.length;
+        const isEqual = currentExpense.splits.every(
+          (s) => Math.abs(s.amount - equalAmount) < 0.02
+        );
+
+        if (isEqual) {
+          setSplitMethod("equal");
+        } else {
+          setSplitMethod("custom");
+          const amounts: Record<number, number> = {};
+          currentExpense.splits.forEach((s) => {
+            amounts[s.userId] = s.amount;
+          });
+          setCustomAmounts(amounts);
+        }
+      }
     }
-  }, [selectedGroupId]);
+  }, [currentExpense, currentGroup]);
 
   const members: GroupMember[] = currentGroup?.members ?? [];
-
   const paidByMember = members.find((m) => m.memberId === paidByUserId);
-
-  const selectedGroup = groups.find((g) => g.groupId === selectedGroupId);
 
   const buildSplitDetails = (): SplitDetailDto[] => {
     const total = parseFloat(amount) || 0;
@@ -125,10 +156,6 @@ export default function AddExpenseScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedGroupId) {
-      showToast("Please select a group", "error");
-      return;
-    }
     if (!name.trim()) {
       showToast("Please enter an expense name", "error");
       return;
@@ -149,8 +176,9 @@ export default function AddExpenseScreen() {
 
     setIsSubmitting(true);
     try {
-      await addExpense({
-        groupId: selectedGroupId,
+      await updateExpense({
+        expenseId,
+        groupId,
         paidByUserId,
         amount: total,
         name: name.trim(),
@@ -158,17 +186,17 @@ export default function AddExpenseScreen() {
         splitDetails,
       });
       triggerNotification(NotificationFeedbackType.Success);
-      showToast("Expense added!", "success");
+      showToast("Expense updated!", "success");
 
       // Refresh data in background
-      fetchGroupOverview(selectedGroupId);
+      fetchGroupOverview(groupId);
       fetchDashboard();
       fetchRecentActivity();
 
       router.back();
     } catch (error: any) {
       triggerNotification(NotificationFeedbackType.Error);
-      showToast(error.message || "Failed to add expense", "error");
+      showToast(error.message || "Failed to update expense", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -178,47 +206,41 @@ export default function AddExpenseScreen() {
     setCustomAmounts((prev) => ({ ...prev, [memberId]: val }));
   };
 
+  if (isLoadingExpense) {
+    return (
+      <ScreenWrapper>
+        <Header title="Edit Expense" showBack />
+        <LoadingSpinner message="Loading expense..." />
+      </ScreenWrapper>
+    );
+  }
+
   return (
     <ScreenWrapper>
-      <Header title="Add Expense" showBack />
+      <Header title="Edit Expense" showBack />
 
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-        {/* Group Picker */}
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Group (read-only) */}
         <View style={styles.field}>
           <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Group</Text>
-          <TouchableOpacity
-            style={[styles.picker, { backgroundColor: colors.glass.card, borderColor: colors.glass.border }]}
-            onPress={() => !params.groupId && setShowGroupPicker(true)}
-            activeOpacity={params.groupId ? 1 : 0.7}
+          <View
+            style={[styles.picker, { backgroundColor: colors.glass.card, borderColor: colors.glass.border, opacity: 0.7 }]}
           >
             <MaterialCommunityIcons
               name="account-group"
               size={20}
-              color={selectedGroup ? colors.primary : colors.text.tertiary}
+              color={colors.primary}
             />
-            <Text
-              style={[
-                styles.pickerText,
-                { color: colors.text.primary },
-                !selectedGroup && { color: colors.text.hint },
-              ]}
-            >
-              {selectedGroup?.groupName ?? "Select a group"}
+            <Text style={[styles.pickerText, { color: colors.text.primary }]}>
+              {currentGroup?.name ?? "Group"}
             </Text>
-            {!params.groupId && (
-              <MaterialCommunityIcons
-                name="chevron-down"
-                size={20}
-                color={colors.text.tertiary}
-              />
-            )}
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Amount */}
@@ -259,7 +281,7 @@ export default function AddExpenseScreen() {
               activeOpacity={0.7}
             >
               <Avatar name={paidByMember?.memberName ?? ""} size={28} />
-              <Text style={styles.pickerText}>
+              <Text style={[styles.pickerText, { color: colors.text.primary }]}>
                 {paidByMember?.memberName ?? "Select who paid"}
               </Text>
               <MaterialCommunityIcons
@@ -286,70 +308,16 @@ export default function AddExpenseScreen() {
 
         {/* Submit */}
         <Button
-          title="Add Expense"
+          title="Update Expense"
           onPress={handleSubmit}
           loading={isSubmitting}
-          disabled={!selectedGroupId || !name.trim() || !amount}
+          disabled={!name.trim() || !amount}
           size="lg"
           style={styles.submitBtn}
         />
 
         <View style={{ height: keyboardHeight > 0 ? keyboardHeight : 40 }} />
       </ScrollView>
-
-      {/* Group Picker Modal */}
-      <Modal
-        visible={showGroupPicker}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowGroupPicker(false)}
-      >
-        <TouchableOpacity
-          style={[styles.overlay, { backgroundColor: colors.overlay }]}
-          activeOpacity={1}
-          onPress={() => setShowGroupPicker(false)}
-        >
-          <View style={[styles.sheet, { backgroundColor: colors.modalBackground }]}>
-            <View style={[styles.sheetHandle, { backgroundColor: colors.sheetHandle }]} />
-            <Text style={[styles.sheetTitle, { color: colors.text.primary }]}>Select Group</Text>
-            <FlatList
-              data={groups}
-              keyExtractor={(item) => item.groupId.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.sheetItem,
-                    item.groupId === selectedGroupId && { backgroundColor: colors.primaryLight },
-                  ]}
-                  onPress={() => {
-                    triggerHaptic();
-                    setSelectedGroupId(item.groupId);
-                    setShowGroupPicker(false);
-                  }}
-                >
-                  <MaterialCommunityIcons
-                    name="account-group"
-                    size={20}
-                    color={
-                      item.groupId === selectedGroupId
-                        ? colors.primary
-                        : colors.text.secondary
-                    }
-                  />
-                  <Text style={[styles.sheetItemText, { color: colors.text.primary }]}>{item.groupName}</Text>
-                  {item.groupId === selectedGroupId && (
-                    <MaterialCommunityIcons
-                      name="check"
-                      size={20}
-                      color={colors.primary}
-                    />
-                  )}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       {/* Paid By Picker Modal */}
       <Modal

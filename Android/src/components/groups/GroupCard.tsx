@@ -1,8 +1,8 @@
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
-import { colors } from "@/theme";
+import { triggerHaptic } from "@/utils/haptics";
+import { useTheme } from "@/theme";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 const GROUP_GRADIENTS: [string, string][] = [
@@ -45,10 +45,11 @@ export function GroupCard({
   netBalance = 0,
   onPress,
 }: GroupCardProps) {
+  const { colors } = useTheme();
   const idx = groupId % GROUP_GRADIENTS.length;
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     onPress(groupId);
   };
 
@@ -75,7 +76,13 @@ export function GroupCard({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.glass.panel,
+          borderColor: colors.glass.borderLight,
+        },
+      ]}
       onPress={handlePress}
       activeOpacity={0.7}
     >
@@ -93,7 +100,7 @@ export function GroupCard({
       </LinearGradient>
 
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
+        <Text style={[styles.name, { color: colors.text.primary }]} numberOfLines={1}>
           {groupName}
         </Text>
         <View style={styles.balanceRow}>
@@ -111,7 +118,7 @@ export function GroupCard({
       <MaterialCommunityIcons
         name="chevron-right"
         size={22}
-        color="#475569"
+        color={colors.text.hint}
       />
     </TouchableOpacity>
   );
@@ -123,10 +130,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
     padding: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   iconBox: {
     width: 56,
@@ -140,7 +145,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   name: {
-    color: "#ffffff",
     fontSize: 16,
     fontFamily: "Inter-SemiBold",
   },

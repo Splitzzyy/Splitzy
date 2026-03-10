@@ -23,7 +23,7 @@ import { ScreenWrapper } from "@/components/layout";
 import { Input, Button } from "@/components/ui";
 import { useAuthStore } from "@/stores/auth.store";
 import { registerSchema, type RegisterFormData } from "@/utils/validators";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 import { useHaptics } from "@/hooks/useHaptics";
 import { GOOGLE_WEB_CLIENT_ID } from "@/constants/auth";
 
@@ -35,6 +35,7 @@ export default function RegisterScreen() {
   const { register: signup, googleLogin, isLoading, error, clearError } = useAuthStore();
   const router = useRouter();
   const haptics = useHaptics();
+  const { colors } = useTheme();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleGooglePress = async () => {
@@ -94,15 +95,15 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
+            <View style={[styles.logoContainer, { backgroundColor: colors.primaryLight }]}>
               <MaterialCommunityIcons
                 name="account-plus"
                 size={48}
                 color={colors.primary}
               />
             </View>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text.primary }]}>Create Account</Text>
+            <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
               Start splitting expenses with friends
             </Text>
           </View>
@@ -116,26 +117,26 @@ export default function RegisterScreen() {
 
           {/* Google Sign-Up */}
           <TouchableOpacity
-            style={styles.googleButton}
+            style={[styles.googleButton, { backgroundColor: colors.glass.card, borderColor: colors.glass.borderLight }]}
             onPress={handleGooglePress}
             disabled={isLoading || isGoogleLoading}
             activeOpacity={0.8}
           >
             {isGoogleLoading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
+              <ActivityIndicator size="small" color={colors.text.primary} />
             ) : (
               <>
-                <MaterialCommunityIcons name="google" size={20} color="#ffffff" />
-                <Text style={styles.googleButtonText}>Continue with Google</Text>
+                <MaterialCommunityIcons name="google" size={20} color={colors.text.primary} />
+                <Text style={[styles.googleButtonText, { color: colors.text.primary }]}>Continue with Google</Text>
               </>
             )}
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: colors.glass.border }]} />
+            <Text style={[styles.dividerText, { color: colors.text.tertiary }]}>OR</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.glass.border }]} />
           </View>
 
           <View style={styles.form}>
@@ -200,10 +201,10 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={[styles.footerText, { color: colors.text.tertiary }]}>Already have an account? </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
-                <Text style={styles.linkText}>Sign In</Text>
+                <Text style={[styles.linkText, { color: colors.primary }]}>Sign In</Text>
               </TouchableOpacity>
             </Link>
           </View>
@@ -218,11 +219,10 @@ const styles = StyleSheet.create({
   header: { alignItems: "center", marginBottom: 40 },
   logoContainer: {
     width: 80, height: 80, borderRadius: 24,
-    backgroundColor: "rgba(37, 106, 244, 0.1)",
     alignItems: "center", justifyContent: "center", marginBottom: 20,
   },
-  title: { color: "#ffffff", fontSize: 28, fontFamily: "Inter-Bold" },
-  subtitle: { color: "#64748b", fontSize: 15, fontFamily: "Inter", marginTop: 6 },
+  title: { fontSize: 28, fontFamily: "Inter-Bold" },
+  subtitle: { fontSize: 15, fontFamily: "Inter", marginTop: 6 },
   errorBanner: {
     flexDirection: "row", alignItems: "center", gap: 8,
     backgroundColor: "rgba(239, 68, 68, 0.1)",
@@ -237,12 +237,9 @@ const styles = StyleSheet.create({
     gap: 10,
     height: 52,
     borderRadius: 14,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   googleButtonText: {
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },
@@ -255,16 +252,14 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   dividerText: {
-    color: "#64748b",
     fontSize: 12,
     fontFamily: "Inter-Medium",
     letterSpacing: 1,
   },
   form: { gap: 16 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 32 },
-  footerText: { color: "#64748b", fontSize: 14, fontFamily: "Inter" },
-  linkText: { color: colors.primary, fontSize: 14, fontFamily: "Inter-SemiBold" },
+  footerText: { fontSize: 14, fontFamily: "Inter" },
+  linkText: { fontSize: 14, fontFamily: "Inter-SemiBold" },
 });

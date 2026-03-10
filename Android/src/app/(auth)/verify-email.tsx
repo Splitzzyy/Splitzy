@@ -5,13 +5,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ScreenWrapper } from "@/components/layout";
 import { Button, LoadingSpinner } from "@/components/ui";
 import { authApi } from "@/services/api/auth.api";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 type VerifyStatus = "loading" | "success" | "already_verified" | "error";
 
 export default function VerifyEmailScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const router = useRouter();
+  const { colors } = useTheme();
   const [status, setStatus] = useState<VerifyStatus>("loading");
   const [message, setMessage] = useState("");
 
@@ -43,9 +44,9 @@ export default function VerifyEmailScreen() {
 
   const iconConfig: Record<VerifyStatus, { name: keyof typeof MaterialCommunityIcons.glyphMap; color: string }> = {
     loading: { name: "email-sync", color: colors.primary },
-    success: { name: "check-circle", color: "#34d399" },
-    already_verified: { name: "check-circle", color: "#34d399" },
-    error: { name: "alert-circle", color: "#ef4444" },
+    success: { name: "check-circle", color: colors.semantic.positive },
+    already_verified: { name: "check-circle", color: colors.semantic.positive },
+    error: { name: "alert-circle", color: colors.error },
   };
 
   const { name: iconName, color: iconColor } = iconConfig[status];
@@ -60,10 +61,10 @@ export default function VerifyEmailScreen() {
             <View style={[styles.iconContainer, { backgroundColor: iconColor + "15" }]}>
               <MaterialCommunityIcons name={iconName} size={56} color={iconColor} />
             </View>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.text.primary }]}>
               {status === "success" ? "Verified!" : status === "already_verified" ? "Already Verified" : "Verification Failed"}
             </Text>
-            <Text style={styles.message}>{message}</Text>
+            <Text style={[styles.message, { color: colors.text.secondary }]}>{message}</Text>
             <Button
               title="Go to Login"
               onPress={() => router.replace("/(auth)/login")}
@@ -79,6 +80,6 @@ export default function VerifyEmailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
   iconContainer: { width: 100, height: 100, borderRadius: 50, alignItems: "center", justifyContent: "center", marginBottom: 24 },
-  title: { color: "#ffffff", fontSize: 24, fontFamily: "Inter-Bold", textAlign: "center" },
-  message: { color: "#94a3b8", fontSize: 15, fontFamily: "Inter", textAlign: "center", marginTop: 8, lineHeight: 22 },
+  title: { fontSize: 24, fontFamily: "Inter-Bold", textAlign: "center" },
+  message: { fontSize: 15, fontFamily: "Inter", textAlign: "center", marginTop: 8, lineHeight: 22 },
 });

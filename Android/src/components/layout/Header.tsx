@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import { useTheme } from "@/theme";
 import { IconButton } from "../ui/IconButton";
 import { Avatar } from "../ui/Avatar";
 
@@ -22,6 +23,8 @@ export function Header({
   onAvatarPress,
   rightAction,
 }: HeaderProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       <View style={styles.left}>
@@ -41,7 +44,7 @@ export function Header({
             <Avatar name={avatarName} uri={avatarUri} size={36} />
           )
         )}
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={1}>
           {title}
         </Text>
       </View>
@@ -70,7 +73,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    color: "#ffffff",
     fontSize: 20,
     fontFamily: "Inter-SemiBold",
     flex: 1,

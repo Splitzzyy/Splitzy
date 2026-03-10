@@ -1,6 +1,6 @@
 import { ScrollView, TouchableOpacity, Text, StyleSheet } from "react-native";
-import * as Haptics from "expo-haptics";
-import { colors } from "@/theme";
+import { triggerSelection } from "@/utils/haptics";
+import { useTheme } from "@/theme";
 
 export type GroupFilter = "all" | "owe" | "owed" | "settled";
 
@@ -17,6 +17,8 @@ interface FilterChipsProps {
 }
 
 export function FilterChips({ active, onSelect }: FilterChipsProps) {
+  const { colors } = useTheme();
+
   return (
     <ScrollView
       horizontal
@@ -28,14 +30,30 @@ export function FilterChips({ active, onSelect }: FilterChipsProps) {
         return (
           <TouchableOpacity
             key={f.key}
-            style={[styles.chip, isActive && styles.chipActive]}
+            style={[
+              styles.chip,
+              {
+                backgroundColor: colors.glass.card,
+                borderColor: colors.glass.borderLight,
+              },
+              isActive && {
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+              },
+            ]}
             onPress={() => {
-              Haptics.selectionAsync();
+              triggerSelection();
               onSelect(f.key);
             }}
             activeOpacity={0.7}
           >
-            <Text style={[styles.chipText, isActive && styles.chipTextActive]}>
+            <Text
+              style={[
+                styles.chipText,
+                { color: colors.text.secondary },
+                isActive && { color: colors.text.primary },
+              ]}
+            >
               {f.label}
             </Text>
           </TouchableOpacity>
@@ -56,20 +74,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   chipText: {
-    color: "#cbd5e1",
     fontSize: 12,
     fontFamily: "Inter-Medium",
-  },
-  chipTextActive: {
-    color: "#ffffff",
   },
 });

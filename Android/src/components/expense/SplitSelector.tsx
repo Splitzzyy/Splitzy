@@ -1,8 +1,8 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useState } from "react";
-import * as Haptics from "expo-haptics";
+import { triggerSelection } from "@/utils/haptics";
 import { Avatar } from "../ui/Avatar";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 import type { GroupMember } from "@/types/api.types";
 
 export type SplitMethod = "equal" | "custom" | "percentage";
@@ -32,17 +32,18 @@ export function SplitSelector({
   customAmounts,
   onCustomAmountChange,
 }: SplitSelectorProps) {
+  const { colors } = useTheme();
   const equalAmount =
     members.length > 0 ? totalAmount / members.length : 0;
 
   const handleMethodChange = (m: SplitMethod) => {
-    Haptics.selectionAsync();
+    triggerSelection();
     onMethodChange(m);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Split Method</Text>
+      <Text style={[styles.label, { color: colors.text.secondary }]}>Split Method</Text>
 
       {/* Method tabs */}
       <View style={styles.methodRow}>
@@ -51,14 +52,25 @@ export function SplitSelector({
           return (
             <TouchableOpacity
               key={m.key}
-              style={[styles.methodTab, isActive && styles.methodTabActive]}
+              style={[
+                styles.methodTab,
+                {
+                  backgroundColor: colors.glass.card,
+                  borderColor: colors.glass.border,
+                },
+                isActive && {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                },
+              ]}
               onPress={() => handleMethodChange(m.key)}
               activeOpacity={0.7}
             >
               <Text
                 style={[
                   styles.methodText,
-                  isActive && styles.methodTextActive,
+                  { color: colors.text.secondary },
+                  isActive && { color: colors.text.primary },
                 ]}
               >
                 {m.label}
@@ -77,30 +89,47 @@ export function SplitSelector({
               : customAmounts[member.memberId] ?? 0;
 
           return (
-            <View key={member.memberId} style={styles.memberRow}>
+            <View
+              key={member.memberId}
+              style={[
+                styles.memberRow,
+                {
+                  backgroundColor: colors.glass.panel,
+                  borderColor: colors.divider,
+                },
+              ]}
+            >
               <Avatar name={member.memberName} size={36} />
               <View style={styles.memberInfo}>
-                <Text style={styles.memberName} numberOfLines={1}>
+                <Text style={[styles.memberName, { color: colors.text.primary }]} numberOfLines={1}>
                   {member.memberName}
                   {member.memberId === paidByUserId && (
-                    <Text style={styles.paidTag}> (paid)</Text>
+                    <Text style={[styles.paidTag, { color: colors.primary }]}> (paid)</Text>
                   )}
                 </Text>
               </View>
               {method === "equal" ? (
-                <Text style={styles.amountText}>
+                <Text style={[styles.amountText, { color: colors.text.secondary }]}>
                   ₹{displayAmount.toFixed(2)}
                 </Text>
               ) : (
-                <View style={styles.customInputWrap}>
+                <View
+                  style={[
+                    styles.customInputWrap,
+                    {
+                      backgroundColor: colors.glass.card,
+                      borderColor: colors.glass.borderLight,
+                    },
+                  ]}
+                >
                   {method === "percentage" && (
-                    <Text style={styles.percentSign}>%</Text>
+                    <Text style={[styles.percentSign, { color: colors.text.tertiary }]}>%</Text>
                   )}
                   {method === "custom" && (
-                    <Text style={styles.dollarSign}>₹</Text>
+                    <Text style={[styles.dollarSign, { color: colors.text.tertiary }]}>₹</Text>
                   )}
                   <TextInput
-                    style={styles.customInput}
+                    style={[styles.customInput, { color: colors.text.primary }]}
                     keyboardType="decimal-pad"
                     value={
                       customAmounts[member.memberId]?.toString() ?? ""
@@ -110,7 +139,7 @@ export function SplitSelector({
                       onCustomAmountChange(member.memberId, num);
                     }}
                     placeholder="0"
-                    placeholderTextColor="#475569"
+                    placeholderTextColor={colors.text.hint}
                   />
                 </View>
               )}
@@ -126,6 +155,7 @@ export function SplitSelector({
           totalAmount={totalAmount}
           customAmounts={customAmounts}
           members={members}
+          colors={colors}
         />
       )}
     </View>
@@ -137,11 +167,13 @@ function RemainingIndicator({
   totalAmount,
   customAmounts,
   members,
+  colors,
 }: {
   method: SplitMethod;
   totalAmount: number;
   customAmounts: Record<number, number>;
   members: GroupMember[];
+  colors: any;
 }) {
   const total = members.reduce(
     (sum, m) => sum + (customAmounts[m.memberId] ?? 0),
@@ -152,7 +184,12 @@ function RemainingIndicator({
     const remaining = 100 - total;
     const isValid = Math.abs(remaining) < 0.01;
     return (
-      <Text style={[styles.remaining, isValid ? styles.valid : styles.invalid]}>
+      <Text
+        style={[
+          styles.remaining,
+          { color: isValid ? colors.semantic.positive : colors.semantic.warning },
+        ]}
+      >
         {isValid ? "100% allocated" : `${remaining.toFixed(1)}% remaining`}
       </Text>
     );
@@ -161,7 +198,12 @@ function RemainingIndicator({
   const remaining = totalAmount - total;
   const isValid = Math.abs(remaining) < 0.01;
   return (
-    <Text style={[styles.remaining, isValid ? styles.valid : styles.invalid]}>
+    <Text
+      style={[
+        styles.remaining,
+        { color: isValid ? colors.semantic.positive : colors.semantic.warning },
+      ]}
+    >
       {isValid ? "Fully split" : `₹${remaining.toFixed(2)} remaining`}
     </Text>
   );
@@ -172,7 +214,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   label: {
-    color: "#94a3b8",
     fontSize: 13,
     fontFamily: "Inter-Medium",
     marginLeft: 4,
@@ -186,21 +227,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
-  methodTabActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   methodText: {
-    color: "#94a3b8",
     fontSize: 13,
     fontFamily: "Inter-SemiBold",
-  },
-  methodTextActive: {
-    color: "#ffffff",
   },
   membersList: {
     gap: 8,
@@ -209,53 +240,43 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
   },
   memberInfo: {
     flex: 1,
   },
   memberName: {
-    color: "#ffffff",
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },
   paidTag: {
-    color: colors.primary,
     fontSize: 12,
   },
   amountText: {
-    color: "#94a3b8",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },
   customInputWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 8,
     paddingHorizontal: 8,
     width: 90,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   dollarSign: {
-    color: "#64748b",
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },
   percentSign: {
-    color: "#64748b",
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },
   customInput: {
     flex: 1,
-    color: "#ffffff",
     fontSize: 14,
     fontFamily: "Inter",
     paddingVertical: 8,
@@ -267,11 +288,5 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-Medium",
     textAlign: "center",
     paddingVertical: 4,
-  },
-  valid: {
-    color: colors.semantic.positive,
-  },
-  invalid: {
-    color: colors.semantic.warning,
   },
 });

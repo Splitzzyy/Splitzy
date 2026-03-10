@@ -6,6 +6,8 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAuthStore } from "@/stores/auth.store";
+import { useSettingsStore } from "@/stores/settings.store";
+import { ThemeProvider, useTheme } from "@/theme";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { Toast } from "@/components/ui/Toast";
 import { NetworkBanner } from "@/components/ui/NetworkBanner";
@@ -30,8 +32,53 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ThemedApp() {
+  const { colors, isDark } = useTheme();
+
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <AuthGuard>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.background.main },
+            animation: "slide_from_right",
+          }}
+        >
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="group/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="group/create"
+            options={{ animation: "slide_from_bottom", presentation: "modal" }}
+          />
+          <Stack.Screen
+            name="expense/add"
+            options={{ animation: "slide_from_bottom", presentation: "modal" }}
+          />
+          <Stack.Screen
+            name="expense/[id]"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
+            name="settle-up"
+            options={{ animation: "slide_from_bottom", presentation: "modal" }}
+          />
+        </Stack>
+      </AuthGuard>
+      <Toast />
+      <NetworkBanner />
+    </>
+  );
+}
+
 export default function RootLayout() {
   const checkAuth = useAuthStore((s) => s.checkAuth);
+  const loadSettings = useSettingsStore((s) => s.loadSettings);
 
   const [fontsLoaded] = useFonts({
     Inter: require("../../assets/fonts/Inter.ttf"),
@@ -43,6 +90,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     checkAuth();
+    loadSettings();
   }, []);
 
   useEffect(() => {
@@ -58,41 +106,9 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <StatusBar style="light" />
-        <AuthGuard>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: "#0a0f18" },
-              animation: "slide_from_right",
-            }}
-          >
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen
-              name="group/[id]"
-              options={{ animation: "slide_from_right" }}
-            />
-            <Stack.Screen
-              name="group/create"
-              options={{ animation: "slide_from_bottom", presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="expense/add"
-              options={{ animation: "slide_from_bottom", presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="expense/[id]"
-              options={{ animation: "slide_from_right" }}
-            />
-            <Stack.Screen
-              name="settle-up"
-              options={{ animation: "slide_from_bottom", presentation: "modal" }}
-            />
-          </Stack>
-        </AuthGuard>
-        <Toast />
-        <NetworkBanner />
+        <ThemeProvider>
+          <ThemedApp />
+        </ThemeProvider>
       </GestureHandlerRootView>
     </ErrorBoundary>
   );

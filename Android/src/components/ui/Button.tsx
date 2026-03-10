@@ -6,8 +6,8 @@ import {
   TextStyle,
   StyleSheet,
 } from "react-native";
-import * as Haptics from "expo-haptics";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
+import { triggerHaptic } from "@/utils/haptics";
 
 interface ButtonProps {
   title: string;
@@ -32,24 +32,57 @@ export function Button({
   className,
   style,
 }: ButtonProps) {
+  const { colors } = useTheme();
+
   const handlePress = () => {
     if (disabled || loading) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     onPress();
+  };
+
+  const variantStyles: Record<string, ViewStyle> = {
+    primary: {
+      backgroundColor: colors.primary,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.4,
+      shadowRadius: 20,
+      elevation: 8,
+    },
+    secondary: {
+      backgroundColor: colors.glass.card,
+      borderWidth: 1,
+      borderColor: colors.glass.borderLight,
+    },
+    ghost: {
+      backgroundColor: "transparent",
+    },
+    danger: {
+      backgroundColor: "rgba(239, 68, 68, 0.15)",
+      borderWidth: 1,
+      borderColor: "rgba(239, 68, 68, 0.3)",
+    },
+  };
+
+  const textVariantStyles: Record<string, TextStyle> = {
+    primary: { color: "#ffffff" },
+    secondary: { color: colors.text.primary },
+    ghost: { color: colors.primary },
+    danger: { color: colors.error },
   };
 
   const buttonStyles: ViewStyle[] = [
     styles.base,
-    styles[`size_${size}`],
-    styles[`variant_${variant}`],
+    styles[`size_${size}` as keyof typeof styles] as ViewStyle,
+    variantStyles[variant],
     (disabled || loading) && styles.disabled,
     style,
   ].filter(Boolean) as ViewStyle[];
 
   const textStyles: TextStyle[] = [
     styles.text,
-    styles[`textSize_${size}`],
-    styles[`textVariant_${variant}`],
+    styles[`textSize_${size}` as keyof typeof styles] as TextStyle,
+    textVariantStyles[variant],
   ];
 
   return (
@@ -86,34 +119,9 @@ const styles = StyleSheet.create({
   size_sm: { paddingHorizontal: 12, paddingVertical: 8 },
   size_md: { paddingHorizontal: 20, paddingVertical: 12 },
   size_lg: { paddingHorizontal: 24, paddingVertical: 16 },
-  variant_primary: {
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  variant_secondary: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  variant_ghost: {
-    backgroundColor: "transparent",
-  },
-  variant_danger: {
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.3)",
-  },
   disabled: { opacity: 0.5 },
   text: { fontFamily: "Inter-SemiBold" },
   textSize_sm: { fontSize: 13 },
   textSize_md: { fontSize: 15 },
   textSize_lg: { fontSize: 17 },
-  textVariant_primary: { color: "#ffffff" },
-  textVariant_secondary: { color: "#ffffff" },
-  textVariant_ghost: { color: colors.primary },
-  textVariant_danger: { color: "#ef4444" },
 });

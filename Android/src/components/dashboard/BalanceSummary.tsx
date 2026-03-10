@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { GlassCard } from "../ui/GlassCard";
 import { Avatar } from "../ui/Avatar";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 import type { PersonAmount } from "@/types/api.types";
 
 interface BalanceSummaryProps {
@@ -22,6 +22,7 @@ export function BalanceSummary({
   owedFrom = [],
   oweTo = [],
 }: BalanceSummaryProps) {
+  const { colors } = useTheme();
   const [showModal, setShowModal] = useState<"owed" | "owe" | null>(null);
   const isPositive = totalBalance >= 0;
   const owedPercent =
@@ -43,9 +44,9 @@ export function BalanceSummary({
       <GlassCard variant="panel" style={styles.totalCard}>
         <View style={styles.totalContent}>
           <View style={styles.glowOrb} />
-          <Text style={styles.totalLabel}>TOTAL BALANCE</Text>
+          <Text style={[styles.totalLabel, { color: colors.text.secondary }]}>TOTAL BALANCE</Text>
           <View style={styles.totalRow}>
-            <Text style={styles.totalAmount}>
+            <Text style={[styles.totalAmount, { color: colors.text.primary }]}>
               {isPositive ? "+" : "-"}
               {formatCurrency(totalBalance)}
             </Text>
@@ -75,11 +76,11 @@ export function BalanceSummary({
         >
           <GlassCard style={styles.splitCard}>
             <View style={styles.splitContent}>
-              <Text style={styles.splitLabel}>YOU ARE OWED</Text>
+              <Text style={[styles.splitLabel, { color: colors.text.secondary }]}>YOU ARE OWED</Text>
               <Text style={[styles.splitAmount, { color: colors.semantic.positive }]}>
                 {formatCurrency(youAreOwed)}
               </Text>
-              <View style={styles.progressTrack}>
+              <View style={[styles.progressTrack, { backgroundColor: colors.divider }]}>
                 <View
                   style={[
                     styles.progressFill,
@@ -101,11 +102,11 @@ export function BalanceSummary({
         >
           <GlassCard style={styles.splitCard}>
             <View style={styles.splitContent}>
-              <Text style={styles.splitLabel}>YOU OWE</Text>
+              <Text style={[styles.splitLabel, { color: colors.text.secondary }]}>YOU OWE</Text>
               <Text style={[styles.splitAmount, { color: colors.semantic.negative }]}>
                 {formatCurrency(youOwe)}
               </Text>
-              <View style={styles.progressTrack}>
+              <View style={[styles.progressTrack, { backgroundColor: colors.divider }]}>
                 <View
                   style={[
                     styles.progressFill,
@@ -129,13 +130,13 @@ export function BalanceSummary({
         onRequestClose={() => setShowModal(null)}
       >
         <TouchableOpacity
-          style={styles.overlay}
+          style={[styles.overlay, { backgroundColor: colors.overlay }]}
           activeOpacity={1}
           onPress={() => setShowModal(null)}
         >
-          <View style={styles.modalCard}>
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>{modalTitle}</Text>
+          <View style={[styles.modalCard, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.modalHandle, { backgroundColor: colors.sheetHandle }]} />
+            <Text style={[styles.modalTitle, { color: colors.text.primary }]}>{modalTitle}</Text>
 
             {modalData.length > 0 ? (
               <FlatList
@@ -144,9 +145,9 @@ export function BalanceSummary({
                 scrollEnabled={modalData.length > 6}
                 style={styles.modalList}
                 renderItem={({ item }) => (
-                  <View style={styles.personRow}>
+                  <View style={[styles.personRow, { borderBottomColor: colors.divider }]}>
                     <Avatar name={item.name} size={40} />
-                    <Text style={styles.personName} numberOfLines={1}>
+                    <Text style={[styles.personName, { color: colors.text.primary }]} numberOfLines={1}>
                       {item.name}
                     </Text>
                     <Text style={[styles.personAmount, { color: modalColor }]}>
@@ -156,14 +157,14 @@ export function BalanceSummary({
                 )}
               />
             ) : (
-              <Text style={styles.emptyText}>No balances</Text>
+              <Text style={[styles.emptyText, { color: colors.text.tertiary }]}>No balances</Text>
             )}
 
             <TouchableOpacity
-              style={styles.modalCloseBtn}
+              style={[styles.modalCloseBtn, { backgroundColor: colors.glass.card }]}
               onPress={() => setShowModal(null)}
             >
-              <Text style={styles.modalCloseBtnText}>Close</Text>
+              <Text style={[styles.modalCloseBtnText, { color: colors.text.secondary }]}>Close</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -195,7 +196,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(37, 106, 244, 0.2)",
   },
   totalLabel: {
-    color: "#94a3b8",
     fontSize: 12,
     fontFamily: "Inter-Medium",
     letterSpacing: 2,
@@ -206,7 +206,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   totalAmount: {
-    color: "#ffffff",
     fontSize: 36,
     fontFamily: "Inter-Bold",
     letterSpacing: -1,
@@ -229,7 +228,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   splitLabel: {
-    color: "#94a3b8",
     fontSize: 10,
     fontFamily: "Inter-Medium",
     letterSpacing: 1.5,
@@ -242,7 +240,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     width: "100%",
     height: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 2,
     overflow: "hidden",
   },
@@ -252,14 +249,12 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
   },
   modalCard: {
     width: "100%",
-    backgroundColor: "#0f1729",
     borderRadius: 20,
     paddingTop: 12,
     paddingBottom: 20,
@@ -270,12 +265,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
     alignSelf: "center",
     marginBottom: 16,
   },
   modalTitle: {
-    color: "#ffffff",
     fontSize: 18,
     fontFamily: "Inter-Bold",
     marginBottom: 16,
@@ -289,11 +282,9 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.06)",
   },
   personName: {
     flex: 1,
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-Medium",
   },
@@ -302,7 +293,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-Bold",
   },
   emptyText: {
-    color: "#64748b",
     fontSize: 14,
     fontFamily: "Inter",
     textAlign: "center",
@@ -313,10 +303,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   modalCloseBtnText: {
-    color: "#94a3b8",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },

@@ -1,7 +1,6 @@
-import { View, StyleSheet, ViewProps } from "react-native";
+import { View, ViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 interface ScreenWrapperProps extends ViewProps {
   /** Add safe area padding at top */
@@ -19,11 +18,12 @@ export function ScreenWrapper({
   ...props
 }: ScreenWrapperProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   return (
     <View
       style={[
-        styles.container,
+        { flex: 1, backgroundColor: colors.background.main },
         safeTop && { paddingTop: insets.top },
         safeBottom && { paddingBottom: insets.bottom },
         style,
@@ -34,10 +34,3 @@ export function ScreenWrapper({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0a0f18",
-  },
-});

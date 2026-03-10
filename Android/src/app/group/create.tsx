@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { NotificationFeedbackType } from "expo-haptics";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/Button";
@@ -18,12 +18,14 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { useGroupsStore } from "@/stores/groups.store";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { useUIStore } from "@/stores/ui.store";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
+import { triggerHaptic, triggerNotification } from "@/utils/haptics";
 
 export default function CreateGroupScreen() {
   const { createGroup, fetchGroups } = useGroupsStore();
   const { fetchDashboard } = useDashboardStore();
   const { showToast } = useUIStore();
+  const { colors } = useTheme();
   const [groupName, setGroupName] = useState("");
   const [emailInput, setEmailInput] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
@@ -40,13 +42,13 @@ export default function CreateGroupScreen() {
       showToast("Email already added", "warning");
       return;
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     setEmails([...emails, trimmed]);
     setEmailInput("");
   };
 
   const removeEmail = (email: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     setEmails(emails.filter((e) => e !== email));
   };
 
@@ -62,13 +64,13 @@ export default function CreateGroupScreen() {
         groupName: groupName.trim(),
         userEmails: emails,
       });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(NotificationFeedbackType.Success);
       showToast("Group created!", "success");
       await fetchGroups();
       fetchDashboard();
       router.back();
     } catch (error: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      triggerNotification(NotificationFeedbackType.Error);
       showToast(error.message || "Failed to create group", "error");
     } finally {
       setIsSubmitting(false);
@@ -93,12 +95,12 @@ export default function CreateGroupScreen() {
         />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Add Members (optional)</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Add Members (optional)</Text>
           <View style={styles.emailRow}>
             <TextInput
-              style={styles.emailInput}
+              style={[styles.emailInput, { backgroundColor: colors.glass.card, borderColor: colors.glass.borderLight, color: colors.text.primary }]}
               placeholder="Enter email address"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={colors.text.tertiary}
               value={emailInput}
               onChangeText={setEmailInput}
               keyboardType="email-address"
@@ -107,8 +109,8 @@ export default function CreateGroupScreen() {
               onSubmitEditing={addEmail}
               returnKeyType="done"
             />
-            <TouchableOpacity style={styles.addEmailBtn} onPress={addEmail}>
-              <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
+            <TouchableOpacity style={[styles.addEmailBtn, { backgroundColor: colors.primary }]} onPress={addEmail}>
+              <MaterialCommunityIcons name="plus" size={20} color={colors.text.inverse} />
             </TouchableOpacity>
           </View>
 
@@ -117,14 +119,14 @@ export default function CreateGroupScreen() {
               {emails.map((email) => (
                 <GlassCard key={email} style={styles.emailChip}>
                   <View style={styles.emailChipContent}>
-                    <Text style={styles.emailChipText} numberOfLines={1}>
+                    <Text style={[styles.emailChipText, { color: colors.text.secondary }]} numberOfLines={1}>
                       {email}
                     </Text>
                     <TouchableOpacity onPress={() => removeEmail(email)}>
                       <MaterialCommunityIcons
                         name="close-circle"
                         size={18}
-                        color="#94a3b8"
+                        color={colors.text.secondary}
                       />
                     </TouchableOpacity>
                   </View>
@@ -161,7 +163,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
-    color: "#94a3b8",
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },
@@ -172,12 +173,9 @@ const styles = StyleSheet.create({
   emailInput: {
     flex: 1,
     height: 48,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 12,
     paddingHorizontal: 16,
-    color: "#ffffff",
     fontSize: 14,
     fontFamily: "Inter",
   },
@@ -185,7 +183,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -205,7 +202,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   emailChipText: {
-    color: "#cbd5e1",
     fontSize: 13,
     fontFamily: "Inter",
     maxWidth: 200,

@@ -1,8 +1,8 @@
 import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { triggerHaptic } from "@/utils/haptics";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 import { CATEGORY_CONFIG, ExpenseCategory } from "@/constants/categories";
 
 interface ExpenseListItemProps {
@@ -24,8 +24,10 @@ export function ExpenseListItem({
   youLent,
   onPress,
 }: ExpenseListItemProps) {
+  const { colors } = useTheme();
+
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     onPress(expenseId);
   };
 
@@ -74,7 +76,13 @@ export function ExpenseListItem({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.glass.card,
+          borderColor: colors.glass.border,
+        },
+      ]}
       onPress={handlePress}
       activeOpacity={0.7}
     >
@@ -87,16 +95,16 @@ export function ExpenseListItem({
       </View>
 
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>
+        <Text style={[styles.name, { color: colors.text.primary }]} numberOfLines={1}>
           {name}
         </Text>
-        <Text style={styles.paidBy}>
-          Paid by <Text style={styles.paidByName}>{paidBy}</Text>
+        <Text style={[styles.paidBy, { color: colors.text.secondary }]}>
+          Paid by <Text style={[styles.paidByName, { color: colors.text.secondary }]}>{paidBy}</Text>
         </Text>
       </View>
 
       <View style={styles.right}>
-        <Text style={styles.amount}>{formatCurrency(amount)}</Text>
+        <Text style={[styles.amount, { color: colors.text.primary }]}>{formatCurrency(amount)}</Text>
         <Text style={[styles.status, { color: statusColor }]}>{statusText}</Text>
       </View>
     </TouchableOpacity>
@@ -109,10 +117,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
     padding: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   iconBox: {
     width: 48,
@@ -126,24 +132,19 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-Bold",
   },
   paidBy: {
-    color: "#94a3b8",
     fontSize: 12,
     fontFamily: "Inter",
   },
-  paidByName: {
-    color: "#cbd5e1",
-  },
+  paidByName: {},
   right: {
     alignItems: "flex-end",
     gap: 2,
   },
   amount: {
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-Bold",
   },

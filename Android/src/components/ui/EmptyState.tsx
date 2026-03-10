@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useTheme } from "@/theme";
 import { Button } from "./Button";
 
 interface EmptyStateProps {
@@ -17,13 +18,17 @@ export function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
-      <View style={styles.iconWrapper}>
-        <MaterialCommunityIcons name={icon} size={48} color="#475569" />
+      <View style={[styles.iconWrapper, { backgroundColor: colors.glass.panel }]}>
+        <MaterialCommunityIcons name={icon} size={48} color={colors.text.hint} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      {description && <Text style={styles.description}>{description}</Text>}
+      <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
+      {description && (
+        <Text style={[styles.description, { color: colors.text.tertiary }]}>{description}</Text>
+      )}
       {actionLabel && onAction && (
         <Button
           title={actionLabel}
@@ -48,19 +53,16 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
   },
   title: {
-    color: "#e2e8f0",
     fontSize: 17,
     fontFamily: "Inter-SemiBold",
     textAlign: "center",
   },
   description: {
-    color: "#64748b",
     fontSize: 14,
     fontFamily: "Inter",
     textAlign: "center",

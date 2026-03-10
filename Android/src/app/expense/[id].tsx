@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   Modal,
   StyleSheet,
 } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { triggerNotification } from "@/utils/haptics";
+import { NotificationFeedbackType } from "expo-haptics";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Header } from "@/components/layout/Header";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -22,9 +23,10 @@ import { useDashboardStore } from "@/stores/dashboard.store";
 import { useUIStore } from "@/stores/ui.store";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { CATEGORY_CONFIG } from "@/constants/categories";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 export default function ExpenseDetailScreen() {
+  const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const expenseId = parseInt(id!, 10);
   const {
@@ -41,10 +43,13 @@ export default function ExpenseDetailScreen() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  useEffect(() => {
-    fetchExpenseDetails(expenseId);
-    return () => clearCurrentExpense();
-  }, [expenseId]);
+  // Re-fetch on focus (e.g. returning from edit screen)
+  useFocusEffect(
+    useCallback(() => {
+      fetchExpenseDetails(expenseId);
+      return () => clearCurrentExpense();
+    }, [expenseId])
+  );
 
   const handleDelete = () => {
     setShowDeleteModal(true);
@@ -54,7 +59,7 @@ export default function ExpenseDetailScreen() {
     setIsDeleting(true);
     try {
       await deleteExpense(expenseId);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(NotificationFeedbackType.Success);
       showToast("Expense deleted", "success");
       setShowDeleteModal(false);
 
@@ -66,7 +71,7 @@ export default function ExpenseDetailScreen() {
 
       router.back();
     } catch (error: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      triggerNotification(NotificationFeedbackType.Error);
       showToast(error.message || "Failed to delete", "error");
     } finally {
       setIsDeleting(false);
@@ -118,17 +123,37 @@ export default function ExpenseDetailScreen() {
         title="Expense Details"
         showBack
         rightAction={
-          <TouchableOpacity
-            style={styles.deleteBtn}
-            onPress={handleDelete}
-            disabled={isDeleting}
-          >
-            <MaterialCommunityIcons
-              name="trash-can-outline"
-              size={20}
-              color="#fb7185"
-            />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.headerBtn, { backgroundColor: colors.primaryLight }]}
+              onPress={() =>
+                router.push({
+                  pathname: "/expense/edit",
+                  params: {
+                    expenseId: currentExpense.expenseId.toString(),
+                    groupId: currentGroup?.groupId?.toString() ?? "",
+                  },
+                })
+              }
+            >
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={20}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={handleDelete}
+              disabled={isDeleting}
+            >
+              <MaterialCommunityIcons
+                name="trash-can-outline"
+                size={20}
+                color={colors.semantic.negative}
+              />
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -146,11 +171,11 @@ export default function ExpenseDetailScreen() {
               color={cat.color}
             />
           </View>
-          <Text style={styles.expenseName}>{currentExpense.name}</Text>
-          <Text style={styles.amount}>
+          <Text style={[styles.expenseName, { color: colors.text.primary }]}>{currentExpense.name}</Text>
+          <Text style={[styles.amount, { color: colors.text.primary }]}>
             {formatCurrency(currentExpense.amount)}
           </Text>
-          <View style={styles.catBadge}>
+          <View style={[styles.catBadge, { backgroundColor: colors.glass.card }]}>
             <Text style={[styles.catBadgeText, { color: cat.color }]}>
               {cat.label}
             </Text>
@@ -160,14 +185,14 @@ export default function ExpenseDetailScreen() {
         {/* Paid by */}
         <GlassCard variant="panel" style={styles.section}>
           <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>Paid by</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Paid by</Text>
             <View style={styles.paidByRow}>
               <Avatar name={currentExpense.paidBy.userName} size={40} />
               <View style={styles.paidByInfo}>
-                <Text style={styles.paidByName}>
+                <Text style={[styles.paidByName, { color: colors.text.primary }]}>
                   {currentExpense.paidBy.userName}
                 </Text>
-                <Text style={styles.paidByAmount}>
+                <Text style={[styles.paidByAmount, { color: colors.semantic.positive }]}>
                   {formatCurrency(currentExpense.amount)}
                 </Text>
               </View>
@@ -178,15 +203,15 @@ export default function ExpenseDetailScreen() {
         {/* Splits */}
         <GlassCard variant="panel" style={styles.section}>
           <View style={styles.sectionContent}>
-            <Text style={styles.sectionTitle}>Split Details</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>Split Details</Text>
             <View style={styles.splitsList}>
               {currentExpense.splits.map((split) => (
                 <View key={split.userId} style={styles.splitRow}>
                   <Avatar name={split.userName} size={36} />
-                  <Text style={styles.splitName} numberOfLines={1}>
+                  <Text style={[styles.splitName, { color: colors.text.primary }]} numberOfLines={1}>
                     {split.userName}
                   </Text>
-                  <Text style={styles.splitAmount}>
+                  <Text style={[styles.splitAmount, { color: colors.text.secondary }]}>
                     {formatCurrency(split.amount)}
                   </Text>
                 </View>
@@ -204,32 +229,32 @@ export default function ExpenseDetailScreen() {
         onRequestClose={() => !isDeleting && setShowDeleteModal(false)}
       >
         <TouchableOpacity
-          style={styles.deleteOverlay}
+          style={[styles.deleteOverlay, { backgroundColor: colors.overlay }]}
           activeOpacity={1}
           onPress={() => !isDeleting && setShowDeleteModal(false)}
         >
-          <View style={styles.deleteCard}>
+          <View style={[styles.deleteCard, { backgroundColor: colors.modalBackground }]}>
             <View style={styles.deleteIconWrap}>
-              <MaterialCommunityIcons name="delete-alert-outline" size={40} color="#fb7185" />
+              <MaterialCommunityIcons name="delete-alert-outline" size={40} color={colors.semantic.negative} />
             </View>
-            <Text style={styles.deleteModalTitle}>Delete Expense</Text>
-            <Text style={styles.deleteMessage}>
+            <Text style={[styles.deleteModalTitle, { color: colors.text.primary }]}>Delete Expense</Text>
+            <Text style={[styles.deleteMessage, { color: colors.text.secondary }]}>
               Are you sure you want to delete "{currentExpense.name}"? This action cannot be undone.
             </Text>
             <View style={styles.deleteActions}>
               <TouchableOpacity
-                style={styles.deleteCancelBtn}
+                style={[styles.deleteCancelBtn, { backgroundColor: colors.glass.card, borderColor: colors.glass.borderLight }]}
                 onPress={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
               >
-                <Text style={styles.deleteCancelText}>Cancel</Text>
+                <Text style={[styles.deleteCancelText, { color: colors.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.deleteConfirmBtn, isDeleting && { opacity: 0.5 }]}
+                style={[styles.deleteConfirmBtn, { backgroundColor: colors.semantic.negative }, isDeleting && { opacity: 0.5 }]}
                 onPress={confirmDelete}
                 disabled={isDeleting}
               >
-                <Text style={styles.deleteConfirmText}>
+                <Text style={[styles.deleteConfirmText, { color: colors.text.primary }]}>
                   {isDeleting ? "Deleting..." : "Delete"}
                 </Text>
               </TouchableOpacity>
@@ -250,6 +275,17 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 40,
     gap: 20,
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   deleteBtn: {
     width: 40,
@@ -273,14 +309,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   expenseName: {
-    color: "#ffffff",
     fontSize: 24,
     fontFamily: "Inter-Bold",
     letterSpacing: -0.3,
     textAlign: "center",
   },
   amount: {
-    color: "#ffffff",
     fontSize: 36,
     fontFamily: "Inter-Bold",
     letterSpacing: -1,
@@ -289,7 +323,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   catBadgeText: {
     fontSize: 13,
@@ -303,7 +336,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   sectionTitle: {
-    color: "#94a3b8",
     fontSize: 13,
     fontFamily: "Inter-SemiBold",
     letterSpacing: 0.5,
@@ -319,12 +351,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   paidByName: {
-    color: "#ffffff",
     fontSize: 16,
     fontFamily: "Inter-SemiBold",
   },
   paidByAmount: {
-    color: colors.semantic.positive,
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },
@@ -338,25 +368,21 @@ const styles = StyleSheet.create({
   },
   splitName: {
     flex: 1,
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-Medium",
   },
   splitAmount: {
-    color: "#94a3b8",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },
   deleteOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 32,
   },
   deleteCard: {
     width: "100%",
-    backgroundColor: "#0f1729",
     borderRadius: 20,
     padding: 24,
     alignItems: "center",
@@ -372,12 +398,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   deleteModalTitle: {
-    color: "#ffffff",
     fontSize: 20,
     fontFamily: "Inter-Bold",
   },
   deleteMessage: {
-    color: "#94a3b8",
     fontSize: 14,
     fontFamily: "Inter",
     textAlign: "center",
@@ -394,12 +418,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   deleteCancelText: {
-    color: "#94a3b8",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },
@@ -408,10 +429,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "#fb7185",
   },
   deleteConfirmText: {
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },

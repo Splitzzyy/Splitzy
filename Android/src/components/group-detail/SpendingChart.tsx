@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import Svg, { Rect, Line } from "react-native-svg";
-import * as Haptics from "expo-haptics";
+import { triggerSelection } from "@/utils/haptics";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 import type { GroupExpense } from "@/types/api.types";
 
 interface MonthlyData {
@@ -47,6 +47,7 @@ function formatYLabel(value: number): string {
 }
 
 export function SpendingChart({ expenses }: SpendingChartProps) {
+  const { colors } = useTheme();
   const { data, year } = useMemo(() => buildChartData(expenses), [expenses]);
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -71,41 +72,70 @@ export function SpendingChart({ expenses }: SpendingChartProps) {
       {/* Header */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.title}>Spending Overview</Text>
-          <Text style={styles.subtitle}>Monthly breakdown · {year}</Text>
+          <Text style={[styles.title, { color: colors.text.primary }]}>Spending Overview</Text>
+          <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>Monthly breakdown · {year}</Text>
         </View>
-        <View style={styles.yearBadge}>
-          <View style={styles.yearDot} />
-          <Text style={styles.yearText}>{year}</Text>
+        <View
+          style={[
+            styles.yearBadge,
+            {
+              backgroundColor: colors.glass.card,
+              borderColor: colors.glass.borderLight,
+            },
+          ]}
+        >
+          <View style={[styles.yearDot, { backgroundColor: colors.semantic.positive }]} />
+          <Text style={[styles.yearText, { color: colors.text.primary }]}>{year}</Text>
         </View>
       </View>
 
       {/* Stats cards */}
       <View style={styles.statsRow}>
         <View style={[styles.statCard, styles.statCardPrimary]}>
-          <Text style={styles.statLabel}>{MONTHS[selectedMonth].toUpperCase()}</Text>
-          <Text style={styles.statAmount}>{formatCurrency(selectedData.amount)}</Text>
+          <Text style={[styles.statLabel, { color: colors.semantic.positive }]}>{MONTHS[selectedMonth].toUpperCase()}</Text>
+          <Text style={[styles.statAmount, { color: colors.text.primary }]}>{formatCurrency(selectedData.amount)}</Text>
           {change !== 0 && (
-            <Text style={[styles.statChange, change > 0 ? styles.changeUp : styles.changeDown]}>
+            <Text
+              style={[
+                styles.statChange,
+                { color: change > 0 ? colors.semantic.negative : colors.semantic.positive },
+              ]}
+            >
               {change > 0 ? "↑" : "↓"} {Math.abs(change)}% vs {MONTHS[selectedMonth - 1] ?? "—"}
             </Text>
           )}
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>PEAK MONTH</Text>
-          <Text style={styles.peakMonth}>{peakMonth.month}</Text>
-          <Text style={styles.peakAmount}>{formatCurrency(peakMonth.amount)}</Text>
+        <View
+          style={[
+            styles.statCard,
+            {
+              backgroundColor: colors.glass.panel,
+              borderColor: colors.glass.border,
+            },
+          ]}
+        >
+          <Text style={[styles.statLabel, { color: colors.semantic.positive }]}>PEAK MONTH</Text>
+          <Text style={[styles.peakMonth, { color: colors.text.primary }]}>{peakMonth.month}</Text>
+          <Text style={[styles.peakAmount, { color: colors.text.tertiary }]}>{formatCurrency(peakMonth.amount)}</Text>
         </View>
       </View>
 
       {/* Chart */}
-      <View style={styles.chartContainer}>
+      <View
+        style={[
+          styles.chartContainer,
+          {
+            backgroundColor: colors.glass.panel,
+            borderColor: colors.glass.border,
+          },
+        ]}
+      >
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View>
             {/* Y-axis labels */}
             <View style={styles.yAxisLabels}>
               {[1, 0.75, 0.5, 0.25, 0].map((ratio) => (
-                <Text key={ratio} style={styles.yLabel}>
+                <Text key={ratio} style={[styles.yLabel, { color: colors.text.tertiary }]}>
                   {formatYLabel(Math.round(maxAmount * ratio))}
                 </Text>
               ))}
@@ -156,6 +186,7 @@ export function SpendingChart({ expenses }: SpendingChartProps) {
                   style={[
                     styles.barLabel,
                     {
+                      color: colors.text.secondary,
                       left:
                         BAR_GAP +
                         selectedMonth * (BAR_WIDTH + BAR_GAP) +
@@ -176,14 +207,15 @@ export function SpendingChart({ expenses }: SpendingChartProps) {
                   key={i}
                   style={{ width: BAR_WIDTH + BAR_GAP, alignItems: "center" }}
                   onPress={() => {
-                    Haptics.selectionAsync();
+                    triggerSelection();
                     setSelectedMonth(i);
                   }}
                 >
                   <Text
                     style={[
                       styles.xLabel,
-                      i === selectedMonth && styles.xLabelActive,
+                      { color: colors.text.tertiary },
+                      i === selectedMonth && { color: colors.semantic.positive, fontFamily: "Inter-Bold" },
                     ]}
                   >
                     {d.month}
@@ -209,12 +241,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   title: {
-    color: "#ffffff",
     fontSize: 18,
     fontFamily: "Inter-Bold",
   },
   subtitle: {
-    color: colors.text.tertiary,
     fontSize: 13,
     fontFamily: "Inter",
     marginTop: 2,
@@ -223,10 +253,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
@@ -234,10 +262,8 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.semantic.positive,
   },
   yearText: {
-    color: "#ffffff",
     fontSize: 12,
     fontFamily: "Inter-SemiBold",
   },
@@ -247,10 +273,8 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
     padding: 16,
     gap: 4,
   },
@@ -260,13 +284,11 @@ const styles = StyleSheet.create({
     borderColor: "rgba(52, 211, 153, 0.2)",
   },
   statLabel: {
-    color: colors.semantic.positive,
     fontSize: 11,
     fontFamily: "Inter-Bold",
     letterSpacing: 0.5,
   },
   statAmount: {
-    color: "#ffffff",
     fontSize: 24,
     fontFamily: "Inter-Bold",
   },
@@ -275,23 +297,17 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-Medium",
     marginTop: 2,
   },
-  changeUp: { color: colors.semantic.negative },
-  changeDown: { color: colors.semantic.positive },
   peakMonth: {
-    color: "#ffffff",
     fontSize: 22,
     fontFamily: "Inter-Bold",
   },
   peakAmount: {
-    color: colors.text.tertiary,
     fontSize: 13,
     fontFamily: "Inter",
   },
   chartContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
     padding: 16,
   },
   yAxisLabels: {
@@ -303,7 +319,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   yLabel: {
-    color: colors.text.tertiary,
     fontSize: 10,
     fontFamily: "Inter",
     width: 35,
@@ -318,7 +333,6 @@ const styles = StyleSheet.create({
     top: -18,
     width: 60,
     textAlign: "center",
-    color: colors.text.secondary,
     fontSize: 10,
     fontFamily: "Inter-SemiBold",
   },
@@ -328,12 +342,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   xLabel: {
-    color: colors.text.tertiary,
     fontSize: 10,
     fontFamily: "Inter",
-  },
-  xLabelActive: {
-    color: colors.semantic.positive,
-    fontFamily: "Inter-Bold",
   },
 });

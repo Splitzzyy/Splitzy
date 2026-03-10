@@ -1,6 +1,7 @@
 import { TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { useTheme } from "@/theme";
+import { triggerHaptic } from "@/utils/haptics";
 
 interface IconButtonProps {
   name: React.ComponentProps<typeof MaterialCommunityIcons>["name"];
@@ -14,24 +15,30 @@ interface IconButtonProps {
 export function IconButton({
   name,
   size = 24,
-  color = "#ffffff",
+  color,
   onPress,
   style,
   className,
 }: IconButtonProps) {
+  const { colors } = useTheme();
+
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     onPress();
   };
 
   return (
     <TouchableOpacity
       className={className}
-      style={[styles.button, style]}
+      style={[
+        styles.button,
+        { backgroundColor: colors.glass.card, borderColor: colors.glass.border },
+        style,
+      ]}
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <MaterialCommunityIcons name={name} size={size} color={color} />
+      <MaterialCommunityIcons name={name} size={size} color={color ?? colors.text.primary} />
     </TouchableOpacity>
   );
 }
@@ -43,8 +50,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
   },
 });

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { ImpactFeedbackStyle } from "expo-haptics";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Header } from "@/components/layout/Header";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -19,23 +19,25 @@ import { BalanceSummary } from "@/components/dashboard/BalanceSummary";
 import { RecentGroupItem } from "@/components/dashboard/RecentGroupItem";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { useAuthStore } from "@/stores/auth.store";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
+import { triggerHaptic } from "@/utils/haptics";
 
 export default function DashboardScreen() {
   const { dashboard, isLoading, error, fetchDashboard } = useDashboardStore();
   const { userId } = useAuthStore();
+  const { colors } = useTheme();
 
   useEffect(() => {
     fetchDashboard();
   }, []);
 
   const onRefresh = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     await fetchDashboard();
   }, [fetchDashboard]);
 
   const handleAddExpense = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerHaptic(ImpactFeedbackStyle.Medium);
     router.push("/expense/add");
   };
 
@@ -44,7 +46,7 @@ export default function DashboardScreen() {
   };
 
   const handleSeeAllGroups = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     router.push("/(tabs)/groups");
   };
 
@@ -91,7 +93,7 @@ export default function DashboardScreen() {
             onRefresh={onRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
-            progressBackgroundColor={colors.background.dark}
+            progressBackgroundColor={colors.background.main}
           />
         }
       >
@@ -106,19 +108,19 @@ export default function DashboardScreen() {
 
         {/* Add Expense CTA */}
         <TouchableOpacity
-          style={styles.addButton}
+          style={[styles.addButton, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
           onPress={handleAddExpense}
           activeOpacity={0.85}
         >
-          <MaterialCommunityIcons name="plus" size={22} color="#ffffff" />
-          <Text style={styles.addButtonText}>Add Expense</Text>
+          <MaterialCommunityIcons name="plus" size={22} color={colors.text.inverse} />
+          <Text style={[styles.addButtonText, { color: colors.text.inverse }]}>Add Expense</Text>
         </TouchableOpacity>
 
         {/* Recent Groups */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Groups</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Recent Groups</Text>
           <TouchableOpacity onPress={handleSeeAllGroups}>
-            <Text style={styles.seeAllText}>See all</Text>
+            <Text style={[styles.seeAllText, { color: colors.primary }]}>See all</Text>
           </TouchableOpacity>
         </View>
 
@@ -165,18 +167,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    backgroundColor: colors.primary,
     borderRadius: 16,
     height: 56,
     marginTop: 24,
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 8,
   },
   addButtonText: {
-    color: "#ffffff",
     fontSize: 16,
     fontFamily: "Inter-Bold",
     letterSpacing: 0.5,
@@ -190,13 +189,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    color: "#ffffff",
     fontSize: 18,
     fontFamily: "Inter-Bold",
     letterSpacing: -0.3,
   },
   seeAllText: {
-    color: colors.primary,
     fontSize: 14,
     fontFamily: "Inter-SemiBold",
   },

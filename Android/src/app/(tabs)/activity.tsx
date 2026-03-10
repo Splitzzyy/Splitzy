@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import * as Haptics from "expo-haptics";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Header } from "@/components/layout/Header";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -16,7 +15,8 @@ import { AnimatedListItem } from "@/components/ui/AnimatedListItem";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { formatDateGroup } from "@/utils/formatDate";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
+import { triggerHaptic, triggerSelection } from "@/utils/haptics";
 import type { RecentActivityDTO } from "@/types/api.types";
 
 type ActivityFilter = "all" | "groups" | "friends";
@@ -35,6 +35,7 @@ interface ActivitySection {
 export default function ActivityScreen() {
   const { recentActivity, isLoading, fetchRecentActivity } =
     useDashboardStore();
+  const { colors } = useTheme();
   const [filter, setFilter] = useState<ActivityFilter>("all");
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export default function ActivityScreen() {
   }, []);
 
   const onRefresh = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     await fetchRecentActivity();
   }, [fetchRecentActivity]);
 
@@ -82,23 +83,23 @@ export default function ActivityScreen() {
 
       {/* Filter tabs */}
       <View style={styles.filterContainer}>
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { backgroundColor: colors.glass.panel, borderColor: colors.glass.borderLight }]}>
           {FILTERS.map((f) => {
             const isActive = f.key === filter;
             return (
               <TouchableOpacity
                 key={f.key}
-                style={[styles.filterTab, isActive && styles.filterTabActive]}
+                style={[styles.filterTab, isActive && [styles.filterTabActive, { backgroundColor: colors.primary, shadowColor: colors.primary }]]}
                 onPress={() => {
-                  Haptics.selectionAsync();
+                  triggerSelection();
                   setFilter(f.key);
                 }}
                 activeOpacity={0.7}
               >
                 <Text
                   style={[
-                    styles.filterText,
-                    isActive && styles.filterTextActive,
+                    { color: colors.text.secondary, fontSize: 13, fontFamily: "Inter-SemiBold" },
+                    isActive && { color: colors.text.inverse },
                   ]}
                 >
                   {f.label}
@@ -113,7 +114,7 @@ export default function ActivityScreen() {
         sections={sections}
         keyExtractor={(item, index) => `${item.createdAt}-${index}`}
         renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionDate}>{title}</Text>
+          <Text style={[styles.sectionDate, { color: colors.text.tertiary }]}>{title}</Text>
         )}
         renderItem={({ item, index }) => (
           <AnimatedListItem index={index}>
@@ -133,7 +134,7 @@ export default function ActivityScreen() {
             onRefresh={onRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
-            progressBackgroundColor={colors.background.dark}
+            progressBackgroundColor={colors.background.main}
           />
         }
         ListEmptyComponent={
@@ -156,10 +157,8 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
     padding: 4,
   },
   filterTab: {
@@ -169,23 +168,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   filterTabActive: {
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
-  filterText: {
-    color: "#94a3b8",
-    fontSize: 13,
-    fontFamily: "Inter-SemiBold",
-  },
-  filterTextActive: {
-    color: "#ffffff",
-  },
   sectionDate: {
-    color: "#64748b",
     fontSize: 11,
     fontFamily: "Inter-Bold",
     letterSpacing: 1.5,

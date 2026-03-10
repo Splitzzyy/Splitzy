@@ -8,7 +8,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import * as Haptics from "expo-haptics";
+import { triggerHaptic, triggerNotification, triggerSelection } from "@/utils/haptics";
+import { NotificationFeedbackType, ImpactFeedbackStyle } from "expo-haptics";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Header } from "@/components/layout/Header";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -19,11 +20,12 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { settleApi } from "@/services/api/settle.api";
 import { useUIStore } from "@/stores/ui.store";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 type Step = "form" | "confirm";
 
 export default function SettleUpScreen() {
+  const { colors } = useTheme();
   const { groupId: groupIdParam } = useLocalSearchParams<{ groupId?: string }>();
   const groupId = groupIdParam ? parseInt(groupIdParam, 10) : null;
 
@@ -63,11 +65,11 @@ export default function SettleUpScreen() {
 
   const handleReview = useCallback(() => {
     if (!canProceed) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      triggerNotification(NotificationFeedbackType.Warning);
       showToast("Please fill all fields", "error");
       return;
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerHaptic(ImpactFeedbackStyle.Medium);
     setStep("confirm");
   }, [canProceed, showToast]);
 
@@ -83,7 +85,7 @@ export default function SettleUpScreen() {
         amount: parsedAmount,
       });
 
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(NotificationFeedbackType.Success);
       showToast("Settlement recorded!", "success");
 
       // Refresh data in background
@@ -93,7 +95,7 @@ export default function SettleUpScreen() {
 
       router.back();
     } catch (error: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      triggerNotification(NotificationFeedbackType.Error);
       const message =
         error.response?.data?.message || "Failed to record settlement";
       showToast(message, "error");
@@ -103,7 +105,7 @@ export default function SettleUpScreen() {
   }, [groupId, paidByUserId, paidToUserId, parsedAmount, showToast, fetchGroupOverview, fetchDashboard, fetchRecentActivity]);
 
   const handleCancel = useCallback(() => {
-    Haptics.selectionAsync();
+    triggerSelection();
     setStep("form");
   }, []);
 
@@ -112,7 +114,7 @@ export default function SettleUpScreen() {
       <ScreenWrapper>
         <Header title="Settle Up" showBack />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>No group selected</Text>
+          <Text style={[styles.errorText, { color: colors.text.secondary }]}>No group selected</Text>
         </View>
       </ScreenWrapper>
     );
@@ -135,7 +137,7 @@ export default function SettleUpScreen() {
         rightAction={
           step === "form" ? (
             <Text
-              style={[styles.reviewBtn, !canProceed && styles.reviewBtnDisabled]}
+              style={[styles.reviewBtn, { color: colors.primary }, !canProceed && styles.reviewBtnDisabled]}
               onPress={handleReview}
             >
               Review
@@ -154,8 +156,8 @@ export default function SettleUpScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Group name badge */}
-          <View style={styles.groupBadge}>
-            <Text style={styles.groupBadgeText}>
+          <View style={[styles.groupBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primaryGlow }]}>
+            <Text style={[styles.groupBadgeText, { color: colors.primary }]}>
               {currentGroup?.name ?? "Group"}
             </Text>
           </View>
@@ -203,27 +205,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   errorText: {
-    color: colors.text.secondary,
     fontSize: 16,
     fontFamily: "Inter-Medium",
   },
   groupBadge: {
     alignSelf: "center",
-    backgroundColor: "rgba(37, 106, 244, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(37, 106, 244, 0.2)",
     marginBottom: 8,
   },
   groupBadgeText: {
-    color: colors.primary,
     fontSize: 13,
     fontFamily: "Inter-SemiBold",
   },
   reviewBtn: {
-    color: colors.primary,
     fontSize: 16,
     fontFamily: "Inter-SemiBold",
   },

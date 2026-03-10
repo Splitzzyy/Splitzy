@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { ImpactFeedbackStyle } from "expo-haptics";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Header } from "@/components/layout/Header";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -19,11 +19,13 @@ import { AnimatedListItem } from "@/components/ui/AnimatedListItem";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { useGroupsStore } from "@/stores/groups.store";
 import { useDashboardStore } from "@/stores/dashboard.store";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
+import { triggerHaptic } from "@/utils/haptics";
 
 export default function GroupsScreen() {
   const { groups, isLoading, fetchGroups } = useGroupsStore();
   const { dashboard, fetchDashboard } = useDashboardStore();
+  const { colors } = useTheme();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<GroupFilter>("all");
 
@@ -62,7 +64,7 @@ export default function GroupsScreen() {
   }, [groups, search, filter, balanceMap]);
 
   const onRefresh = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     await Promise.all([fetchGroups(), fetchDashboard()]);
   }, [fetchGroups, fetchDashboard]);
 
@@ -71,7 +73,7 @@ export default function GroupsScreen() {
   };
 
   const handleCreateGroup = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerHaptic(ImpactFeedbackStyle.Medium);
     router.push("/group/create");
   };
 
@@ -81,8 +83,8 @@ export default function GroupsScreen() {
         <Header
           title="Groups"
           rightAction={
-            <TouchableOpacity style={styles.addBtn} onPress={handleCreateGroup}>
-              <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
+            <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.primary, shadowColor: colors.primary }]} onPress={handleCreateGroup}>
+              <MaterialCommunityIcons name="plus" size={20} color={colors.text.inverse} />
             </TouchableOpacity>
           }
         />
@@ -99,8 +101,8 @@ export default function GroupsScreen() {
         avatarName={dashboard?.userName ?? ""}
         onAvatarPress={() => router.push("/(tabs)/profile")}
         rightAction={
-          <TouchableOpacity style={styles.addBtn} onPress={handleCreateGroup}>
-            <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
+          <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.primary, shadowColor: colors.primary }]} onPress={handleCreateGroup}>
+            <MaterialCommunityIcons name="plus" size={20} color={colors.text.inverse} />
           </TouchableOpacity>
         }
       />
@@ -134,7 +136,7 @@ export default function GroupsScreen() {
             onRefresh={onRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
-            progressBackgroundColor={colors.background.dark}
+            progressBackgroundColor={colors.background.main}
           />
         }
         ListEmptyComponent={
@@ -160,10 +162,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,

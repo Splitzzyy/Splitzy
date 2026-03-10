@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { ImpactFeedbackStyle, NotificationFeedbackType } from "expo-haptics";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { Header } from "@/components/layout/Header";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -27,7 +27,8 @@ import { useGroupsStore } from "@/stores/groups.store";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { useUIStore } from "@/stores/ui.store";
 import { formatDateGroup } from "@/utils/formatDate";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
+import { triggerHaptic, triggerNotification, triggerSelection } from "@/utils/haptics";
 import type { GroupExpense } from "@/types/api.types";
 
 type Tab = "expenses" | "chart" | "balances" | "members";
@@ -40,6 +41,7 @@ interface ExpenseSection {
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const groupId = parseInt(id!, 10);
+  const { colors } = useTheme();
   const { currentGroup, isLoading, fetchGroupOverview, clearCurrentGroup } =
     useGroupsStore();
   const [activeTab, setActiveTab] = useState<Tab>("expenses");
@@ -56,7 +58,7 @@ export default function GroupDetailScreen() {
   }, [groupId]);
 
   const onRefresh = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     await fetchGroupOverview(groupId);
   }, [groupId, fetchGroupOverview]);
 
@@ -77,17 +79,17 @@ export default function GroupDetailScreen() {
   };
 
   const handleSettleUp = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerHaptic(ImpactFeedbackStyle.Medium);
     router.push(`/settle-up?groupId=${groupId}`);
   };
 
   const handleBalances = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     setActiveTab("balances");
   };
 
   const handleAddExpense = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    triggerHaptic(ImpactFeedbackStyle.Medium);
     router.push(`/expense/add?groupId=${groupId}`);
   };
 
@@ -111,13 +113,13 @@ export default function GroupDetailScreen() {
       showToast("Already a member", "warning");
       return;
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     setPendingEmails([...pendingEmails, trimmed]);
     setEmailInput("");
   };
 
   const removeEmail = (email: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     setPendingEmails(pendingEmails.filter((e) => e !== email));
   };
 
@@ -126,14 +128,14 @@ export default function GroupDetailScreen() {
     setIsAddingMembers(true);
     try {
       await addUsersToGroup(groupId, { userEmails: pendingEmails });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(NotificationFeedbackType.Success);
       showToast(`Added ${pendingEmails.length} member${pendingEmails.length > 1 ? "s" : ""}`, "success");
       setShowAddMemberModal(false);
       setPendingEmails([]);
       setEmailInput("");
       await fetchGroupOverview(groupId);
     } catch (e: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      triggerNotification(NotificationFeedbackType.Error);
       showToast(e.message || "Failed to add members", "error");
     } finally {
       setIsAddingMembers(false);
@@ -148,7 +150,7 @@ export default function GroupDetailScreen() {
     setIsDeleting(true);
     try {
       await deleteGroup(groupId);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      triggerNotification(NotificationFeedbackType.Success);
       showToast("Group deleted", "success");
       setShowDeleteModal(false);
       await fetchGroups();
@@ -200,7 +202,7 @@ export default function GroupDetailScreen() {
             <MaterialCommunityIcons
               name="delete-outline"
               size={22}
-              color="#fb7185"
+              color={colors.semantic.negative}
             />
           </TouchableOpacity>
         }
@@ -228,21 +230,21 @@ export default function GroupDetailScreen() {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.tabsScroll}
-              style={styles.tabs}
+              style={[styles.tabs, { borderBottomColor: colors.divider }]}
             >
               {(["expenses", "chart", "balances", "members"] as Tab[]).map((tab) => (
                 <TouchableOpacity
                   key={tab}
-                  style={[styles.tab, activeTab === tab && styles.tabActive]}
+                  style={[styles.tab, activeTab === tab && { borderBottomColor: colors.primary }]}
                   onPress={() => {
-                    Haptics.selectionAsync();
+                    triggerSelection();
                     setActiveTab(tab);
                   }}
                 >
                   <Text
                     style={[
-                      styles.tabText,
-                      activeTab === tab && styles.tabTextActive,
+                      { color: colors.text.secondary, fontSize: 14, fontFamily: "Inter-Bold" },
+                      activeTab === tab && { color: colors.text.primary },
                     ]}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -253,7 +255,7 @@ export default function GroupDetailScreen() {
           </>
         }
         renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionDate}>{title}</Text>
+          <Text style={[styles.sectionDate, { color: colors.text.tertiary }]}>{title}</Text>
         )}
         renderItem={({ item }) => (
           <View style={styles.expenseItem}>
@@ -279,21 +281,21 @@ export default function GroupDetailScreen() {
             onRefresh={onRefresh}
             tintColor={colors.primary}
             colors={[colors.primary]}
-            progressBackgroundColor={colors.background.dark}
+            progressBackgroundColor={colors.background.main}
           />
         }
         ListFooterComponent={
           activeTab === "members" ? (
             <View style={styles.membersList}>
               <TouchableOpacity
-                style={styles.addMemberBtn}
+                style={[styles.addMemberBtn, { backgroundColor: colors.primaryLight, borderColor: colors.primaryLight }]}
                 onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  triggerHaptic();
                   setShowAddMemberModal(true);
                 }}
               >
                 <MaterialCommunityIcons name="account-plus-outline" size={20} color={colors.primary} />
-                <Text style={styles.addMemberBtnText}>Add Members</Text>
+                <Text style={[styles.addMemberBtnText, { color: colors.primary }]}>Add Members</Text>
               </TouchableOpacity>
               {currentGroup.members.map((m) => (
                 <MemberListItem
@@ -335,11 +337,11 @@ export default function GroupDetailScreen() {
 
       {/* FAB */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
         onPress={handleAddExpense}
         activeOpacity={0.85}
       >
-        <MaterialCommunityIcons name="plus" size={28} color="#ffffff" />
+        <MaterialCommunityIcons name="plus" size={28} color={colors.text.inverse} />
       </TouchableOpacity>
 
       {/* Delete Confirmation Modal */}
@@ -350,32 +352,32 @@ export default function GroupDetailScreen() {
         onRequestClose={() => !isDeleting && setShowDeleteModal(false)}
       >
         <TouchableOpacity
-          style={styles.deleteOverlay}
+          style={[styles.deleteOverlay, { backgroundColor: colors.overlay }]}
           activeOpacity={1}
           onPress={() => !isDeleting && setShowDeleteModal(false)}
         >
-          <View style={styles.deleteCard}>
+          <View style={[styles.deleteCard, { backgroundColor: colors.modalBackground }]}>
             <View style={styles.deleteIconWrap}>
-              <MaterialCommunityIcons name="delete-alert-outline" size={40} color="#fb7185" />
+              <MaterialCommunityIcons name="delete-alert-outline" size={40} color={colors.semantic.negative} />
             </View>
-            <Text style={styles.deleteTitle}>Delete Group</Text>
-            <Text style={styles.deleteMessage}>
+            <Text style={[styles.deleteTitle, { color: colors.text.primary }]}>Delete Group</Text>
+            <Text style={[styles.deleteMessage, { color: colors.text.secondary }]}>
               Are you sure you want to delete "{currentGroup?.name}"? This action cannot be undone.
             </Text>
             <View style={styles.deleteActions}>
               <TouchableOpacity
-                style={styles.deleteCancelBtn}
+                style={[styles.deleteCancelBtn, { backgroundColor: colors.glass.card, borderColor: colors.glass.borderLight }]}
                 onPress={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
               >
-                <Text style={styles.deleteCancelText}>Cancel</Text>
+                <Text style={[styles.deleteCancelText, { color: colors.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.deleteConfirmBtn, isDeleting && { opacity: 0.5 }]}
+                style={[styles.deleteConfirmBtn, { backgroundColor: colors.semantic.negative }, isDeleting && { opacity: 0.5 }]}
                 onPress={confirmDeleteGroup}
                 disabled={isDeleting}
               >
-                <Text style={styles.deleteConfirmText}>
+                <Text style={[styles.deleteConfirmText, { color: colors.text.inverse }]}>
                   {isDeleting ? "Deleting..." : "Delete"}
                 </Text>
               </TouchableOpacity>
@@ -391,21 +393,21 @@ export default function GroupDetailScreen() {
         onRequestClose={() => !isAddingMembers && setShowAddMemberModal(false)}
       >
         <TouchableOpacity
-          style={styles.deleteOverlay}
+          style={[styles.deleteOverlay, { backgroundColor: colors.overlay }]}
           activeOpacity={1}
           onPress={() => !isAddingMembers && setShowAddMemberModal(false)}
         >
-          <TouchableOpacity activeOpacity={1} style={styles.addMemberCard}>
-            <Text style={styles.addMemberTitle}>Add Members</Text>
-            <Text style={styles.addMemberSubtitle}>
+          <TouchableOpacity activeOpacity={1} style={[styles.addMemberCard, { backgroundColor: colors.modalBackground }]}>
+            <Text style={[styles.addMemberTitle, { color: colors.text.primary }]}>Add Members</Text>
+            <Text style={[styles.addMemberSubtitle, { color: colors.text.secondary }]}>
               Enter email addresses of people to add
             </Text>
 
             <View style={styles.emailRow}>
               <TextInput
-                style={styles.emailInput}
+                style={[styles.emailInput, { backgroundColor: colors.glass.card, borderColor: colors.glass.borderLight, color: colors.text.primary }]}
                 placeholder="Enter email address"
-                placeholderTextColor="#64748b"
+                placeholderTextColor={colors.text.tertiary}
                 value={emailInput}
                 onChangeText={setEmailInput}
                 keyboardType="email-address"
@@ -414,20 +416,20 @@ export default function GroupDetailScreen() {
                 onSubmitEditing={addEmail}
                 returnKeyType="done"
               />
-              <TouchableOpacity style={styles.addEmailBtn} onPress={addEmail}>
-                <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
+              <TouchableOpacity style={[styles.addEmailBtn, { backgroundColor: colors.primary }]} onPress={addEmail}>
+                <MaterialCommunityIcons name="plus" size={20} color={colors.text.inverse} />
               </TouchableOpacity>
             </View>
 
             {pendingEmails.length > 0 && (
               <View style={styles.emailChips}>
                 {pendingEmails.map((email) => (
-                  <View key={email} style={styles.emailChip}>
-                    <Text style={styles.emailChipText} numberOfLines={1}>
+                  <View key={email} style={[styles.emailChip, { backgroundColor: colors.glass.card, borderColor: colors.glass.borderLight }]}>
+                    <Text style={[styles.emailChipText, { color: colors.text.secondary }]} numberOfLines={1}>
                       {email}
                     </Text>
                     <TouchableOpacity onPress={() => removeEmail(email)}>
-                      <MaterialCommunityIcons name="close-circle" size={18} color="#94a3b8" />
+                      <MaterialCommunityIcons name="close-circle" size={18} color={colors.text.secondary} />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -436,7 +438,7 @@ export default function GroupDetailScreen() {
 
             <View style={styles.deleteActions}>
               <TouchableOpacity
-                style={styles.deleteCancelBtn}
+                style={[styles.deleteCancelBtn, { backgroundColor: colors.glass.card, borderColor: colors.glass.borderLight }]}
                 onPress={() => {
                   setShowAddMemberModal(false);
                   setPendingEmails([]);
@@ -444,17 +446,17 @@ export default function GroupDetailScreen() {
                 }}
                 disabled={isAddingMembers}
               >
-                <Text style={styles.deleteCancelText}>Cancel</Text>
+                <Text style={[styles.deleteCancelText, { color: colors.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.addMemberConfirmBtn, (isAddingMembers || pendingEmails.length === 0) && { opacity: 0.5 }]}
+                style={[styles.addMemberConfirmBtn, { backgroundColor: colors.primary }, (isAddingMembers || pendingEmails.length === 0) && { opacity: 0.5 }]}
                 onPress={handleAddMembers}
                 disabled={isAddingMembers || pendingEmails.length === 0}
               >
                 {isAddingMembers ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color={colors.text.inverse} />
                 ) : (
-                  <Text style={styles.deleteConfirmText}>
+                  <Text style={[styles.deleteConfirmText, { color: colors.text.inverse }]}>
                     Add ({pendingEmails.length})
                   </Text>
                 )}
@@ -477,7 +479,6 @@ const styles = StyleSheet.create({
   },
   tabs: {
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.05)",
     marginBottom: 8,
   },
   tabsScroll: {
@@ -490,19 +491,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
   },
-  tabActive: {
-    borderBottomColor: colors.primary,
-  },
-  tabText: {
-    color: "#94a3b8",
-    fontSize: 14,
-    fontFamily: "Inter-Bold",
-  },
-  tabTextActive: {
-    color: "#ffffff",
-  },
   sectionDate: {
-    color: "#64748b",
     fontSize: 12,
     fontFamily: "Inter-Bold",
     letterSpacing: 1.5,
@@ -534,10 +523,8 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
@@ -545,14 +532,12 @@ const styles = StyleSheet.create({
   },
   deleteOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 32,
   },
   deleteCard: {
     width: "100%",
-    backgroundColor: "#0f1729",
     borderRadius: 20,
     padding: 24,
     alignItems: "center",
@@ -568,12 +553,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   deleteTitle: {
-    color: "#ffffff",
     fontSize: 20,
     fontFamily: "Inter-Bold",
   },
   deleteMessage: {
-    color: "#94a3b8",
     fontSize: 14,
     fontFamily: "Inter",
     textAlign: "center",
@@ -590,12 +573,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   deleteCancelText: {
-    color: "#94a3b8",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },
@@ -604,10 +584,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
-    backgroundColor: "#fb7185",
   },
   deleteConfirmText: {
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter-SemiBold",
   },
@@ -618,30 +596,24 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "rgba(37, 106, 244, 0.1)",
     borderWidth: 1,
-    borderColor: "rgba(37, 106, 244, 0.2)",
     marginBottom: 8,
   },
   addMemberBtnText: {
-    color: colors.primary,
     fontSize: 14,
     fontFamily: "Inter-SemiBold",
   },
   addMemberCard: {
     width: "100%",
-    backgroundColor: "#0f1729",
     borderRadius: 20,
     padding: 24,
     gap: 12,
   },
   addMemberTitle: {
-    color: "#ffffff",
     fontSize: 20,
     fontFamily: "Inter-Bold",
   },
   addMemberSubtitle: {
-    color: "#94a3b8",
     fontSize: 14,
     fontFamily: "Inter",
     marginBottom: 4,
@@ -653,12 +625,9 @@ const styles = StyleSheet.create({
   emailInput: {
     flex: 1,
     height: 48,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 12,
     paddingHorizontal: 16,
-    color: "#ffffff",
     fontSize: 14,
     fontFamily: "Inter",
   },
@@ -666,7 +635,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -682,12 +650,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   emailChipText: {
-    color: "#cbd5e1",
     fontSize: 13,
     fontFamily: "Inter",
     maxWidth: 200,
@@ -698,6 +663,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primary,
   },
 });

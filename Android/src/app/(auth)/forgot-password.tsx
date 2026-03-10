@@ -16,12 +16,13 @@ import { ScreenWrapper } from "@/components/layout";
 import { Input, Button, IconButton } from "@/components/ui";
 import { authApi } from "@/services/api/auth.api";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/utils/validators";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 import { useHaptics } from "@/hooks/useHaptics";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const haptics = useHaptics();
+  const { colors } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -62,11 +63,11 @@ export default function ForgotPasswordScreen() {
             style={styles.backButton}
           />
           <View style={styles.header}>
-            <View style={styles.iconContainer}>
+            <View style={[styles.iconContainer, { backgroundColor: colors.primaryLight }]}>
               <MaterialCommunityIcons name="lock-reset" size={48} color={colors.primary} />
             </View>
-            <Text style={styles.title}>Forgot Password?</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text.primary }]}>Forgot Password?</Text>
+            <Text style={[styles.subtitle, { color: colors.text.tertiary }]}>
               Enter your email and we'll send you a reset link
             </Text>
           </View>
@@ -108,10 +109,9 @@ const styles = StyleSheet.create({
   header: { alignItems: "center", marginTop: 40, marginBottom: 40 },
   iconContainer: {
     width: 80, height: 80, borderRadius: 24,
-    backgroundColor: "rgba(37, 106, 244, 0.1)",
     alignItems: "center", justifyContent: "center", marginBottom: 20,
   },
-  title: { color: "#ffffff", fontSize: 24, fontFamily: "Inter-Bold" },
-  subtitle: { color: "#64748b", fontSize: 14, fontFamily: "Inter", marginTop: 6, textAlign: "center", lineHeight: 20 },
+  title: { fontSize: 24, fontFamily: "Inter-Bold" },
+  subtitle: { fontSize: 14, fontFamily: "Inter", marginTop: 6, textAlign: "center", lineHeight: 20 },
   form: { gap: 16 },
 });

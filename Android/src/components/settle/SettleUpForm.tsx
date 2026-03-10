@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { triggerSelection } from "@/utils/haptics";
 import { Avatar } from "../ui/Avatar";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 import type { GroupMember } from "@/types/api.types";
 
 interface SettleUpFormProps {
@@ -26,24 +26,26 @@ export function SettleUpForm({
   onPaidToChange,
   onAmountChange,
 }: SettleUpFormProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       {/* Amount input */}
       <View style={styles.amountSection}>
-        <Text style={styles.currencySymbol}>₹</Text>
+        <Text style={[styles.currencySymbol, { color: colors.text.tertiary }]}>₹</Text>
         <TextInput
-          style={styles.amountInput}
+          style={[styles.amountInput, { color: colors.text.primary }]}
           value={amount}
           onChangeText={onAmountChange}
           keyboardType="decimal-pad"
           placeholder="0.00"
-          placeholderTextColor="#475569"
+          placeholderTextColor={colors.text.hint}
         />
       </View>
 
       {/* Payer selection */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Who is paying?</Text>
+        <Text style={[styles.sectionLabel, { color: colors.text.secondary }]}>Who is paying?</Text>
         <View style={styles.membersList}>
           {members.map((member) => {
             const isSelected = member.memberId === paidByUserId;
@@ -53,12 +55,19 @@ export function SettleUpForm({
                 key={member.memberId}
                 style={[
                   styles.memberRow,
-                  isSelected && styles.memberRowSelected,
+                  {
+                    backgroundColor: colors.glass.panel,
+                    borderColor: colors.divider,
+                  },
+                  isSelected && {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primaryLight,
+                  },
                   isDisabled && styles.memberRowDisabled,
                 ]}
                 onPress={() => {
                   if (!isDisabled) {
-                    Haptics.selectionAsync();
+                    triggerSelection();
                     onPaidByChange(member.memberId);
                   }
                 }}
@@ -68,13 +77,14 @@ export function SettleUpForm({
                 <Text
                   style={[
                     styles.memberName,
-                    isDisabled && styles.memberNameDisabled,
+                    { color: colors.text.primary },
+                    isDisabled && { color: colors.text.tertiary },
                   ]}
                   numberOfLines={1}
                 >
                   {member.memberName}
                   {member.memberId === currentUserId && (
-                    <Text style={styles.youTag}> (you)</Text>
+                    <Text style={[styles.youTag, { color: colors.primary }]}> (you)</Text>
                   )}
                 </Text>
                 {isSelected && (
@@ -92,20 +102,20 @@ export function SettleUpForm({
 
       {/* Arrow separator */}
       <View style={styles.arrowContainer}>
-        <View style={styles.arrowLine} />
-        <View style={styles.arrowCircle}>
+        <View style={[styles.arrowLine, { backgroundColor: colors.glass.border }]} />
+        <View style={[styles.arrowCircle, { backgroundColor: colors.primaryLight }]}>
           <MaterialCommunityIcons
             name="arrow-down"
             size={20}
             color={colors.primary}
           />
         </View>
-        <View style={styles.arrowLine} />
+        <View style={[styles.arrowLine, { backgroundColor: colors.glass.border }]} />
       </View>
 
       {/* Payee selection */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Who is receiving?</Text>
+        <Text style={[styles.sectionLabel, { color: colors.text.secondary }]}>Who is receiving?</Text>
         <View style={styles.membersList}>
           {members.map((member) => {
             const isSelected = member.memberId === paidToUserId;
@@ -115,12 +125,19 @@ export function SettleUpForm({
                 key={member.memberId}
                 style={[
                   styles.memberRow,
-                  isSelected && styles.memberRowSelected,
+                  {
+                    backgroundColor: colors.glass.panel,
+                    borderColor: colors.divider,
+                  },
+                  isSelected && {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primaryLight,
+                  },
                   isDisabled && styles.memberRowDisabled,
                 ]}
                 onPress={() => {
                   if (!isDisabled) {
-                    Haptics.selectionAsync();
+                    triggerSelection();
                     onPaidToChange(member.memberId);
                   }
                 }}
@@ -130,13 +147,14 @@ export function SettleUpForm({
                 <Text
                   style={[
                     styles.memberName,
-                    isDisabled && styles.memberNameDisabled,
+                    { color: colors.text.primary },
+                    isDisabled && { color: colors.text.tertiary },
                   ]}
                   numberOfLines={1}
                 >
                   {member.memberName}
                   {member.memberId === currentUserId && (
-                    <Text style={styles.youTag}> (you)</Text>
+                    <Text style={[styles.youTag, { color: colors.primary }]}> (you)</Text>
                   )}
                 </Text>
                 {isSelected && (
@@ -167,12 +185,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   currencySymbol: {
-    color: colors.text.tertiary,
     fontSize: 36,
     fontFamily: "Inter-Bold",
   },
   amountInput: {
-    color: "#ffffff",
     fontSize: 48,
     fontFamily: "Inter-Bold",
     minWidth: 80,
@@ -183,7 +199,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionLabel: {
-    color: colors.text.secondary,
     fontSize: 13,
     fontFamily: "Inter-Medium",
     marginLeft: 4,
@@ -195,31 +210,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
-  },
-  memberRowSelected: {
-    borderColor: colors.primary,
-    backgroundColor: "rgba(37, 106, 244, 0.08)",
   },
   memberRowDisabled: {
     opacity: 0.35,
   },
   memberName: {
     flex: 1,
-    color: "#ffffff",
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },
-  memberNameDisabled: {
-    color: colors.text.tertiary,
-  },
   youTag: {
-    color: colors.primary,
     fontSize: 12,
   },
   arrowContainer: {
@@ -230,13 +234,11 @@ const styles = StyleSheet.create({
   arrowLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   arrowCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "rgba(37, 106, 244, 0.1)",
     alignItems: "center",
     justifyContent: "center",
     marginHorizontal: 12,

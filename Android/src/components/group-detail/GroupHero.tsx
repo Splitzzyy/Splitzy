@@ -3,7 +3,7 @@ import { GlassCard } from "../ui/GlassCard";
 import { Button } from "../ui/Button";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 interface GroupHeroProps {
   name: string;
@@ -20,6 +20,8 @@ export function GroupHero({
   onSettleUp,
   onBalances,
 }: GroupHeroProps) {
+  const { colors } = useTheme();
+
   const balanceColor =
     groupBalance > 0
       ? colors.semantic.positive
@@ -40,8 +42,8 @@ export function GroupHero({
         </View>
       </GlassCard>
 
-      <Text style={styles.name}>{name}</Text>
-      <Text style={styles.subtitle}>
+      <Text style={[styles.name, { color: colors.text.primary }]}>{name}</Text>
+      <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
         {membersCount} member{membersCount !== 1 ? "s" : ""} ·{" "}
         <Text style={{ color: balanceColor }}>
           {formatCurrency(groupBalance)}
@@ -101,14 +103,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   name: {
-    color: "#ffffff",
     fontSize: 28,
     fontFamily: "Inter-Bold",
     letterSpacing: -0.5,
     marginBottom: 4,
   },
   subtitle: {
-    color: "#94a3b8",
     fontSize: 15,
     fontFamily: "Inter-Medium",
     marginBottom: 24,

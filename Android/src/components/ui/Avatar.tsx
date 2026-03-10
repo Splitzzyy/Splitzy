@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { Image } from "expo-image";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 interface AvatarProps {
   uri?: string | null;
@@ -28,11 +28,13 @@ function getColorFromName(name: string): string {
 }
 
 export function Avatar({ uri, name, size = 40, className }: AvatarProps) {
+  const { colors } = useTheme();
+
   if (uri) {
     return (
       <Image
         source={{ uri }}
-        style={[styles.image, { width: size, height: size, borderRadius: size / 2 }]}
+        style={[styles.image, { width: size, height: size, borderRadius: size / 2, borderColor: colors.glass.borderLight }]}
         className={className}
         contentFit="cover"
         transition={200}
@@ -70,7 +72,6 @@ export function Avatar({ uri, name, size = 40, className }: AvatarProps) {
 const styles = StyleSheet.create({
   image: {
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   fallback: {
     alignItems: "center",

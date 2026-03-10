@@ -8,10 +8,10 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { triggerHaptic } from "@/utils/haptics";
 import { ExpenseCategory, CATEGORY_CONFIG } from "@/constants/categories";
 import { GlassCard } from "../ui/GlassCard";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 interface CategoryPickerProps {
   value: ExpenseCategory;
@@ -24,11 +24,12 @@ const categories = Object.entries(CATEGORY_CONFIG) as [
 ][];
 
 export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
+  const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
   const current = CATEGORY_CONFIG[value];
 
   const handleSelect = (cat: ExpenseCategory) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    triggerHaptic();
     onChange(cat);
     setVisible(false);
   };
@@ -36,9 +37,15 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
   return (
     <>
       <View style={styles.wrapper}>
-        <Text style={styles.label}>Category</Text>
+        <Text style={[styles.label, { color: colors.text.secondary }]}>Category</Text>
         <TouchableOpacity
-          style={styles.selector}
+          style={[
+            styles.selector,
+            {
+              backgroundColor: colors.glass.card,
+              borderColor: colors.glass.border,
+            },
+          ]}
           onPress={() => setVisible(true)}
           activeOpacity={0.7}
         >
@@ -51,11 +58,11 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
               color={current.color}
             />
           </View>
-          <Text style={styles.selectorText}>{current.label}</Text>
+          <Text style={[styles.selectorText, { color: colors.text.primary }]}>{current.label}</Text>
           <MaterialCommunityIcons
             name="chevron-down"
             size={20}
-            color="#64748b"
+            color={colors.text.tertiary}
           />
         </TouchableOpacity>
       </View>
@@ -67,13 +74,13 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
         onRequestClose={() => setVisible(false)}
       >
         <TouchableOpacity
-          style={styles.overlay}
+          style={[styles.overlay, { backgroundColor: colors.overlay }]}
           activeOpacity={1}
           onPress={() => setVisible(false)}
         >
-          <View style={styles.sheet}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Select Category</Text>
+          <View style={[styles.sheet, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.sheetHandle }]} />
+            <Text style={[styles.sheetTitle, { color: colors.text.primary }]}>Select Category</Text>
             <ScrollView
               contentContainerStyle={styles.grid}
               showsVerticalScrollIndicator={false}
@@ -84,7 +91,13 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
                 return (
                   <TouchableOpacity
                     key={key}
-                    style={[styles.catItem, isActive && styles.catItemActive]}
+                    style={[
+                      styles.catItem,
+                      isActive && {
+                        backgroundColor: colors.primaryLight,
+                        borderColor: colors.primary,
+                      },
+                    ]}
                     onPress={() => handleSelect(catEnum)}
                     activeOpacity={0.7}
                   >
@@ -103,7 +116,8 @@ export function CategoryPicker({ value, onChange }: CategoryPickerProps) {
                     <Text
                       style={[
                         styles.catLabel,
-                        isActive && { color: "#ffffff" },
+                        { color: colors.text.secondary },
+                        isActive && { color: colors.text.primary },
                       ]}
                     >
                       {cat.label}
@@ -124,7 +138,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    color: "#94a3b8",
     fontSize: 13,
     fontFamily: "Inter-Medium",
     marginLeft: 4,
@@ -133,9 +146,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -149,17 +160,14 @@ const styles = StyleSheet.create({
   },
   selectorText: {
     flex: 1,
-    color: "#ffffff",
     fontSize: 15,
     fontFamily: "Inter",
   },
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: "#0f1729",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 12,
@@ -170,12 +178,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
     alignSelf: "center",
     marginBottom: 16,
   },
   sheetTitle: {
-    color: "#ffffff",
     fontSize: 18,
     fontFamily: "Inter-Bold",
     paddingHorizontal: 24,
@@ -196,10 +202,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "transparent",
   },
-  catItemActive: {
-    backgroundColor: "rgba(37, 106, 244, 0.1)",
-    borderColor: colors.primary,
-  },
   catIcon: {
     width: 48,
     height: 48,
@@ -208,7 +210,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   catLabel: {
-    color: "#94a3b8",
     fontSize: 12,
     fontFamily: "Inter-Medium",
     textAlign: "center",

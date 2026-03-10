@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
   interpolate,
 } from "react-native-reanimated";
+import { useTheme } from "@/theme";
 
 interface SkeletonProps {
   width?: number | string;
@@ -22,6 +23,7 @@ export function Skeleton({
   style,
 }: SkeletonProps) {
   const pulse = useSharedValue(0);
+  const { colors } = useTheme();
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1, { duration: 1200 }), -1, true);
@@ -38,7 +40,7 @@ export function Skeleton({
           width: width as number,
           height,
           borderRadius,
-          backgroundColor: "rgba(255, 255, 255, 0.08)",
+          backgroundColor: colors.glass.border,
         },
         animatedStyle,
         style,
@@ -49,8 +51,10 @@ export function Skeleton({
 
 /** Pre-built skeleton for a card-like row (icon + two text lines + trailing) */
 export function SkeletonCard() {
+  const { colors } = useTheme();
+
   return (
-    <View style={skeletonStyles.card}>
+    <View style={[skeletonStyles.card, { backgroundColor: colors.glass.panel, borderColor: colors.divider }]}>
       <Skeleton width={48} height={48} borderRadius={12} />
       <View style={skeletonStyles.textCol}>
         <Skeleton width="70%" height={14} />
@@ -78,10 +82,8 @@ const skeletonStyles = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     padding: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
   },
   textCol: {
     flex: 1,

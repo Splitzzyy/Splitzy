@@ -3,7 +3,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { colors } from "@/theme";
+import { useTheme } from "@/theme";
 
 interface SettleConfirmationProps {
   payerName: string;
@@ -24,6 +24,8 @@ export function SettleConfirmation({
   onConfirm,
   onCancel,
 }: SettleConfirmationProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
@@ -34,22 +36,22 @@ export function SettleConfirmation({
         />
       </View>
 
-      <Text style={styles.title}>Confirm Settlement</Text>
-      <Text style={styles.groupText}>{groupName}</Text>
+      <Text style={[styles.title, { color: colors.text.primary }]}>Confirm Settlement</Text>
+      <Text style={[styles.groupText, { color: colors.text.secondary }]}>{groupName}</Text>
 
       {/* Transfer visualization */}
       <View style={styles.transferRow}>
         <View style={styles.personCol}>
           <Avatar name={payerName} size={52} />
-          <Text style={styles.personName} numberOfLines={1}>
+          <Text style={[styles.personName, { color: colors.text.primary }]} numberOfLines={1}>
             {payerName}
           </Text>
-          <Text style={styles.roleLabel}>Paying</Text>
+          <Text style={[styles.roleLabel, { color: colors.primary }]}>Paying</Text>
         </View>
 
         <View style={styles.arrowCol}>
-          <View style={styles.amountBadge}>
-            <Text style={styles.amountText}>{formatCurrency(amount)}</Text>
+          <View style={[styles.amountBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primaryGlow }]}>
+            <Text style={[styles.amountText, { color: colors.text.primary }]}>{formatCurrency(amount)}</Text>
           </View>
           <MaterialCommunityIcons
             name="arrow-right"
@@ -60,7 +62,7 @@ export function SettleConfirmation({
 
         <View style={styles.personCol}>
           <Avatar name={payeeName} size={52} />
-          <Text style={styles.personName} numberOfLines={1}>
+          <Text style={[styles.personName, { color: colors.text.primary }]} numberOfLines={1}>
             {payeeName}
           </Text>
           <Text style={[styles.roleLabel, { color: colors.semantic.positive }]}>
@@ -107,12 +109,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   title: {
-    color: "#ffffff",
     fontSize: 22,
     fontFamily: "Inter-Bold",
   },
   groupText: {
-    color: colors.text.secondary,
     fontSize: 14,
     fontFamily: "Inter-Medium",
     marginBottom: 8,
@@ -131,13 +131,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   personName: {
-    color: "#ffffff",
     fontSize: 14,
     fontFamily: "Inter-SemiBold",
     textAlign: "center",
   },
   roleLabel: {
-    color: colors.primary,
     fontSize: 11,
     fontFamily: "Inter-Bold",
     textTransform: "uppercase",
@@ -148,15 +146,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   amountBadge: {
-    backgroundColor: "rgba(37, 106, 244, 0.1)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(37, 106, 244, 0.2)",
   },
   amountText: {
-    color: "#ffffff",
     fontSize: 18,
     fontFamily: "Inter-Bold",
   },

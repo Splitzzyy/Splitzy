@@ -1,6 +1,6 @@
 import { View, ViewProps, StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
-import { isIOS, glassConfig } from "@/theme";
+import { isIOS, useTheme } from "@/theme";
 
 interface GlassCardProps extends ViewProps {
   /** Use stronger glass effect (panel vs card) */
@@ -15,8 +15,8 @@ export function GlassCard({
   children,
   ...props
 }: GlassCardProps) {
-  const bgColor =
-    variant === "panel" ? "rgba(255, 255, 255, 0.03)" : "rgba(255, 255, 255, 0.05)";
+  const { colors, isDark } = useTheme();
+  const bgColor = variant === "panel" ? colors.glass.panel : colors.glass.card;
   const blurIntensity = variant === "panel" ? 20 : 12;
 
   if (isIOS) {
@@ -28,10 +28,10 @@ export function GlassCard({
       >
         <BlurView
           intensity={blurIntensity}
-          tint="dark"
+          tint={isDark ? "dark" : "light"}
           style={StyleSheet.absoluteFill}
         />
-        <View style={styles.border}>{children}</View>
+        <View style={[styles.border, { borderColor: colors.glass.border }]}>{children}</View>
       </View>
     );
   }
@@ -41,7 +41,7 @@ export function GlassCard({
       className={className}
       style={[
         styles.wrapper,
-        { backgroundColor: bgColor, borderColor: glassConfig.borderColor, borderWidth: 1 },
+        { backgroundColor: bgColor, borderColor: colors.glass.border, borderWidth: 1 },
         style,
       ]}
       {...props}
@@ -59,7 +59,6 @@ const styles = StyleSheet.create({
   border: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
     borderRadius: 16,
   },
 });

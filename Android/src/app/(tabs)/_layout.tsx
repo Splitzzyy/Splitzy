@@ -1,9 +1,10 @@
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/theme";
+import { triggerHaptic } from "@/utils/haptics";
 
 function TabBarIcon({
   name,
@@ -18,17 +19,18 @@ function TabBarIcon({
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, 8);
+  const { colors, isDark } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#256af4",
-        tabBarInactiveTintColor: "#64748b",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.text.tertiary,
         tabBarStyle: {
           backgroundColor:
-            Platform.OS === "ios" ? "transparent" : "rgba(10, 15, 24, 0.95)",
-          borderTopColor: "rgba(255, 255, 255, 0.08)",
+            Platform.OS === "ios" ? "transparent" : colors.tabBar,
+          borderTopColor: colors.glass.border,
           borderTopWidth: 1,
           position: "absolute",
           elevation: 0,
@@ -40,7 +42,7 @@ export default function TabsLayout() {
           Platform.OS === "ios" ? (
             <BlurView
               intensity={80}
-              tint="dark"
+              tint={isDark ? "dark" : "light"}
               style={{
                 position: "absolute",
                 top: 0,
@@ -57,7 +59,7 @@ export default function TabsLayout() {
       }}
       screenListeners={{
         tabPress: () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          triggerHaptic();
         },
       }}
     >
