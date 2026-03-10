@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatRelativeTime } from "@/utils/formatDate";
 import { formatCurrency } from "@/utils/formatCurrency";
@@ -7,9 +7,10 @@ import type { RecentActivityDTO } from "@/types/api.types";
 
 interface ActivityItemProps {
   activity: RecentActivityDTO;
+  onPress?: () => void;
 }
 
-export function ActivityItem({ activity }: ActivityItemProps) {
+export function ActivityItem({ activity, onPress }: ActivityItemProps) {
   const { colors } = useTheme();
 
   function getActivityIcon(action: string): {
@@ -65,8 +66,12 @@ export function ActivityItem({ activity }: ActivityItemProps) {
         ? "you owe"
         : "";
 
+  const Wrapper = onPress ? TouchableOpacity : View;
+  const wrapperProps = onPress ? { onPress, activeOpacity: 0.7 } : {};
+
   return (
-    <View
+    <Wrapper
+      {...wrapperProps}
       style={[
         styles.container,
         {
@@ -110,7 +115,7 @@ export function ActivityItem({ activity }: ActivityItemProps) {
           ) : null}
         </View>
       )}
-    </View>
+    </Wrapper>
   );
 }
 

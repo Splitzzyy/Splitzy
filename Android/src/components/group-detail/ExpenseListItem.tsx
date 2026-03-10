@@ -3,7 +3,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { triggerHaptic } from "@/utils/haptics";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useTheme } from "@/theme";
-import { CATEGORY_CONFIG, ExpenseCategory } from "@/constants/categories";
+import { CATEGORY_CONFIG } from "@/constants/categories";
+import { categorizeExpense } from "@/utils/categorizeExpense";
 
 interface ExpenseListItemProps {
   expenseId: number;
@@ -45,34 +46,7 @@ export function ExpenseListItem({
       ? colors.semantic.negative
       : colors.text.tertiary;
 
-  // Pick a category icon by simple heuristic from expense name
-  const guessCategory = (): ExpenseCategory => {
-    const n = name.toLowerCase();
-    const has = (...words: string[]) => words.some((w) => n.includes(w));
-    if (has("food", "dinner", "lunch", "breakfast", "restaurant", "gourmet", "coffee", "grocery", "groceries", "pizza", "snack", "meal", "cafe", "brunch", "tea", "swiggy", "zomato"))
-      return ExpenseCategory.Food;
-    if (has("travel", "trip", "flight", "hotel", "cabin", "vacation", "airbnb"))
-      return ExpenseCategory.Travel;
-    if (has("electric", "electricity", "water", "internet", "wifi", "phone", "bill", "recharge", "utility", "utilities"))
-      return ExpenseCategory.Utilities;
-    if (has("movie", "netflix", "spotify", "game", "concert", "party", "bar", "drink", "pub", "entertainment"))
-      return ExpenseCategory.Entertainment;
-    if (has("rent", "mortgage", "apartment", "maintenance", "house", "housing"))
-      return ExpenseCategory.Housing;
-    if (has("doctor", "medicine", "pharmacy", "hospital", "medical", "gym", "fitness", "health"))
-      return ExpenseCategory.Healthcare;
-    if (has("car", "uber", "taxi", "bus", "train", "metro", "fuel", "parking", "toll", "ola", "rapido", "gas", "rental", "transport"))
-      return ExpenseCategory.Transportation;
-    if (has("book", "course", "tuition", "class", "school", "college", "education"))
-      return ExpenseCategory.Education;
-    if (has("haircut", "salon", "spa", "laundry", "clothing", "personal"))
-      return ExpenseCategory.Personal;
-    if (has("shop", "buy", "amazon", "flipkart", "online", "clothes", "electronics", "myntra", "shopping"))
-      return ExpenseCategory.Shopping;
-    return ExpenseCategory.Other;
-  };
-
-  const cat = CATEGORY_CONFIG[guessCategory()];
+  const cat = CATEGORY_CONFIG[categorizeExpense(name)];
 
   return (
     <TouchableOpacity

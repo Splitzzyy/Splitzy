@@ -158,6 +158,25 @@ export function SpendingChart({ expenses }: SpendingChartProps) {
                   />
                 ))}
 
+                {/* Touch targets (invisible, full-column-height rects behind bars) */}
+                {data.map((_d, i) => {
+                  const x = i * (BAR_WIDTH + BAR_GAP);
+                  return (
+                    <Rect
+                      key={`touch-${i}`}
+                      x={x}
+                      y={0}
+                      width={BAR_WIDTH + BAR_GAP}
+                      height={CHART_HEIGHT}
+                      fill="transparent"
+                      onPress={() => {
+                        triggerSelection();
+                        setSelectedMonth(i);
+                      }}
+                    />
+                  );
+                })}
+
                 {/* Bars */}
                 {data.map((d, i) => {
                   const barHeight = maxAmount > 0 ? (d.amount / maxAmount) * (CHART_HEIGHT - 8) : 0;
@@ -175,6 +194,10 @@ export function SpendingChart({ expenses }: SpendingChartProps) {
                       rx={6}
                       fill={isSelected ? colors.semantic.positive : "rgba(255,255,255,0.12)"}
                       opacity={d.amount === 0 ? 0.3 : 1}
+                      onPress={() => {
+                        triggerSelection();
+                        setSelectedMonth(i);
+                      }}
                     />
                   );
                 })}

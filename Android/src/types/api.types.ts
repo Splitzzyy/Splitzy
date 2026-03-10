@@ -125,6 +125,8 @@ export interface GroupSettlement {
   settlementId: number;
   paidByUserId: number;
   paidToUserId: number;
+  paidByName: string;
+  paidToName: string;
   amount: number;
   createdAt: string;
 }

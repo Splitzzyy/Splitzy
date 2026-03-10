@@ -31,7 +31,13 @@ export function Header({
         {showBack && (
           <IconButton
             name="arrow-left"
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/(tabs)");
+              }
+            }}
             style={styles.backButton}
           />
         )}

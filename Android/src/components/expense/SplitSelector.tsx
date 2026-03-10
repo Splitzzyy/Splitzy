@@ -1,11 +1,11 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { useState } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { triggerSelection } from "@/utils/haptics";
 import { Avatar } from "../ui/Avatar";
 import { useTheme } from "@/theme";
 import type { GroupMember } from "@/types/api.types";
 
-export type SplitMethod = "equal" | "custom" | "percentage";
+export type SplitMethod = "equal" | "custom";
 
 interface SplitSelectorProps {
   members: GroupMember[];
@@ -15,12 +15,13 @@ interface SplitSelectorProps {
   onMethodChange: (method: SplitMethod) => void;
   customAmounts: Record<number, number>;
   onCustomAmountChange: (userId: number, amount: number) => void;
+  selectedMembers: number[];
+  onSelectedMembersChange: (memberIds: number[]) => void;
 }
 
 const METHODS: { key: SplitMethod; label: string }[] = [
   { key: "equal", label: "Equal" },
   { key: "custom", label: "Custom" },
-  { key: "percentage", label: "%" },
 ];
 
 export function SplitSelector({
@@ -31,14 +32,29 @@ export function SplitSelector({
   onMethodChange,
   customAmounts,
   onCustomAmountChange,
+  selectedMembers,
+  onSelectedMembersChange,
 }: SplitSelectorProps) {
   const { colors } = useTheme();
+
+  const selectedCount = selectedMembers.length;
   const equalAmount =
-    members.length > 0 ? totalAmount / members.length : 0;
+    selectedCount > 0 ? totalAmount / selectedCount : 0;
 
   const handleMethodChange = (m: SplitMethod) => {
     triggerSelection();
     onMethodChange(m);
+  };
+
+  const toggleMember = (memberId: number) => {
+    triggerSelection();
+    if (selectedMembers.includes(memberId)) {
+      // Don't allow deselecting the last member
+      if (selectedCount <= 1) return;
+      onSelectedMembersChange(selectedMembers.filter((id) => id !== memberId));
+    } else {
+      onSelectedMembersChange([...selectedMembers, memberId]);
+    }
   };
 
   return (
@@ -83,9 +99,12 @@ export function SplitSelector({
       {/* Member split list */}
       <View style={styles.membersList}>
         {members.map((member) => {
+          const isSelected = selectedMembers.includes(member.memberId);
           const displayAmount =
             method === "equal"
-              ? equalAmount
+              ? isSelected
+                ? equalAmount
+                : 0
               : customAmounts[member.memberId] ?? 0;
 
           return (
@@ -97,8 +116,19 @@ export function SplitSelector({
                   backgroundColor: colors.glass.panel,
                   borderColor: colors.divider,
                 },
+                method === "equal" && !isSelected && { opacity: 0.45 },
               ]}
             >
+              {/* Checkbox for equal split */}
+              {method === "equal" && (
+                <TouchableOpacity onPress={() => toggleMember(member.memberId)} hitSlop={8}>
+                  <MaterialCommunityIcons
+                    name={isSelected ? "checkbox-marked" : "checkbox-blank-outline"}
+                    size={22}
+                    color={isSelected ? colors.primary : colors.text.tertiary}
+                  />
+                </TouchableOpacity>
+              )}
               <Avatar name={member.memberName} size={36} />
               <View style={styles.memberInfo}>
                 <Text style={[styles.memberName, { color: colors.text.primary }]} numberOfLines={1}>
@@ -122,12 +152,7 @@ export function SplitSelector({
                     },
                   ]}
                 >
-                  {method === "percentage" && (
-                    <Text style={[styles.percentSign, { color: colors.text.tertiary }]}>%</Text>
-                  )}
-                  {method === "custom" && (
-                    <Text style={[styles.dollarSign, { color: colors.text.tertiary }]}>₹</Text>
-                  )}
+                  <Text style={[styles.currencySign, { color: colors.text.tertiary }]}>₹</Text>
                   <TextInput
                     style={[styles.customInput, { color: colors.text.primary }]}
                     keyboardType="decimal-pad"
@@ -135,7 +160,7 @@ export function SplitSelector({
                       customAmounts[member.memberId]?.toString() ?? ""
                     }
                     onChangeText={(text) => {
-                      const num = parseFloat(text) || 0;
+                      const num = Number.parseFloat(text) || 0;
                       onCustomAmountChange(member.memberId, num);
                     }}
                     placeholder="0"
@@ -148,10 +173,9 @@ export function SplitSelector({
         })}
       </View>
 
-      {/* Remaining indicator for custom/percentage */}
+      {/* Remaining indicator for custom */}
       {method !== "equal" && totalAmount > 0 && (
         <RemainingIndicator
-          method={method}
           totalAmount={totalAmount}
           customAmounts={customAmounts}
           members={members}
@@ -163,13 +187,11 @@ export function SplitSelector({
 }
 
 function RemainingIndicator({
-  method,
   totalAmount,
   customAmounts,
   members,
   colors,
 }: {
-  method: SplitMethod;
   totalAmount: number;
   customAmounts: Record<number, number>;
   members: GroupMember[];
@@ -179,21 +201,6 @@ function RemainingIndicator({
     (sum, m) => sum + (customAmounts[m.memberId] ?? 0),
     0
   );
-
-  if (method === "percentage") {
-    const remaining = 100 - total;
-    const isValid = Math.abs(remaining) < 0.01;
-    return (
-      <Text
-        style={[
-          styles.remaining,
-          { color: isValid ? colors.semantic.positive : colors.semantic.warning },
-        ]}
-      >
-        {isValid ? "100% allocated" : `${remaining.toFixed(1)}% remaining`}
-      </Text>
-    );
-  }
 
   const remaining = totalAmount - total;
   const isValid = Math.abs(remaining) < 0.01;
@@ -267,11 +274,7 @@ const styles = StyleSheet.create({
     width: 90,
     borderWidth: 1,
   },
-  dollarSign: {
-    fontSize: 14,
-    fontFamily: "Inter-Medium",
-  },
-  percentSign: {
+  currencySign: {
     fontSize: 14,
     fontFamily: "Inter-Medium",
   },

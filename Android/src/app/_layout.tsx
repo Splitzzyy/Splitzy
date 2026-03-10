@@ -65,6 +65,10 @@ function ThemedApp() {
             options={{ animation: "slide_from_right" }}
           />
           <Stack.Screen
+            name="expense/edit"
+            options={{ animation: "slide_from_right" }}
+          />
+          <Stack.Screen
             name="settle-up"
             options={{ animation: "slide_from_bottom", presentation: "modal" }}
           />

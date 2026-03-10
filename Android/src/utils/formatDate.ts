@@ -1,5 +1,4 @@
 import {
-  formatDistanceToNow,
   format,
   isToday,
   isYesterday,
@@ -7,11 +6,14 @@ import {
 } from "date-fns";
 
 /**
- * Format a date string as relative time (e.g., "2m ago", "1h ago")
+ * Format a date string as a readable time.
+ * Today → "2:30 PM", Yesterday → "Yesterday 2:30 PM", Older → "Mar 5, 2:30 PM"
  */
 export function formatRelativeTime(dateString: string): string {
   const date = parseISO(dateString);
-  return formatDistanceToNow(date, { addSuffix: true });
+  if (isToday(date)) return format(date, "h:mm a");
+  if (isYesterday(date)) return "Yesterday " + format(date, "h:mm a");
+  return format(date, "MMM d, h:mm a");
 }
 
 /**

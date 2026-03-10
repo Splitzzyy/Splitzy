@@ -5,6 +5,7 @@ import {
   SectionList,
   RefreshControl,
   TouchableOpacity,
+  Modal,
   StyleSheet,
 } from "react-native";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -14,9 +15,12 @@ import { ActivityItem } from "@/components/activity/ActivityItem";
 import { AnimatedListItem } from "@/components/ui/AnimatedListItem";
 import { SkeletonList } from "@/components/ui/Skeleton";
 import { useDashboardStore } from "@/stores/dashboard.store";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { formatDateGroup } from "@/utils/formatDate";
+import { formatCurrency } from "@/utils/formatCurrency";
 import { useTheme } from "@/theme";
 import { triggerHaptic, triggerSelection } from "@/utils/haptics";
+import { format, parseISO } from "date-fns";
 import type { RecentActivityDTO } from "@/types/api.types";
 
 type ActivityFilter = "all" | "groups" | "friends";
@@ -37,6 +41,7 @@ export default function ActivityScreen() {
     useDashboardStore();
   const { colors } = useTheme();
   const [filter, setFilter] = useState<ActivityFilter>("all");
+  const [selectedActivity, setSelectedActivity] = useState<RecentActivityDTO | null>(null);
 
   useEffect(() => {
     fetchRecentActivity();
@@ -119,7 +124,7 @@ export default function ActivityScreen() {
         renderItem={({ item, index }) => (
           <AnimatedListItem index={index}>
             <View style={styles.itemWrapper}>
-              <ActivityItem activity={item} />
+              <ActivityItem activity={item} onPress={() => { triggerSelection(); setSelectedActivity(item); }} />
             </View>
           </AnimatedListItem>
         )}
@@ -145,6 +150,81 @@ export default function ActivityScreen() {
           />
         }
       />
+
+      {/* Activity Detail Modal */}
+      <Modal
+        visible={!!selectedActivity}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectedActivity(null)}
+      >
+        <TouchableOpacity
+          style={[styles.overlay, { backgroundColor: colors.overlay }]}
+          activeOpacity={1}
+          onPress={() => setSelectedActivity(null)}
+        >
+          <View style={[styles.sheet, { backgroundColor: colors.modalBackground }]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.sheetHandle }]} />
+            {selectedActivity && (() => {
+              const a = selectedActivity.action.toLowerCase();
+              let iconName: React.ComponentProps<typeof MaterialCommunityIcons>["name"] = "information-outline";
+              let iconBg = "rgba(37, 106, 244, 0.1)";
+              let iconColor = colors.primary;
+              if (a.includes("settle") || a.includes("paid")) {
+                iconName = "cash-check"; iconBg = "rgba(52, 211, 153, 0.1)"; iconColor = colors.semantic.positive;
+              } else if (a.includes("added") || a.includes("created")) {
+                iconName = "plus-circle-outline"; iconBg = "rgba(37, 106, 244, 0.1)"; iconColor = colors.primary;
+              } else if (a.includes("updated") || a.includes("edited")) {
+                iconName = "pencil-outline"; iconBg = "rgba(251, 191, 36, 0.1)"; iconColor = colors.semantic.warning;
+              } else if (a.includes("deleted") || a.includes("removed")) {
+                iconName = "trash-can-outline"; iconBg = "rgba(251, 113, 133, 0.1)"; iconColor = colors.semantic.negative;
+              }
+              const impactColor = selectedActivity.impact.type === "get_back"
+                ? colors.semantic.positive
+                : selectedActivity.impact.type === "owe"
+                  ? colors.semantic.negative
+                  : colors.text.tertiary;
+              const impactLabel = selectedActivity.impact.type === "get_back"
+                ? "GET BACK"
+                : selectedActivity.impact.type === "owe"
+                  ? "YOU OWE"
+                  : "";
+
+              return (
+                <View style={styles.detailContent}>
+                  <View style={[styles.detailIconBox, { backgroundColor: iconBg }]}>
+                    <MaterialCommunityIcons name={iconName} size={28} color={iconColor} />
+                  </View>
+                  <Text style={[styles.detailDescription, { color: colors.text.primary }]}>
+                    <Text style={{ color: colors.primary, fontFamily: "Inter-Bold" }}>{selectedActivity.actor}</Text>
+                    {" "}{selectedActivity.action} {selectedActivity.expenseName}
+                  </Text>
+                  {selectedActivity.groupName ? (
+                    <Text style={[styles.detailGroup, { color: colors.text.secondary }]}>
+                      {selectedActivity.groupName}
+                    </Text>
+                  ) : null}
+                  <Text style={[styles.detailTime, { color: colors.text.tertiary }]}>
+                    {format(parseISO(selectedActivity.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+                  </Text>
+                  {selectedActivity.impact.amount > 0 && (
+                    <View style={styles.detailAmountRow}>
+                      <Text style={[styles.detailAmount, { color: colors.text.primary }]}>
+                        {formatCurrency(selectedActivity.impact.amount)}
+                      </Text>
+                      {impactLabel ? (
+                        <View style={[styles.detailBadge, { backgroundColor: impactColor + "18" }]}>
+                          <Text style={[styles.detailBadgeText, { color: impactColor }]}>{impactLabel}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScreenWrapper>
   );
 }
@@ -193,5 +273,69 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 120,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingBottom: 40,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+  detailContent: {
+    paddingHorizontal: 24,
+    alignItems: "center",
+    gap: 12,
+  },
+  detailIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  detailDescription: {
+    fontSize: 16,
+    fontFamily: "Inter-SemiBold",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  detailGroup: {
+    fontSize: 14,
+    fontFamily: "Inter-Medium",
+  },
+  detailTime: {
+    fontSize: 13,
+    fontFamily: "Inter",
+  },
+  detailAmountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 4,
+  },
+  detailAmount: {
+    fontSize: 24,
+    fontFamily: "Inter-Bold",
+  },
+  detailBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  detailBadgeText: {
+    fontSize: 11,
+    fontFamily: "Inter-Bold",
+    letterSpacing: 0.5,
   },
 });

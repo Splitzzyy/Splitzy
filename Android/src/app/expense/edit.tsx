@@ -29,6 +29,7 @@ import { useExpensesStore } from "@/stores/expenses.store";
 import { useUIStore } from "@/stores/ui.store";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { ExpenseCategory } from "@/constants/categories";
+import { categorizeExpense } from "@/utils/categorizeExpense";
 import { useTheme } from "@/theme";
 import type { GroupMember, SplitDetailDto } from "@/types/api.types";
 
@@ -48,6 +49,7 @@ export default function EditExpenseScreen() {
   const { fetchDashboard, fetchRecentActivity } = useDashboardStore();
 
   const scrollViewRef = useRef<ScrollView>(null);
+  const isManualCategory = useRef(true); // Start true for edit (existing category)
 
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
@@ -59,6 +61,7 @@ export default function EditExpenseScreen() {
   const [customAmounts, setCustomAmounts] = useState<Record<number, number>>(
     {}
   );
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [showPaidByPicker, setShowPaidByPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingExpense, setIsLoadingExpense] = useState(true);
@@ -102,13 +105,20 @@ export default function EditExpenseScreen() {
       setCategory(currentExpense.category);
       setPaidByUserId(currentExpense.paidBy.userId);
 
-      // Determine split method
+      // Determine split method and selected members
       const members = currentGroup?.members ?? [];
       if (members.length > 0) {
-        const equalAmount = currentExpense.amount / members.length;
-        const isEqual = currentExpense.splits.every(
-          (s) => Math.abs(s.amount - equalAmount) < 0.02
-        );
+        // Members who have non-zero splits are selected
+        const splitMemberIds = currentExpense.splits
+          .filter((s) => s.amount > 0)
+          .map((s) => s.userId);
+        setSelectedMembers(splitMemberIds.length > 0 ? splitMemberIds : members.map((m) => m.memberId));
+
+        const selectedCount = splitMemberIds.length || members.length;
+        const equalAmount = currentExpense.amount / selectedCount;
+        const isEqual = currentExpense.splits
+          .filter((s) => s.amount > 0)
+          .every((s) => Math.abs(s.amount - equalAmount) < 0.02);
 
         if (isEqual) {
           setSplitMethod("equal");
@@ -127,24 +137,29 @@ export default function EditExpenseScreen() {
   const members: GroupMember[] = currentGroup?.members ?? [];
   const paidByMember = members.find((m) => m.memberId === paidByUserId);
 
+  // Auto-detect category from expense name (only if user hasn't manually picked)
+  useEffect(() => {
+    if (isManualCategory.current || !name.trim()) return;
+    const timer = setTimeout(() => {
+      const detected = categorizeExpense(name);
+      if (detected !== ExpenseCategory.Uncategorized) {
+        setCategory(detected);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [name]);
+
   const buildSplitDetails = (): SplitDetailDto[] => {
     const total = parseFloat(amount) || 0;
     if (total <= 0 || members.length === 0) return [];
 
     if (splitMethod === "equal") {
-      const perPerson = total / members.length;
-      return members.map((m) => ({
+      const participating = members.filter((m) => selectedMembers.includes(m.memberId));
+      if (participating.length === 0) return [];
+      const perPerson = total / participating.length;
+      return participating.map((m) => ({
         userId: m.memberId,
         amount: parseFloat(perPerson.toFixed(2)),
-      }));
-    }
-
-    if (splitMethod === "percentage") {
-      return members.map((m) => ({
-        userId: m.memberId,
-        amount: parseFloat(
-          (((customAmounts[m.memberId] ?? 0) / 100) * total).toFixed(2)
-        ),
       }));
     }
 
@@ -269,7 +284,7 @@ export default function EditExpenseScreen() {
         />
 
         {/* Category */}
-        <CategoryPicker value={category} onChange={setCategory} />
+        <CategoryPicker value={category} onChange={(c) => { isManualCategory.current = true; setCategory(c); }} />
 
         {/* Paid By */}
         {members.length > 0 && (
@@ -303,6 +318,8 @@ export default function EditExpenseScreen() {
             onMethodChange={setSplitMethod}
             customAmounts={customAmounts}
             onCustomAmountChange={handleCustomAmountChange}
+            selectedMembers={selectedMembers}
+            onSelectedMembersChange={setSelectedMembers}
           />
         )}
 

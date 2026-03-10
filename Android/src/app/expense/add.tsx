@@ -29,6 +29,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useUIStore } from "@/stores/ui.store";
 import { useDashboardStore } from "@/stores/dashboard.store";
 import { ExpenseCategory } from "@/constants/categories";
+import { categorizeExpense } from "@/utils/categorizeExpense";
 import { useTheme } from "@/theme";
 import type { GroupMember, SplitDetailDto } from "@/types/api.types";
 
@@ -43,6 +44,7 @@ export default function AddExpenseScreen() {
   const { fetchDashboard, fetchRecentActivity } = useDashboardStore();
 
   const scrollViewRef = useRef<ScrollView>(null);
+  const isManualCategory = useRef(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(
     params.groupId ? parseInt(params.groupId, 10) : null
@@ -57,6 +59,7 @@ export default function AddExpenseScreen() {
   const [customAmounts, setCustomAmounts] = useState<Record<number, number>>(
     {}
   );
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [showGroupPicker, setShowGroupPicker] = useState(false);
   const [showPaidByPicker, setShowPaidByPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,6 +95,25 @@ export default function AddExpenseScreen() {
 
   const members: GroupMember[] = currentGroup?.members ?? [];
 
+  // Initialize selectedMembers when members change
+  useEffect(() => {
+    if (members.length > 0 && selectedMembers.length === 0) {
+      setSelectedMembers(members.map((m) => m.memberId));
+    }
+  }, [members]);
+
+  // Auto-detect category from expense name
+  useEffect(() => {
+    if (isManualCategory.current || !name.trim()) return;
+    const timer = setTimeout(() => {
+      const detected = categorizeExpense(name);
+      if (detected !== ExpenseCategory.Uncategorized) {
+        setCategory(detected);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [name]);
+
   const paidByMember = members.find((m) => m.memberId === paidByUserId);
 
   const selectedGroup = groups.find((g) => g.groupId === selectedGroupId);
@@ -101,19 +123,12 @@ export default function AddExpenseScreen() {
     if (total <= 0 || members.length === 0) return [];
 
     if (splitMethod === "equal") {
-      const perPerson = total / members.length;
-      return members.map((m) => ({
+      const participating = members.filter((m) => selectedMembers.includes(m.memberId));
+      if (participating.length === 0) return [];
+      const perPerson = total / participating.length;
+      return participating.map((m) => ({
         userId: m.memberId,
         amount: parseFloat(perPerson.toFixed(2)),
-      }));
-    }
-
-    if (splitMethod === "percentage") {
-      return members.map((m) => ({
-        userId: m.memberId,
-        amount: parseFloat(
-          (((customAmounts[m.memberId] ?? 0) / 100) * total).toFixed(2)
-        ),
       }));
     }
 
@@ -247,7 +262,7 @@ export default function AddExpenseScreen() {
         />
 
         {/* Category */}
-        <CategoryPicker value={category} onChange={setCategory} />
+        <CategoryPicker value={category} onChange={(c) => { isManualCategory.current = true; setCategory(c); }} />
 
         {/* Paid By */}
         {members.length > 0 && (
@@ -259,7 +274,7 @@ export default function AddExpenseScreen() {
               activeOpacity={0.7}
             >
               <Avatar name={paidByMember?.memberName ?? ""} size={28} />
-              <Text style={styles.pickerText}>
+              <Text style={[styles.pickerText, { color: colors.text.primary }]}>
                 {paidByMember?.memberName ?? "Select who paid"}
               </Text>
               <MaterialCommunityIcons
@@ -281,6 +296,8 @@ export default function AddExpenseScreen() {
             onMethodChange={setSplitMethod}
             customAmounts={customAmounts}
             onCustomAmountChange={handleCustomAmountChange}
+            selectedMembers={selectedMembers}
+            onSelectedMembersChange={setSelectedMembers}
           />
         )}
 

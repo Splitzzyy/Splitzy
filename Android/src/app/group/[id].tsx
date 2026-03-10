@@ -29,13 +29,18 @@ import { useUIStore } from "@/stores/ui.store";
 import { formatDateGroup } from "@/utils/formatDate";
 import { useTheme } from "@/theme";
 import { triggerHaptic, triggerNotification, triggerSelection } from "@/utils/haptics";
-import type { GroupExpense } from "@/types/api.types";
+import { formatCurrency } from "@/utils/formatCurrency";
+import type { GroupExpense, GroupSettlement } from "@/types/api.types";
 
 type Tab = "expenses" | "chart" | "balances" | "members";
 
+type ListItem =
+  | { type: "expense"; data: GroupExpense }
+  | { type: "settlement"; data: GroupSettlement };
+
 interface ExpenseSection {
   title: string;
-  data: GroupExpense[];
+  data: ListItem[];
 }
 
 export default function GroupDetailScreen() {
@@ -62,17 +67,26 @@ export default function GroupDetailScreen() {
     await fetchGroupOverview(groupId);
   }, [groupId, fetchGroupOverview]);
 
-  // Group expenses by date
+  // Merge expenses + settlements, group by date
   const expenseSections: ExpenseSection[] = useMemo(() => {
-    if (!currentGroup?.expenses) return [];
-    const grouped: Record<string, GroupExpense[]> = {};
-    for (const exp of currentGroup.expenses) {
-      const key = formatDateGroup(exp.createdAt);
+    const items: ListItem[] = [];
+    for (const exp of currentGroup?.expenses ?? []) {
+      items.push({ type: "expense", data: exp });
+    }
+    for (const stl of currentGroup?.settlements ?? []) {
+      items.push({ type: "settlement", data: stl });
+    }
+    // Sort newest first
+    items.sort((a, b) => new Date(b.data.createdAt).getTime() - new Date(a.data.createdAt).getTime());
+
+    const grouped: Record<string, ListItem[]> = {};
+    for (const item of items) {
+      const key = formatDateGroup(item.data.createdAt);
       if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(exp);
+      grouped[key].push(item);
     }
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
-  }, [currentGroup?.expenses]);
+  }, [currentGroup?.expenses, currentGroup?.settlements]);
 
   const handleExpensePress = (expenseId: number) => {
     router.push(`/expense/${expenseId}`);
@@ -210,11 +224,13 @@ export default function GroupDetailScreen() {
 
       <SectionList
         sections={activeTab === "expenses" ? expenseSections : []}
-        keyExtractor={(item, index) =>
-          activeTab === "expenses"
-            ? (item as GroupExpense).expenseId.toString()
-            : index.toString()
-        }
+        keyExtractor={(item, index) => {
+          if (activeTab !== "expenses") return index.toString();
+          const li = item as ListItem;
+          return li.type === "expense"
+            ? `exp-${li.data.expenseId}`
+            : `stl-${(li.data as GroupSettlement).settlementId}`;
+        }}
         ListHeaderComponent={
           <>
             <GroupHero
@@ -257,19 +273,49 @@ export default function GroupDetailScreen() {
         renderSectionHeader={({ section: { title } }) => (
           <Text style={[styles.sectionDate, { color: colors.text.tertiary }]}>{title}</Text>
         )}
-        renderItem={({ item }) => (
-          <View style={styles.expenseItem}>
-            <ExpenseListItem
-              expenseId={(item as GroupExpense).expenseId}
-              name={(item as GroupExpense).name}
-              amount={(item as GroupExpense).amount}
-              paidBy={(item as GroupExpense).paidBy}
-              youOwe={(item as GroupExpense).youOwe}
-              youLent={(item as GroupExpense).youLent}
-              onPress={handleExpensePress}
-            />
-          </View>
-        )}
+        renderItem={({ item }) => {
+          const li = item as ListItem;
+          if (li.type === "settlement") {
+            const s = li.data as GroupSettlement;
+            return (
+              <View style={styles.expenseItem}>
+                <View
+                  style={[
+                    styles.settlementRow,
+                    { backgroundColor: colors.glass.card, borderColor: colors.glass.border },
+                  ]}
+                >
+                  <View style={[styles.settlementIcon, { backgroundColor: "rgba(52, 211, 153, 0.15)" }]}>
+                    <MaterialCommunityIcons name="check-circle-outline" size={22} color={colors.semantic.positive} />
+                  </View>
+                  <View style={styles.settlementInfo}>
+                    <Text style={[styles.settlementTitle, { color: colors.text.primary }]}>Settlement</Text>
+                    <Text style={[styles.settlementSub, { color: colors.text.secondary }]} numberOfLines={1}>
+                      {s.paidByName} → {s.paidToName}
+                    </Text>
+                  </View>
+                  <Text style={[styles.settlementAmount, { color: colors.semantic.positive }]}>
+                    {formatCurrency(s.amount)}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+          const exp = li.data as GroupExpense;
+          return (
+            <View style={styles.expenseItem}>
+              <ExpenseListItem
+                expenseId={exp.expenseId}
+                name={exp.name}
+                amount={exp.amount}
+                paidBy={exp.paidBy}
+                youOwe={exp.youOwe}
+                youLent={exp.youLent}
+                onPress={handleExpensePress}
+              />
+            </View>
+          );
+        }}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         SectionSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.listContent}
@@ -315,12 +361,10 @@ export default function GroupDetailScreen() {
             </View>
           ) : activeTab === "chart" ? (
             <SpendingChart expenses={currentGroup.expenses ?? []} />
-          ) : activeTab === "balances" && currentGroup.balances ? (
+          ) : activeTab === "balances" ? (
             <View style={styles.balancesSection}>
               <BalanceCard
-                totalBalance={currentGroup.balances.totalBalance}
-                youOwe={currentGroup.balances.youOwe}
-                youAreOwed={currentGroup.balances.youAreOwed}
+                userSummaries={currentGroup.userSummaries ?? []}
               />
             </View>
           ) : activeTab === "expenses" && expenseSections.length === 0 ? (
@@ -505,6 +549,37 @@ const styles = StyleSheet.create({
   },
   expenseItem: {
     paddingHorizontal: 24,
+  },
+  settlementRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  settlementIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settlementInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  settlementTitle: {
+    fontSize: 15,
+    fontFamily: "Inter-Bold",
+  },
+  settlementSub: {
+    fontSize: 12,
+    fontFamily: "Inter",
+  },
+  settlementAmount: {
+    fontSize: 15,
+    fontFamily: "Inter-Bold",
   },
   separator: {
     height: 8,
