@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, Modal, FlatList, ActivityIndicator, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { GlassCard } from "../ui/GlassCard";
 import { Avatar } from "../ui/Avatar";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useTheme } from "@/theme";
-import type { PersonAmount } from "@/types/api.types";
+import { useAuthStore } from "@/stores/auth.store";
+import { useUIStore } from "@/stores/ui.store";
+import { dashboardApi } from "@/services/api/dashboard.api";
+import { triggerHaptic, triggerNotification } from "@/utils/haptics";
+import { NotificationFeedbackType } from "expo-haptics";
+import type { PersonAmount, ReminderRequest } from "@/types/api.types";
 
 interface BalanceSummaryProps {
   totalBalance: number;
@@ -23,7 +28,35 @@ export function BalanceSummary({
   oweTo = [],
 }: BalanceSummaryProps) {
   const { colors } = useTheme();
+  const { userId } = useAuthStore();
+  const { showToast } = useUIStore();
   const [showModal, setShowModal] = useState<"owed" | "owe" | null>(null);
+  const [sendingReminder, setSendingReminder] = useState<Record<number, boolean>>({});
+
+  const handleSendReminder = async (person: PersonAmount) => {
+    if (sendingReminder[person.id]) return;
+    triggerHaptic();
+    setSendingReminder((prev) => ({ ...prev, [person.id]: true }));
+    try {
+      const body: ReminderRequest = {
+        owedUserId: person.id,
+        owedToUserId: Number(userId),
+        amount: person.amount,
+      };
+      const res = await dashboardApi.sendReminder(body);
+      const data = res.data as any;
+      if (data?.success) {
+        triggerNotification(NotificationFeedbackType.Success);
+        showToast(`Reminder sent! Amount: ${formatCurrency(data.amount)}`, "success");
+      } else {
+        showToast(data?.message || "Failed to send reminder", "error");
+      }
+    } catch {
+      showToast("Failed to send reminder. Please try again.", "error");
+    } finally {
+      setSendingReminder((prev) => ({ ...prev, [person.id]: false }));
+    }
+  };
   const isPositive = totalBalance >= 0;
   const owedPercent =
     youAreOwed + youOwe > 0
@@ -153,6 +186,20 @@ export function BalanceSummary({
                     <Text style={[styles.personAmount, { color: modalColor }]}>
                       {formatCurrency(item.amount)}
                     </Text>
+                    {showModal === "owed" && (
+                      <TouchableOpacity
+                        style={[styles.reminderBtn, { backgroundColor: colors.primaryLight }]}
+                        onPress={() => handleSendReminder(item)}
+                        disabled={sendingReminder[item.id]}
+                        activeOpacity={0.7}
+                      >
+                        {sendingReminder[item.id] ? (
+                          <ActivityIndicator size={14} color={colors.primary} />
+                        ) : (
+                          <MaterialCommunityIcons name="bell-ring-outline" size={16} color={colors.primary} />
+                        )}
+                      </TouchableOpacity>
+                    )}
                   </View>
                 )}
               />
@@ -291,6 +338,14 @@ const styles = StyleSheet.create({
   personAmount: {
     fontSize: 16,
     fontFamily: "Inter-Bold",
+  },
+  reminderBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
   },
   emptyText: {
     fontSize: 14,
