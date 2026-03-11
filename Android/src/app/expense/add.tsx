@@ -8,7 +8,10 @@ import {
   FlatList,
   Keyboard,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { triggerHaptic, triggerNotification } from "@/utils/haptics";
@@ -32,6 +35,7 @@ import { ExpenseCategory } from "@/constants/categories";
 import { categorizeExpense } from "@/utils/categorizeExpense";
 import { useTheme } from "@/theme";
 import type { GroupMember, SplitDetailDto } from "@/types/api.types";
+import { scanReceipt } from "@/utils/receiptScanner";
 
 export default function AddExpenseScreen() {
   const { colors } = useTheme();
@@ -63,6 +67,8 @@ export default function AddExpenseScreen() {
   const [showGroupPicker, setShowGroupPicker] = useState(false);
   const [showPaidByPicker, setShowPaidByPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [showScanPicker, setShowScanPicker] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
@@ -193,6 +199,75 @@ export default function AddExpenseScreen() {
     setCustomAmounts((prev) => ({ ...prev, [memberId]: val }));
   };
 
+  const processScannedImage = async (uri: string) => {
+    try {
+      setIsScanning(true);
+      showToast("Scanning receipt... Please wait.", "info");
+      const result = await scanReceipt(uri);
+      
+      let foundSomething = false;
+      if (result.amount !== null && result.amount > 0) {
+        setAmount(result.amount.toString());
+        showToast(`Found amount: ₹${result.amount}`, "success");
+        foundSomething = true;
+      }
+      
+      if (result.merchantName) {
+        setName(result.merchantName);
+        isManualCategory.current = false; // Allow auto-detect to run on this new name
+        foundSomething = true;
+      } else if (!name) {
+        setName("Scanned Receipt");
+      }
+
+      if (!foundSomething && !result.amount) {
+        showToast("Could not detect amount automatically", "info");
+      }
+      triggerNotification(NotificationFeedbackType.Success);
+    } catch (error) {
+      showToast("Failed to scan receipt", "error");
+      triggerNotification(NotificationFeedbackType.Error);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleCamera = async () => {
+    setShowScanPicker(false);
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      showToast("Camera permission is required!", "error");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0].uri) {
+      processScannedImage(result.assets[0].uri);
+    }
+  };
+
+  const handleGallery = async () => {
+    setShowScanPicker(false);
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      showToast("Gallery permission is required!", "error");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0].uri) {
+      processScannedImage(result.assets[0].uri);
+    }
+  };
+
+  const handleScanReceipt = () => {
+    Keyboard.dismiss();
+    setShowScanPicker(true);
+  };
+
   return (
     <ScreenWrapper>
       <Header title="Add Expense" showBack />
@@ -238,7 +313,17 @@ export default function AddExpenseScreen() {
 
         {/* Amount */}
         <View style={styles.amountSection}>
-          <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Amount</Text>
+          <View style={styles.amountHeaderRow}>
+            <Text style={[styles.fieldLabel, { color: colors.text.secondary }]}>Amount</Text>
+            <TouchableOpacity 
+              style={[styles.scanBtn, { backgroundColor: colors.primaryLight }]} 
+              onPress={handleScanReceipt}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="line-scan" size={16} color={colors.primary} />
+              <Text style={[styles.scanBtnText, { color: colors.primary }]}>Scan Receipt</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.amountRow}>
             <Text style={[styles.currencySymbol, { color: colors.text.secondary }]}>₹</Text>
             <View style={{ flex: 1 }}>
@@ -368,6 +453,49 @@ export default function AddExpenseScreen() {
         </TouchableOpacity>
       </Modal>
 
+      {/* Scan Receipt Source Picker Modal */}
+      <Modal
+        visible={showScanPicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowScanPicker(false)}
+      >
+        <TouchableOpacity
+          style={[styles.overlay, { backgroundColor: colors.overlay }]}
+          activeOpacity={1}
+          onPress={() => setShowScanPicker(false)}
+        >
+          <View style={[styles.sheet, { backgroundColor: colors.modalBackground, maxHeight: 'auto' }]}>
+            <View style={[styles.sheetHandle, { backgroundColor: colors.sheetHandle }]} />
+            <Text style={[styles.sheetTitle, { color: colors.text.primary, marginBottom: 16 }]}>Scan Receipt</Text>
+            
+            <TouchableOpacity
+              style={[styles.sheetItem, { paddingVertical: 16 }]}
+              onPress={handleCamera}
+            >
+              <MaterialCommunityIcons name="camera" size={24} color={colors.primary} />
+              <Text style={[styles.sheetItemText, { color: colors.text.primary }]}>Take Photo</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.sheetItem, { paddingVertical: 16 }]}
+              onPress={handleGallery}
+            >
+              <MaterialCommunityIcons name="image-multiple" size={24} color={colors.primary} />
+              <Text style={[styles.sheetItemText, { color: colors.text.primary }]}>Choose from Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.sheetItem, { paddingVertical: 16, marginTop: 8 }]}
+              onPress={() => setShowScanPicker(false)}
+            >
+              <MaterialCommunityIcons name="close" size={24} color={colors.error} />
+              <Text style={[styles.sheetItemText, { color: colors.error }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Paid By Picker Modal */}
       <Modal
         visible={showPaidByPicker}
@@ -413,6 +541,16 @@ export default function AddExpenseScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* Scanning Overlay */}
+      {isScanning && (
+        <View style={[StyleSheet.absoluteFill, styles.scanOverlay, { backgroundColor: colors.overlay }]}>
+          <View style={[styles.scanCard, { backgroundColor: colors.modalBackground }]}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.scanText, { color: colors.text.primary }]}>Scanning Receipt...</Text>
+          </View>
+        </View>
+      )}
     </ScreenWrapper>
   );
 }
@@ -450,7 +588,24 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
   },
   amountSection: {
+    gap: 12,
+  },
+  amountHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  scanBtn: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  scanBtnText: {
+    fontSize: 12,
+    fontFamily: "Inter-SemiBold",
   },
   amountRow: {
     flexDirection: "row",
@@ -503,5 +658,24 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontFamily: "Inter-Medium",
+  },
+  scanOverlay: {
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  scanCard: {
+    padding: 24,
+    borderRadius: 20,
+    alignItems: "center",
+    gap: 16,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  scanText: {
+    fontSize: 16,
+    fontFamily: "Inter-SemiBold",
   },
 });
