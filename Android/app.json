@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0f18"
+      "backgroundColor": "#059669"
     },
     "ios": {
       "supportsTablet": true,
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0a0f18",
+        "backgroundColor": "#059669",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "com.splitzy.app",
@@ -40,7 +40,7 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#0a0f18"
+          "backgroundColor": "#059669"
         }
       ],
       "@react-native-google-signin/google-signin"
