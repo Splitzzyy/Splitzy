@@ -22,11 +22,13 @@ function buildChartData(expenses: GroupExpense[]): { data: MonthlyData[]; year: 
   const now = new Date();
   const year = now.getFullYear();
 
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // UTC+5:30
   const monthMap: Record<number, number> = {};
   for (const exp of expenses) {
-    const d = new Date(exp.createdAt);
-    if (d.getFullYear() === year) {
-      const m = d.getMonth();
+    const utcMs = new Date(exp.createdAt + 'Z').getTime();
+    const istDate = new Date(utcMs + IST_OFFSET_MS);
+    if (istDate.getUTCFullYear() === year) {
+      const m = istDate.getUTCMonth();
       monthMap[m] = (monthMap[m] ?? 0) + exp.amount;
     }
   }

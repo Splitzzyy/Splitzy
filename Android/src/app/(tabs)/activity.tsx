@@ -20,7 +20,7 @@ import { formatDateGroup } from "@/utils/formatDate";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { useTheme } from "@/theme";
 import { triggerHaptic, triggerSelection } from "@/utils/haptics";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import type { RecentActivityDTO } from "@/types/api.types";
 
 type ActivityFilter = "all" | "groups" | "friends";
@@ -205,7 +205,7 @@ export default function ActivityScreen() {
                     </Text>
                   ) : null}
                   <Text style={[styles.detailTime, { color: colors.text.tertiary }]}>
-                    {format(parseISO(selectedActivity.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+                    {format(new Date(selectedActivity.createdAt + 'Z'), "MMMM d, yyyy 'at' h:mm a")}
                   </Text>
                   {selectedActivity.impact.amount > 0 && (
                     <View style={styles.detailAmountRow}>

@@ -5,6 +5,14 @@ import { formatCurrency } from "@/utils/formatCurrency";
 import { useTheme } from "@/theme";
 import type { RecentActivityDTO } from "@/types/api.types";
 
+/** Shorten "Harsh Kumar" → "Harsh K." */
+function formatName(name: string): string {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 1) return name;
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+
 interface ActivityItemProps {
   activity: RecentActivityDTO;
   onPress?: () => void;
@@ -89,17 +97,15 @@ export function ActivityItem({ activity, onPress }: ActivityItemProps) {
       </View>
 
       <View style={styles.content}>
-        <View style={styles.topRow}>
-          <Text style={[styles.description, { color: colors.text.primary }]} numberOfLines={1}>
-            <Text style={[styles.actor, { color: colors.primary }]}>{activity.actor}</Text> {activity.action}{" "}
-            {activity.expenseName}
-          </Text>
-          <Text style={[styles.time, { color: colors.text.tertiary }]}>
-            {formatRelativeTime(activity.createdAt)}
-          </Text>
-        </View>
+        <Text style={[styles.description, { color: colors.text.primary }]} numberOfLines={1}>
+          <Text style={[styles.actor, { color: colors.primary }]}>{formatName(activity.actor)}</Text> {activity.action}{" "}
+          {activity.expenseName}
+        </Text>
         <Text style={[styles.groupName, { color: colors.text.secondary }]} numberOfLines={1}>
           {activity.groupName}
+        </Text>
+        <Text style={[styles.time, { color: colors.text.tertiary }]}>
+          {formatRelativeTime(activity.createdAt)}
         </Text>
       </View>
 
@@ -139,21 +145,15 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 3,
   },
-  topRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 8,
-  },
   description: {
     fontSize: 13,
     fontFamily: "Inter-SemiBold",
-    flex: 1,
   },
   actor: {},
   time: {
     fontSize: 10,
     fontFamily: "Inter-Medium",
+    marginTop: 1,
   },
   groupName: {
     fontSize: 12,
