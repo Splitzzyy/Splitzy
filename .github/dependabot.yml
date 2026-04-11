@@ -5,39 +5,79 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      github-actions-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+      github-actions-version:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
 
   - package-ecosystem: "nuget"
     directory: "/backend"
     schedule:
       interval: "weekly"
       day: "monday"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "backend"
     commit-message:
       prefix: "build"
+    groups:
+      backend-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+      backend-version:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
 
   - package-ecosystem: "npm"
     directory: "/UI"
     schedule:
       interval: "weekly"
       day: "monday"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "ui"
     commit-message:
       prefix: "build"
+    groups:
+      ui-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+      ui-version:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
 
   - package-ecosystem: "npm"
     directory: "/Android"
     schedule:
       interval: "weekly"
       day: "monday"
+    open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "android"
     commit-message:
       prefix: "build"
+    groups:
+      android-security:
+        applies-to: "security-updates"
+        patterns:
+          - "*"
+      android-version:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
