@@ -15,7 +15,7 @@
     "@react-native-community/netinfo": "^11.5.2",
     "axios": "^1.13.6",
     "date-fns": "^4.1.0",
-    "expo": "~55.0.5",
+    "expo": "~55.0.14",
     "expo-auth-session": "~55.0.7",
     "expo-blur": "~55.0.8",
     "expo-font": "~55.0.4",
