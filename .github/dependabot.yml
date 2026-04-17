@@ -5,17 +5,16 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
     open-pull-requests-limit: 1
     labels:
       - "dependencies"
       - "github-actions"
+    commit-message:
+      prefix: "build"
     groups:
-      github-actions-security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-      github-actions-version:
-        applies-to: "version-updates"
+      github-actions-all:
         patterns:
           - "*"
 
@@ -24,6 +23,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
     open-pull-requests-limit: 1
     labels:
       - "dependencies"
@@ -31,12 +32,7 @@ updates:
     commit-message:
       prefix: "build"
     groups:
-      backend-security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-      backend-version:
-        applies-to: "version-updates"
+      backend-all:
         patterns:
           - "*"
 
@@ -45,6 +41,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
     open-pull-requests-limit: 1
     labels:
       - "dependencies"
@@ -52,12 +50,7 @@ updates:
     commit-message:
       prefix: "build"
     groups:
-      ui-security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-      ui-version:
-        applies-to: "version-updates"
+      ui-all:
         patterns:
           - "*"
 
@@ -66,6 +59,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "09:00"
+      timezone: "Asia/Kolkata"
     open-pull-requests-limit: 1
     labels:
       - "dependencies"
@@ -73,11 +68,6 @@ updates:
     commit-message:
       prefix: "build"
     groups:
-      android-security:
-        applies-to: "security-updates"
-        patterns:
-          - "*"
-      android-version:
-        applies-to: "version-updates"
+      android-all:
         patterns:
           - "*"
