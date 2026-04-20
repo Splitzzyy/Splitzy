@@ -13,7 +13,7 @@
     "@expo/vector-icons": "^15.1.1",
     "@hookform/resolvers": "^5.2.2",
     "@react-native-community/netinfo": "^12.0.1",
-    "axios": "^1.15.0",
+    "axios": "^1.15.1",
     "date-fns": "^4.1.0",
     "expo": "~55.0.15",
     "expo-auth-session": "~55.0.14",
