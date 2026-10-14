@@ -57,11 +57,19 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 - Normalized schema for financial data integrity
 - Audit logging for compliance
 
+## Branching
+
+All work merges into `beta` first. Only `beta` can be merged into `main`: the PR Build check fails for any other source branch. `main` deploys to production, so `beta` is tested in the [beta environment](BETA.md) before it is promoted.
+
+```
+feature/fix branch ──PR──▶ beta ──PR (after testing)──▶ main ──▶ production
+```
+
 ## CI/CD Pipelines
 
 | Pipeline | Trigger | Purpose |
 |----------|---------|---------|
-| **PR Build** (`pr-build.yml`) | Pull requests to `main` | Build and test validation |
+| **PR Build** (`pr-build.yml`) | Pull requests to `main` and `beta` | Branch policy (only `beta` → `main`), backend build and tests, UI build |
 | **Backend Build** (`backend.yml`) | Manual/workflow call | Docker image build and push |
 | **Full Deploy** (`build_and_deploy.yml`) | Push to `main` | Orchestrated production deployment |
 | **Dev Deploy** (`ui-dev-deploy.yml`) | Push to `dev` branch | Development environment deployment |
