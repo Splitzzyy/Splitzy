@@ -8,11 +8,14 @@ public partial class User
 
     public string Email { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
+    public string? PasswordHash { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
     public bool IsEmailVerified { get; set; }
+
+    // false = placeholder created by a group invite; no password, cannot log in until claimed
+    public bool IsRegistered { get; set; } = true;
 
     public virtual ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
 

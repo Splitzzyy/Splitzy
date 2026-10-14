@@ -355,9 +355,12 @@ public partial class SplitzyContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("name");
             entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            // No DB default: EF omits a bool equal to its CLR default (false) on insert,
+            // so a default of true would silently mark every new user verified.
             entity.Property(e => e.IsEmailVerified)
-                .HasColumnName("is_email_verified")
-                .HasDefaultValue(true);
+                .HasColumnName("is_email_verified");
+            entity.Property(e => e.IsRegistered)
+                .HasColumnName("is_registered");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -74,8 +74,10 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
+            user.Email = Helper.NormalizeEmail(user.Email);
             var loginUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
-            if (loginUser == null)
+            // Placeholders (invited, never signed up) have no password: same response as unknown email
+            if (loginUser == null || loginUser.PasswordHash == null)
             {
                 _logger.LogError("Login failed: Email not found. Email={Email}", user.Email);
                 return Unauthorized(new ApiResponse<string>
@@ -169,7 +171,11 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            request.Email = Helper.NormalizeEmail(request.Email);
+
+            var existing = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (existing is { IsRegistered: true })
             {
                 _logger.LogError("Signup failed: Email already exists. Email={Email}", request.Email);
                 return BadRequest(new ApiResponse<string>
@@ -185,16 +191,46 @@ namespace splitzy_dotnet.Controllers
 
             try
             {
-                var user = new User
+                if (existing != null)
                 {
-                    Name = request.Name,
+                    // Serialize concurrent claims of the same placeholder and re-check under the lock
+                    await _context.LockUserAsync(existing.UserId);
+                    await _context.Entry(existing).ReloadAsync();
+
+                    if (existing.IsRegistered)
+                    {
+                        await transaction.RollbackAsync();
+                        return BadRequest(new ApiResponse<string>
+                        {
+                            Success = false,
+                            Message = "Email already exists"
+                        });
+                    }
+                }
+
+                // An invited placeholder is claimed in place so its expenses and balances carry over.
+                // It stays unregistered until the email is verified.
+                var user = existing ?? new User
+                {
                     Email = request.Email,
-                    PasswordHash = hashedPassword,
-                    IsEmailVerified = false,
                     CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
-                _context.Users.Add(user);
+                user.Name = request.Name;
+                user.PasswordHash = hashedPassword;
+                user.IsEmailVerified = false;
+
+                if (existing == null)
+                {
+                    _context.Users.Add(user);
+                }
+                else
+                {
+                    // Only the latest claimant's verification link may complete the claim
+                    _context.EmailVerifications.RemoveRange(await _context.EmailVerifications
+                        .Where(v => v.UserId == user.UserId && !v.IsUsed)
+                        .ToListAsync());
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -210,8 +246,6 @@ namespace splitzy_dotnet.Controllers
                 _context.EmailVerifications.Add(verification);
 
                 await _context.SaveChangesAsync();
-
-                await HandleGroupInvitesAsync(user);
 
                 await transaction.CommitAsync();
 
@@ -232,7 +266,16 @@ namespace splitzy_dotnet.Controllers
                     }
                 };
 
-                await _messageProducer.SendMessageAsync(emailEvent);
+                // Account is committed: a broker failure must not report "Signup failed" (a retry would
+                // then hit "Email already exists"). The user can use resend-verification instead.
+                try
+                {
+                    await _messageProducer.SendMessageAsync(emailEvent);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to queue verification email. UserId={UserId}", user.UserId);
+                }
 
                 return CreatedAtAction(nameof(Signup), new ApiResponse<object>
                 {
@@ -387,45 +430,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
-
-            if (user == null)
-            {
-                _logger.LogInformation(
-                    "New user created via Google login. Email={Email}",
-                    payload.Email);
-
-                user = new User
-                {
-                    Email = payload.Email,
-                    Name = payload.Name,
-                    IsEmailVerified = true,
-                    PasswordHash = Guid.NewGuid().ToString(),
-                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                await HandleGroupInvitesAsync(user);
-
-                // Send welcome email
-                try
-                {
-                    var emailEvent = new EmailMessage
-                    {
-                        ToEmail = user.Email,
-                        TemplateType = "WelcomeGoogle",
-                        Payload = new { UserName = payload.Name },
-                    };
-
-                    await _messageProducer.SendMessageAsync(emailEvent);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
-                }
-            }
+            var user = await UpsertGoogleUserAsync(payload.Email, payload.Name);
 
             var accessToken = _jWTService.GenerateAccessToken(user.UserId);
             var refreshToken = _jWTService.GenerateRefreshToken();
@@ -485,10 +490,11 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequestUser request)
         {
+            request.Email = Helper.NormalizeEmail(request.Email ?? "");
             var user = await _context.Users
                 .FirstOrDefaultAsync(x => x.Email == request.Email);
 
-            if (user == null)
+            if (user == null || user.PasswordHash == null)
             {
                 return BadRequest(new
                 {
@@ -585,28 +591,73 @@ namespace splitzy_dotnet.Controllers
             });
         }
 
-        private async Task HandleGroupInvitesAsync(User user)
+        /// <summary>
+        /// Finds or creates the user for a Google-verified email. A placeholder (or an unverified
+        /// signup) is claimed in place: Google has proven inbox ownership, so the account becomes
+        /// registered and verified, and any password set by an unverified claimant is discarded.
+        /// </summary>
+        [NonAction]
+        public async Task<User> UpsertGoogleUserAsync(string email, string name)
         {
-            var invites = await _context.GroupInvites
-                .Where(i => i.Email == user.Email && !i.Accepted)
-                .ToListAsync();
+            email = Helper.NormalizeEmail(email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-            if (!invites.Any())
-                return;
+            if (user is { IsRegistered: true, IsEmailVerified: true })
+                return user;
 
-            foreach (var invite in invites)
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            if (user != null)
             {
-                _context.GroupMembers.Add(new GroupMember
-                {
-                    GroupId = invite.GroupId,
-                    UserId = user.UserId,
-                    JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                });
+                // Serialize with concurrent signups/verifications of this account and re-check under the lock
+                await _context.LockUserAsync(user.UserId);
+                await _context.Entry(user).ReloadAsync();
 
-                invite.Accepted = true;
+                if (user is { IsRegistered: true, IsEmailVerified: true })
+                    return user;
             }
 
+            if (user == null)
+            {
+                _logger.LogInformation("Creating new user via Google login");
+                user = new User
+                {
+                    Email = email,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                };
+                _context.Users.Add(user);
+            }
+            else
+            {
+                _logger.LogInformation("Account claimed via Google login. UserId={UserId}", user.UserId);
+                _context.EmailVerifications.RemoveRange(await _context.EmailVerifications
+                    .Where(v => v.UserId == user.UserId && !v.IsUsed)
+                    .ToListAsync());
+            }
+
+            user.Name = name;
+            user.IsEmailVerified = true;
+            user.IsRegistered = true;
+            user.PasswordHash = Guid.NewGuid().ToString();
+
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            try
+            {
+                await _messageProducer.SendMessageAsync(new EmailMessage
+                {
+                    ToEmail = user.Email,
+                    TemplateType = "WelcomeGoogle",
+                    Payload = new { UserName = name },
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to queue Google welcome email. UserId={UserId}", user.UserId);
+            }
+
+            return user;
         }
 
         /// <summary>
@@ -690,6 +741,19 @@ namespace splitzy_dotnet.Controllers
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(string token)
         {
+            // Lock the user before reading the token: a concurrent signup claiming the same
+            // account deletes superseded tokens under this lock, so a stale link is rejected
+            // instead of activating the newer claimant's password.
+            var userId = await _context.EmailVerifications
+                .Where(x => x.Token == token)
+                .Select(x => (int?)x.UserId)
+                .FirstOrDefaultAsync();
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            if (userId != null)
+                await _context.LockUserAsync(userId.Value);
+
             var record = await _context.EmailVerifications
                 .Include(x => x.User)
                 .FirstOrDefaultAsync(x => x.Token == token);
@@ -717,8 +781,11 @@ namespace splitzy_dotnet.Controllers
 
             record.IsUsed = true;
             record.User.IsEmailVerified = true;
+            if (record.User.PasswordHash != null)
+                record.User.IsRegistered = true;
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(new
             {
@@ -743,10 +810,11 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("resend-verification")]
         public async Task<IActionResult> ResendVerification(string email)
         {
+            email = Helper.NormalizeEmail(email ?? "");
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
 
-            if (user == null || user.IsEmailVerified)
-                return Ok(); // avoid email enumeration
+            if (user == null || user.IsEmailVerified || user.PasswordHash == null)
+                return Ok(); // avoid email enumeration; placeholders have nothing to verify
 
             var token = Guid.NewGuid().ToString("N");
 

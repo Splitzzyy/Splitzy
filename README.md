@@ -7,6 +7,7 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 ## Features
 
 - **👥 Group Management**: Create and manage expense groups with multiple participants
+- **✉️ Invite by Email**: Add friends who haven't signed up yet; they can be part of expenses right away and keep everything when they join
 - **💸 Easy Expense Tracking**: Add expenses with customizable splitting options
 - **📊 Smart Calculations**: Automatic calculation of who owes whom and how much
 - **🔄 Multiple Split Types**:
@@ -27,7 +28,7 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 
 | Component | Version | Details |
 |-----------|---------|---------|
-| **Backend** | .NET 8.0 (SDK 8.0.416) | ASP.NET Core Web API |
+| **Backend** | .NET 10 (SDK 10.0.100+) | ASP.NET Core Web API |
 | **Frontend** | Angular 20.1.3 | Standalone Components |
 | **Database** | PostgreSQL | Relational DBMS |
 | **TypeScript** | 5.8.3 | Type Safety |
@@ -39,8 +40,9 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 ## Architecture
 
 ### Backend Services
-- RESTful API built on ASP.NET Core 8.0
-- Entity Framework Core for data persistence
+- RESTful API built on ASP.NET Core 10
+- Entity Framework Core for data persistence (migrations applied at startup)
+- RabbitMQ queue for email notifications
 - JWT-based authentication with refresh token support
 - Comprehensive logging and error handling
 

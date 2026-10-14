@@ -6,6 +6,7 @@ using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using static splitzy_dotnet.DTO.GroupDTO;
 
 namespace splitzy_dotnet.Controllers
@@ -81,6 +82,9 @@ namespace splitzy_dotnet.Controllers
                 if (group == null)
                     return NotFound("Group not found.");
 
+                if (!group.GroupMembers.Any(gm => gm.UserId == HttpContext.GetCurrentUserId()))
+                    return Forbid();
+
                 var userMap = group.GroupMembers.ToDictionary(
                                     gm => gm.UserId,
                                     gm => gm.User.Name
@@ -130,6 +134,95 @@ namespace splitzy_dotnet.Controllers
                                 .FirstOrDefaultAsync(g => g.GroupId == groupId);
         }
 
+        private static List<string> InvalidEmails(IEnumerable<string> emails)
+        {
+            var validator = new EmailAddressAttribute();
+            return emails.Where(e => e.Length > 150 || !validator.IsValid(e)).ToList(); // users.email is varchar(150)
+        }
+
+        /// <summary>
+        /// Returns users for the given normalized emails, creating placeholder users for unknown ones.
+        /// Call inside the request's transaction.
+        /// </summary>
+        private async Task<List<User>> ResolveOrCreateUsersAsync(List<string> normalizedEmails)
+        {
+            if (_context.Database.IsRelational())
+            {
+                // Insert-or-skip in one statement: a concurrent request inviting the same email (to any group)
+                // waits for the other insert and then reuses that row, instead of failing on users_email_key.
+                // Sorted so concurrent multi-email invites take the unique-key locks in the same order.
+                var sortedEmails = normalizedEmails.Order(StringComparer.Ordinal).ToArray();
+                await _context.Database.ExecuteSqlInterpolatedAsync($@"
+                    INSERT INTO users (name, email, password_hash, is_registered, is_email_verified, created_at)
+                    SELECT left(split_part(e, '@', 1), 100), e, NULL, false, false, now() AT TIME ZONE 'UTC'
+                    FROM unnest({sortedEmails}) AS e
+                    ORDER BY e
+                    ON CONFLICT (email) DO NOTHING");
+
+                return await _context.Users
+                    .Where(u => normalizedEmails.Contains(u.Email))
+                    .ToListAsync();
+            }
+
+            // In-memory provider (tests): add unsaved placeholders
+            var users = await _context.Users
+                .Where(u => normalizedEmails.Contains(u.Email))
+                .ToListAsync();
+
+            foreach (var email in normalizedEmails.Except(users.Select(u => u.Email)))
+            {
+                var localPart = email.Split('@')[0];
+                var placeholder = new User
+                {
+                    Email = email,
+                    Name = localPart[..Math.Min(localPart.Length, 100)], // users.name is varchar(100)
+                    PasswordHash = null,
+                    IsRegistered = false,
+                    IsEmailVerified = false,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                };
+
+                _context.Users.Add(placeholder);
+                users.Add(placeholder);
+            }
+
+            return users;
+        }
+
+        /// <summary>
+        /// Best-effort: runs after commit, so a broker failure is logged instead of returning a 500
+        /// for a change that was saved (which would invite a duplicate retry).
+        /// </summary>
+        private async Task NotifyAddedUsersAsync(IEnumerable<User> users, string groupName, string addedBy)
+        {
+            foreach (var user in users)
+            {
+                try
+                {
+                    await _messageProducer.SendMessageAsync(GroupNotification(user, groupName, addedBy));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to queue group email. UserId={UserId}", user.UserId);
+                }
+            }
+        }
+
+        private static EmailMessage GroupNotification(User user, string groupName, string addedBy) =>
+            user.IsRegistered
+                ? new EmailMessage
+                {
+                    ToEmail = user.Email,
+                    TemplateType = "GroupAdded",
+                    Payload = new { UserName = user.Name, GroupName = groupName, AddedBy = addedBy }
+                }
+                : new EmailMessage
+                {
+                    ToEmail = user.Email,
+                    TemplateType = "GroupInvitation",
+                    Payload = new { InviterName = addedBy, GroupName = groupName }
+                };
+
         [HttpPost("CreateGroup")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
@@ -140,25 +233,17 @@ namespace splitzy_dotnet.Controllers
 
             var requestedEmails = request.UserEmails?
                 .Where(e => !string.IsNullOrWhiteSpace(e))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(Helper.NormalizeEmail)
+                .Distinct()
                 .ToList() ?? new List<string>();
 
-            var users = await _context.Users
-                .Where(u => u.UserId == creatorUserId || requestedEmails.Contains(u.Email))
-                .ToListAsync();
+            var invalidEmails = InvalidEmails(requestedEmails);
+            if (invalidEmails.Any())
+                return BadRequest($"Invalid email(s): {string.Join(", ", invalidEmails)}");
 
-            var creator = users.FirstOrDefault(u => u.UserId == creatorUserId);
+            var creator = await _context.Users.FindAsync(creatorUserId);
             if (creator == null)
                 return Unauthorized("Creator not found");
-
-            var foundEmails = users
-                .Where(u => u.Email != null)
-                .Select(u => u.Email)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            var missingEmails = requestedEmails
-                .Where(e => !foundEmails.Contains(e))
-                .ToList();
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
@@ -172,75 +257,34 @@ namespace splitzy_dotnet.Controllers
 
                 _context.Groups.Add(group);
 
-                // Existing users → GroupMembers
-                var groupMembers = users
-                    .DistinctBy(u => u.UserId)
-                    .Select(u => new GroupMember
-                    {
-                        Group = group,
-                        UserId = u.UserId,
-                        JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                    });
+                // Unknown emails become placeholder users so they can be part of expenses right away
+                var members = (await ResolveOrCreateUsersAsync(requestedEmails))
+                    .Where(u => u != creator)
+                    .Prepend(creator)
+                    .ToList();
 
-                _context.GroupMembers.AddRange(groupMembers);
-
-                // Persist missing emails
-                var invites = missingEmails.Select(email => new GroupInvite
+                _context.GroupMembers.AddRange(members.Select(u => new GroupMember
                 {
                     Group = group,
-                    Email = email,
-                    Accepted = false,
-                    InvitedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                });
-
-                _context.GroupInvites.AddRange(invites);
-
+                    User = u,
+                    JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                }));
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                foreach (var u in users.Where(u => u.UserId != creator.UserId))
-                {
-                    var emailMessage = new EmailMessage
-                    {
-                        ToEmail = u.Email,
-                        TemplateType = "GroupAdded",
-                        Payload = new
-                        {
-                            UserName = u.Name,
-                            GroupName = request.GroupName,
-                            AddedBy = creator.Name
-                        }
-                    };
-
-                    await _messageProducer.SendMessageAsync(emailMessage);
-                }
-
-                foreach (var email in missingEmails)
-                {
-                    var emailMessage = new EmailMessage
-                    {
-                        ToEmail = email,
-                        TemplateType = "GroupInvitation",
-                        Payload = new
-                        {
-                            InviterName = creator.Name,
-                            GroupName = request.GroupName
-                        }
-                    };
-
-                    await _messageProducer.SendMessageAsync(emailMessage);
-                }
+                await NotifyAddedUsersAsync(members.Where(u => u != creator), group.Name, creator.Name);
 
                 return Ok(new
                 {
                     group.GroupId,
                     group.Name,
-                    Members = users.Select(u => new
+                    Members = members.Select(u => new
                     {
                         u.UserId,
                         u.Name,
-                        u.Email
+                        u.Email,
+                        u.IsRegistered
                     })
                 });
             }
@@ -288,17 +332,14 @@ namespace splitzy_dotnet.Controllers
                     .ToListAsync();
 
                 // User maps
-                var userNameMap = await _context.Users
-                    .AsNoTracking()
-                    .Where(u => members.Contains(u.UserId))
-                    .ToDictionaryAsync(u => u.UserId, u => u.Name);
-
                 var userDetailsMap = await _context.Users
                     .AsNoTracking()
                     .Where(u => members.Contains(u.UserId))
                     .ToDictionaryAsync(
                         u => u.UserId,
-                        u => new { u.Name, u.Email });
+                        u => new { u.Name, u.Email, u.IsRegistered });
+
+                var userNameMap = userDetailsMap.ToDictionary(u => u.Key, u => u.Value.Name);
 
                 // Balances
                 var balances = await _context.GroupBalances
@@ -405,7 +446,8 @@ namespace splitzy_dotnet.Controllers
                     {
                         MemberId = m.Key,
                         MemberName = m.Value.Name,
-                        MemberEmail = m.Value.Email
+                        MemberEmail = m.Value.Email,
+                        m.Value.IsRegistered
                     }),
                     UserSummaries = userSummaries
                 });
@@ -453,89 +495,59 @@ namespace splitzy_dotnet.Controllers
                 // Normalize and validate emails
                 var requestedEmails = request.UserEmails?
                     .Where(e => !string.IsNullOrWhiteSpace(e))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Select(Helper.NormalizeEmail)
+                    .Distinct()
                     .ToList() ?? new List<string>();
 
                 if (!requestedEmails.Any())
                     return BadRequest("At least one email is required.");
 
-                // Fetch users by email
-                var usersToAdd = await _context.Users
-                    .Where(u => requestedEmails.Contains(u.Email))
-                    .ToListAsync();
-
-                //Check for missing emails
-                var foundEmails = usersToAdd
-                    .Where(u => u.Email != null)
-                    .Select(u => u.Email)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                var missingEmails = requestedEmails
-                    .Where(e => !foundEmails.Contains(e))
-                    .ToList();
-
-                if (missingEmails.Any())
-                    return NotFound($"User(s) not found: {string.Join(", ", missingEmails)}");
-
-                // Get existing members to avoid duplicates
-                var existingMembers = await _context.GroupMembers
-                    .Where(gm => gm.GroupId == groupId)
-                    .Select(gm => gm.UserId)
-                    .ToListAsync();
-
-                // Filter out users already in the group
-                var newUsers = usersToAdd
-                    .Where(u => !existingMembers.Contains(u.UserId))
-                    .ToList();
-
-                if (!newUsers.Any())
-                    return BadRequest("All provided users are already members of this group.");
+                var invalidEmails = InvalidEmails(requestedEmails);
+                if (invalidEmails.Any())
+                    return BadRequest($"Invalid email(s): {string.Join(", ", invalidEmails)}");
 
                 using var tx = await _context.Database.BeginTransactionAsync();
 
                 try
                 {
-                    var newGroupMembers = newUsers.Select(u => new GroupMember
+                    // Serialize concurrent adds to this group, so the same email added twice at once
+                    // yields one membership and a 400 for the second request, not a constraint error
+                    await _context.LockGroupAsync(groupId);
+
+                    // Get existing members to avoid duplicates
+                    var existingMembers = await _context.GroupMembers
+                        .Where(gm => gm.GroupId == groupId)
+                        .Select(gm => gm.UserId)
+                        .ToListAsync();
+
+                    // Unknown emails become placeholder users
+                    var newUsers = (await ResolveOrCreateUsersAsync(requestedEmails))
+                        .Where(u => !existingMembers.Contains(u.UserId))
+                        .ToList();
+
+                    if (!newUsers.Any())
+                        return BadRequest("All provided users are already members of this group.");
+
+                    _context.GroupMembers.AddRange(newUsers.Select(u => new GroupMember
                     {
                         GroupId = groupId,
-                        UserId = u.UserId,
+                        User = u,
                         JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                    });
+                    }));
 
-                    _context.GroupMembers.AddRange(newGroupMembers);
-                    await _context.SaveChangesAsync();
-
-                    var newBalances = newUsers.Select(u => new GroupBalance
+                    _context.GroupBalances.AddRange(newUsers.Select(u => new GroupBalance
                     {
                         GroupId = groupId,
-                        UserId = u.UserId,
+                        User = u,
                         NetBalance = 0
-                    });
+                    }));
 
-                    _context.GroupBalances.AddRange(newBalances);
                     await _context.SaveChangesAsync();
-
                     await tx.CommitAsync();
 
                     _logger.LogInformation("Users added to group {GroupId}: {UserIds}", groupId, string.Join(", ", newUsers.Select(u => u.UserId)));
 
-                    foreach (var user in newUsers)
-                    {
-                        var emailMessage = new EmailMessage
-                        {
-                            ToEmail = user.Email,
-                            TemplateType = "GroupAdded",
-                            RetryCount = 0,
-                            Payload = new
-                            {
-                                UserName = user.Name,
-                                GroupName = group.Name,
-                                AddedBy = currentUser.Name
-                            }
-                        };
-
-                        await _messageProducer.SendMessageAsync(emailMessage);
-                    }
+                    await NotifyAddedUsersAsync(newUsers, group.Name, currentUser.Name);
 
                     return Ok(new
                     {
@@ -546,8 +558,10 @@ namespace splitzy_dotnet.Controllers
                         {
                             u.UserId,
                             u.Name,
-                            u.Email
+                            u.Email,
+                            u.IsRegistered
                         }),
+                        InvitedEmails = newUsers.Where(u => !u.IsRegistered).Select(u => u.Email),
                         TotalMembers = existingMembers.Count + newUsers.Count
                     });
                 }
@@ -585,6 +599,11 @@ namespace splitzy_dotnet.Controllers
 
             try
             {
+                using var tx = await _context.Database.BeginTransactionAsync();
+
+                // Wait for in-flight expenses/settlements so the balance check below is current
+                await _context.LockGroupAsync(groupId);
+
                 var group = await _context.Groups
                     .FirstOrDefaultAsync(g => g.GroupId == groupId);
 
@@ -596,6 +615,9 @@ namespace splitzy_dotnet.Controllers
                         Message = "Group not found."
                     });
                 }
+
+                if (!await _context.GroupMembers.AnyAsync(gm => gm.GroupId == groupId && gm.UserId == userId))
+                    return Forbid();
 
                 var hasPendingBalance = await _context.GroupBalances
                     .AnyAsync(b => b.GroupId == groupId && b.NetBalance != 0);
@@ -611,6 +633,7 @@ namespace splitzy_dotnet.Controllers
                 // DELETE (cascade will handle everything else)
                 _context.Groups.Remove(group);
                 await _context.SaveChangesAsync();
+                await tx.CommitAsync();
 
                 return Ok(new ApiResponse<object>
                 {

@@ -164,7 +164,8 @@ namespace splitzy_dotnet.Migrations
                         .HasColumnName("split_per");
 
                     b.Property<int>("UpdatedByUserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("updated_by_userid");
 
                     b.HasKey("ExpenseId")
                         .HasName("expenses_pkey");
@@ -433,10 +434,12 @@ namespace splitzy_dotnet.Migrations
                         .HasColumnName("email");
 
                     b.Property<bool>("IsEmailVerified")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
                         .HasColumnName("is_email_verified");
+
+                    b.Property<bool>("IsRegistered")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_registered");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -445,7 +448,6 @@ namespace splitzy_dotnet.Migrations
                         .HasColumnName("name");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
