@@ -404,46 +404,7 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
-            payload.Email = Helper.NormalizeEmail(payload.Email);
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
-
-            if (user == null)
-            {
-                _logger.LogInformation(
-                    "New user created via Google login. Email={Email}",
-                    payload.Email);
-
-                user = new User
-                {
-                    Email = payload.Email,
-                    Name = payload.Name,
-                    IsEmailVerified = true,
-                    PasswordHash = Guid.NewGuid().ToString(),
-                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                await HandleGroupInvitesAsync(user);
-
-                // Send welcome email
-                try
-                {
-                    var emailEvent = new EmailMessage
-                    {
-                        ToEmail = user.Email,
-                        TemplateType = "WelcomeGoogle",
-                        Payload = new { UserName = payload.Name },
-                    };
-
-                    await _messageProducer.SendMessageAsync(emailEvent);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
-                }
-            }
+            var user = await UpsertGoogleUserAsync(payload.Email, payload.Name);
 
             var accessToken = _jWTService.GenerateAccessToken(user.UserId);
             var refreshToken = _jWTService.GenerateRefreshToken();
@@ -602,6 +563,64 @@ namespace splitzy_dotnet.Controllers
                 success = true,
                 message = "Password updated successfully"
             });
+        }
+
+        /// <summary>
+        /// Finds or creates the user for a Google-verified email. A placeholder (or an unverified
+        /// signup) is claimed in place: Google has proven inbox ownership, so the account becomes
+        /// registered and verified, and any password set by an unverified claimant is discarded.
+        /// </summary>
+        [NonAction]
+        public async Task<User> UpsertGoogleUserAsync(string email, string name)
+        {
+            email = Helper.NormalizeEmail(email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user is { IsRegistered: true, IsEmailVerified: true })
+                return user;
+
+            if (user == null)
+            {
+                _logger.LogInformation("New user created via Google login. Email={Email}", email);
+                user = new User
+                {
+                    Email = email,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                };
+                _context.Users.Add(user);
+            }
+            else
+            {
+                _logger.LogInformation("Account claimed via Google login. UserId={UserId}", user.UserId);
+                _context.EmailVerifications.RemoveRange(await _context.EmailVerifications
+                    .Where(v => v.UserId == user.UserId && !v.IsUsed)
+                    .ToListAsync());
+            }
+
+            user.Name = name;
+            user.IsEmailVerified = true;
+            user.IsRegistered = true;
+            user.PasswordHash = Guid.NewGuid().ToString();
+
+            await _context.SaveChangesAsync();
+
+            await HandleGroupInvitesAsync(user);
+
+            try
+            {
+                await _messageProducer.SendMessageAsync(new EmailMessage
+                {
+                    ToEmail = user.Email,
+                    TemplateType = "WelcomeGoogle",
+                    Payload = new { UserName = name },
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+            }
+
+            return user;
         }
 
         private async Task HandleGroupInvitesAsync(User user)

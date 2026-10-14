@@ -195,6 +195,59 @@ namespace spllitzy_dotnet_tests
         }
 
         [Test]
+        public async Task UpsertGoogleUser_Placeholder_ClaimsSameRow()
+        {
+            var placeholder = await AddPlaceholderAsync();
+
+            var user = await _controller.UpsertGoogleUserAsync("Pending@Example.com", "Google Name");
+
+            Assert.That(user.UserId, Is.EqualTo(placeholder.UserId));
+            Assert.That(_context.Users.Count(), Is.EqualTo(1));
+            Assert.That(user.IsRegistered, Is.True);
+            Assert.That(user.IsEmailVerified, Is.True);
+            Assert.That(user.Name, Is.EqualTo("Google Name"));
+        }
+
+        [Test]
+        public async Task UpsertGoogleUser_UnverifiedClaim_DiscardsClaimantPassword()
+        {
+            var placeholder = await AddPlaceholderAsync();
+            await SignupAsync("pending@example.com", "Claimant");
+            var claimantHash = _context.Users.Single().PasswordHash;
+
+            await _controller.UpsertGoogleUserAsync("pending@example.com", "Owner");
+
+            Assert.That(_context.Users.Single().PasswordHash, Is.Not.EqualTo(claimantHash));
+            Assert.That(_context.EmailVerifications.Any(v => v.UserId == placeholder.UserId && !v.IsUsed), Is.False);
+        }
+
+        [Test]
+        public async Task UpsertGoogleUser_NewEmail_CreatesRegisteredUser()
+        {
+            var user = await _controller.UpsertGoogleUserAsync("new@example.com", "New");
+
+            Assert.That(user.UserId, Is.GreaterThan(0));
+            Assert.That(user.IsRegistered, Is.True);
+            Assert.That(user.IsEmailVerified, Is.True);
+            _mockMessageProducer.Verify(x => x.SendMessageAsync(It.Is<EmailMessage>(m => m.TemplateType == "WelcomeGoogle")), Times.Once);
+        }
+
+        [Test]
+        public async Task UpsertGoogleUser_RegisteredUser_Unchanged()
+        {
+            var existing = TestHelper.CreateTestUser("member@example.com", "Member");
+            existing.IsEmailVerified = true;
+            _context.Users.Add(existing);
+            await _context.SaveChangesAsync();
+
+            var user = await _controller.UpsertGoogleUserAsync("member@example.com", "Other Name");
+
+            Assert.That(user.Name, Is.EqualTo("Member"));
+            Assert.That(user.PasswordHash, Is.EqualTo("hashedpassword"));
+            _mockMessageProducer.Verify(x => x.SendMessageAsync(It.IsAny<EmailMessage>()), Times.Never);
+        }
+
+        [Test]
         public async Task ResendVerification_PlaceholderUser_SendsNoEmail()
         {
             await AddPlaceholderAsync();
