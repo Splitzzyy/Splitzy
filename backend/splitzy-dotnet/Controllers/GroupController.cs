@@ -151,10 +151,11 @@ namespace splitzy_dotnet.Controllers
 
             foreach (var email in normalizedEmails.Except(users.Select(u => u.Email)))
             {
+                var localPart = email.Split('@')[0];
                 var placeholder = new User
                 {
                     Email = email,
-                    Name = email.Split('@')[0],
+                    Name = localPart[..Math.Min(localPart.Length, 100)], // users.name is varchar(100)
                     PasswordHash = null,
                     IsRegistered = false,
                     IsEmailVerified = false,

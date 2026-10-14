@@ -123,6 +123,23 @@ namespace spllitzy_dotnet_tests
         }
 
         [Test]
+        public async Task CreateGroup_LongLocalPart_TruncatesPlaceholderNameTo100()
+        {
+            await TestHelper.SeedTestDataAsync(_context);
+            TestHelper.SetCaller(_controller, _context.Users.First().UserId);
+            var email = new string('a', 120) + "@example.com";
+
+            var result = await _controller.CreateGroup(new GroupDTO.CreateGroupRequest
+            {
+                GroupName = "Trip",
+                UserEmails = [email]
+            });
+
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
+            Assert.That(_context.Users.Single(u => u.Email == email).Name, Is.EqualTo(new string('a', 100)));
+        }
+
+        [Test]
         public async Task CreateGroup_InvalidEmail_Returns400()
         {
             await TestHelper.SeedTestDataAsync(_context);

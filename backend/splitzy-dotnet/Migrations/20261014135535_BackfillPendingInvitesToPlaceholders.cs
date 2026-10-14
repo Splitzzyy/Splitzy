@@ -15,7 +15,7 @@ namespace splitzy_dotnet.Migrations
             // case-sensitive match) are added directly. Idempotent; emails are already lowercase.
             migrationBuilder.Sql(@"
 INSERT INTO users (name, email, password_hash, is_registered, is_email_verified, created_at)
-SELECT DISTINCT ON (gi.email) split_part(gi.email, '@', 1), gi.email, NULL, false, false, now()
+SELECT DISTINCT ON (gi.email) left(split_part(gi.email, '@', 1), 100), gi.email, NULL, false, false, now()
 FROM group_invites gi
 WHERE gi.accepted = false
   AND NOT EXISTS (SELECT 1 FROM users u WHERE u.email = gi.email);
