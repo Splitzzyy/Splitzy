@@ -604,8 +604,6 @@ namespace splitzy_dotnet.Controllers
 
             await _context.SaveChangesAsync();
 
-            await HandleGroupInvitesAsync(user);
-
             try
             {
                 await _messageProducer.SendMessageAsync(new EmailMessage
@@ -621,38 +619,6 @@ namespace splitzy_dotnet.Controllers
             }
 
             return user;
-        }
-
-        private async Task HandleGroupInvitesAsync(User user)
-        {
-            var invites = await _context.GroupInvites
-                .Where(i => i.Email == user.Email && !i.Accepted)
-                .ToListAsync();
-
-            if (!invites.Any())
-                return;
-
-            var memberGroupIds = await _context.GroupMembers
-                .Where(gm => gm.UserId == user.UserId)
-                .Select(gm => gm.GroupId)
-                .ToListAsync();
-
-            foreach (var invite in invites)
-            {
-                invite.Accepted = true;
-
-                if (memberGroupIds.Contains(invite.GroupId))
-                    continue;
-
-                _context.GroupMembers.Add(new GroupMember
-                {
-                    GroupId = invite.GroupId,
-                    UserId = user.UserId,
-                    JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                });
-            }
-
-            await _context.SaveChangesAsync();
         }
 
         /// <summary>
@@ -767,9 +733,6 @@ namespace splitzy_dotnet.Controllers
                 record.User.IsRegistered = true;
 
             await _context.SaveChangesAsync();
-
-            // Group access is granted only once email ownership is proven
-            await HandleGroupInvitesAsync(record.User);
 
             return Ok(new
             {

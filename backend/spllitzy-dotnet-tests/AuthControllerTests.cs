@@ -137,24 +137,6 @@ namespace spllitzy_dotnet_tests
         }
 
         [Test]
-        public async Task Signup_WithLegacyInvite_NoMembershipUntilVerified()
-        {
-            var group = TestHelper.CreateTestGroup();
-            _context.Groups.Add(group);
-            await _context.SaveChangesAsync();
-            _context.GroupInvites.Add(new GroupInvite { GroupId = group.GroupId, Email = "legacy@example.com", InvitedAt = DateTime.UtcNow });
-            await _context.SaveChangesAsync();
-
-            await SignupAsync("legacy@example.com");
-            var user = _context.Users.Single();
-            Assert.That(_context.GroupMembers.Any(), Is.False);
-
-            await _controller.VerifyEmail(LatestTokenFor(user.UserId));
-            Assert.That(_context.GroupMembers.Count(gm => gm.GroupId == group.GroupId && gm.UserId == user.UserId), Is.EqualTo(1));
-            Assert.That(_context.GroupInvites.Single().Accepted, Is.True);
-        }
-
-        [Test]
         public async Task PlaceholderLifecycle_ExpenseBeforeSignup_VisibleAfterVerify()
         {
             var owner = TestHelper.CreateTestUser("owner@example.com", "Owner");
