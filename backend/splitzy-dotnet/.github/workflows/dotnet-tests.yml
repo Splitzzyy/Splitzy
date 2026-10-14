@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '10.0.x'
   BUILD_CONFIGURATION: 'Release'
   BACKEND_PATH: 'backend/splitzy-dotnet'
   TEST_PROJECT_PATH: 'backend/spllitzy-dotnet-tests'
@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
@@ -81,7 +81,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
@@ -114,8 +114,8 @@ jobs:
         if: always()
         run: |
           echo "?? Test Results Summary:"
-          if [ -f "${{ env.BACKEND_PATH }}/../spllitzy-dotnet-tests/bin/Release/net8.0/test-results.json" ]; then
-            cat "${{ env.BACKEND_PATH }}/../spllitzy-dotnet-tests/bin/Release/net8.0/test-results.json"
+          if [ -f "${{ env.BACKEND_PATH }}/../spllitzy-dotnet-tests/bin/Release/net10.0/test-results.json" ]; then
+            cat "${{ env.BACKEND_PATH }}/../spllitzy-dotnet-tests/bin/Release/net10.0/test-results.json"
           fi
 
       - name: Upload test results
@@ -200,7 +200,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
@@ -233,7 +233,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
