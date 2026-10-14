@@ -81,6 +81,11 @@ Splitzy is a modern expense sharing platform that simplifies splitting bills and
 - Automatic version tagging and image cleanup
 - Zero-downtime deployments
 
+### Beta Environment
+- `beta` branch, served at https://splitzy-beta.aarshiv.xyz next to production
+- Own database (`splitzy_beta`, a copy of production) and RabbitMQ queues on the shared servers
+- Setup, testing checklist and promotion steps: [BETA.md](BETA.md)
+
 ### Development Environment
 - Automated deployment on `dev` branch push
 - MinIO object storage integration
