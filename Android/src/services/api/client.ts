@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL, ENDPOINTS } from "@/constants/endpoints";
+import { attachIdempotencyKey, releaseIdempotencyKey } from "./idempotency";
 
 const TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
@@ -39,14 +40,17 @@ apiClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    return config;
+    return attachIdempotencyKey(config);
   },
   (error) => Promise.reject(error)
 );
 
 // Response interceptor: handle 401 with token refresh
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    releaseIdempotencyKey(response.config);
+    return response;
+  },
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
