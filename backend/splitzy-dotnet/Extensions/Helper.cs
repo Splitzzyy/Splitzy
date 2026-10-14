@@ -6,5 +6,7 @@
         {
             return Math.Round(value, 2, MidpointRounding.AwayFromZero);
         }
+
+        public static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
     }
 }

@@ -164,7 +164,8 @@ namespace splitzy_dotnet.Migrations
                         .HasColumnName("split_per");
 
                     b.Property<int>("UpdatedByUserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("updated_by_userid");
 
                     b.HasKey("ExpenseId")
                         .HasName("expenses_pkey");

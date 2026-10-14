@@ -143,7 +143,8 @@ namespace splitzy_dotnet.Controllers
 
             var requestedEmails = request.UserEmails?
                 .Where(e => !string.IsNullOrWhiteSpace(e))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(Helper.NormalizeEmail)
+                .Distinct()
                 .ToList() ?? new List<string>();
 
             var users = await _context.Users
@@ -456,7 +457,8 @@ namespace splitzy_dotnet.Controllers
                 // Normalize and validate emails
                 var requestedEmails = request.UserEmails?
                     .Where(e => !string.IsNullOrWhiteSpace(e))
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .Select(Helper.NormalizeEmail)
+                    .Distinct()
                     .ToList() ?? new List<string>();
 
                 if (!requestedEmails.Any())
