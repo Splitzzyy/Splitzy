@@ -123,6 +123,20 @@ namespace spllitzy_dotnet_tests
         }
 
         [Test]
+        public async Task VerifyEmail_SupersededClaimLink_IsRejected()
+        {
+            var placeholder = await AddPlaceholderAsync();
+            await SignupAsync("pending@example.com", "First");
+            var firstToken = LatestTokenFor(placeholder.UserId);
+            await SignupAsync("pending@example.com", "Second");
+
+            var result = await _controller.VerifyEmail(firstToken);
+
+            Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+            Assert.That(_context.Users.Single().IsRegistered, Is.False);
+        }
+
+        [Test]
         public async Task VerifyEmail_ClaimedPlaceholder_SetsIsRegisteredTrue()
         {
             var placeholder = await AddPlaceholderAsync();

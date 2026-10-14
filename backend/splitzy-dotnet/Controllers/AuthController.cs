@@ -191,6 +191,23 @@ namespace splitzy_dotnet.Controllers
 
             try
             {
+                if (existing != null)
+                {
+                    // Serialize concurrent claims of the same placeholder and re-check under the lock
+                    await LockUserAsync(existing.UserId);
+                    await _context.Entry(existing).ReloadAsync();
+
+                    if (existing.IsRegistered)
+                    {
+                        await transaction.RollbackAsync();
+                        return BadRequest(new ApiResponse<string>
+                        {
+                            Success = false,
+                            Message = "Email already exists"
+                        });
+                    }
+                }
+
                 // An invited placeholder is claimed in place so its expenses and balances carry over.
                 // It stays unregistered until the email is verified.
                 var user = existing ?? new User
@@ -579,6 +596,18 @@ namespace splitzy_dotnet.Controllers
             if (user is { IsRegistered: true, IsEmailVerified: true })
                 return user;
 
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            if (user != null)
+            {
+                // Serialize with concurrent signups/verifications of this account and re-check under the lock
+                await LockUserAsync(user.UserId);
+                await _context.Entry(user).ReloadAsync();
+
+                if (user is { IsRegistered: true, IsEmailVerified: true })
+                    return user;
+            }
+
             if (user == null)
             {
                 _logger.LogInformation("Creating new user via Google login");
@@ -603,6 +632,7 @@ namespace splitzy_dotnet.Controllers
             user.PasswordHash = Guid.NewGuid().ToString();
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             try
             {
@@ -619,6 +649,17 @@ namespace splitzy_dotnet.Controllers
             }
 
             return user;
+        }
+
+        /// <summary>
+        /// Row-locks the user until the current transaction ends, so concurrent claims and
+        /// verifications of the same account run one after another. No-op without a relational
+        /// provider (the in-memory test database has no row locks).
+        /// </summary>
+        private async Task LockUserAsync(int userId)
+        {
+            if (_context.Database.IsRelational())
+                await _context.Database.ExecuteSqlInterpolatedAsync($"SELECT 1 FROM users WHERE user_id = {userId} FOR UPDATE");
         }
 
         /// <summary>
@@ -702,6 +743,19 @@ namespace splitzy_dotnet.Controllers
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail(string token)
         {
+            // Lock the user before reading the token: a concurrent signup claiming the same
+            // account deletes superseded tokens under this lock, so a stale link is rejected
+            // instead of activating the newer claimant's password.
+            var userId = await _context.EmailVerifications
+                .Where(x => x.Token == token)
+                .Select(x => (int?)x.UserId)
+                .FirstOrDefaultAsync();
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            if (userId != null)
+                await LockUserAsync(userId.Value);
+
             var record = await _context.EmailVerifications
                 .Include(x => x.User)
                 .FirstOrDefaultAsync(x => x.Token == token);
@@ -733,6 +787,7 @@ namespace splitzy_dotnet.Controllers
                 record.User.IsRegistered = true;
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(new
             {
