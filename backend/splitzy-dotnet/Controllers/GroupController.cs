@@ -224,6 +224,7 @@ namespace splitzy_dotnet.Controllers
                 };
 
         [HttpPost("CreateGroup")]
+        [Idempotent]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
@@ -466,6 +467,7 @@ namespace splitzy_dotnet.Controllers
         /// <param name="request">Request containing emails to add</param>
         /// <returns>Updated group with members</returns>
         [HttpPost("AddUsersToGroup/{groupId}")]
+        [Idempotent]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status403Forbidden)]
@@ -590,6 +592,7 @@ namespace splitzy_dotnet.Controllers
         /// success message if the group is deleted; 404 (Not Found) if the group does not exist; or 403 (Forbidden) if
         /// the user is not a member of the group.</returns>
         [HttpDelete("DeleteGroup/{groupId:int}")]
+        [Idempotent]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]

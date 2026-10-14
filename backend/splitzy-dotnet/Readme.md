@@ -85,6 +85,12 @@ Adding an email that has no account (`CreateGroup` or `AddUsersToGroup`) creates
 - **Email verification**: password signups must verify their email before they can log in (`/api/Auth/verify-email`, `/api/Auth/resend-verification`).
 - **Authorization**: group-scoped endpoints (expenses, settle-up, group overview/summary, add members, delete group) return `403` unless the caller is a member of the group. Payer and split users must be group members (`400` otherwise).
 - **Concurrency**: writes that change a group's balances or members lock that group's row for the duration of the transaction, so parallel requests apply one after another.
+- **Idempotency**: write endpoints (add/update/delete expense, settle-up, create group, add members, delete group, reminders) accept an optional `Idempotency-Key` header (max 100 chars, scoped per user, kept 24 hours).
+  - The first request with a key runs; repeats with the same key and payload get the stored response with `Idempotent-Replayed: true` instead of running again.
+  - A repeat that arrives while the first is still running waits for it (up to 10 s, then `409`).
+  - Reusing a key for a different request returns `422`.
+  - Only successful (2xx) responses are stored; a rejected or failed request releases its key, so it can be retried.
+  - Requests without the header behave as before. The web and Android apps send a key automatically and reuse it when they resend the same request.
 
 ---
 

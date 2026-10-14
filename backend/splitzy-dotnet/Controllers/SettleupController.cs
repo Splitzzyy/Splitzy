@@ -22,6 +22,7 @@ namespace splitzy_dotnet.Controllers
         }
 
         [HttpPost("settle-up")]
+        [Idempotent]
         public async Task<IActionResult> SettleUp([FromBody] SettleUpDTO dto)
         {
             if (dto.Amount <= 0)

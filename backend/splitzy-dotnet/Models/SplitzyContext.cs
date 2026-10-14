@@ -34,6 +34,8 @@ public partial class SplitzyContext : DbContext
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public virtual DbSet<EmailVerification> EmailVerifications { get; set; }
 
+    public DbSet<IdempotencyKey> IdempotencyKeys { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<EmailVerification>(entity =>
@@ -75,6 +77,36 @@ public partial class SplitzyContext : DbContext
                   .HasForeignKey(e => e.UserId)
                   .OnDelete(DeleteBehavior.Cascade)
                   .HasConstraintName("email_verifications_user_id_fkey");
+        });
+
+        modelBuilder.Entity<IdempotencyKey>(entity =>
+        {
+            entity.ToTable("idempotency_keys");
+
+            entity.HasKey(e => new { e.UserId, e.Key }).HasName("idempotency_keys_pkey");
+
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Key)
+                .HasMaxLength(100)
+                .HasColumnName("key");
+            entity.Property(e => e.RequestHash)
+                .HasMaxLength(64)
+                .HasColumnName("request_hash");
+            entity.Property(e => e.StatusCode).HasColumnName("status_code");
+            entity.Property(e => e.ResponseBody).HasColumnName("response_body");
+            entity.Property(e => e.ResponseContentType)
+                .HasMaxLength(100)
+                .HasColumnName("response_content_type");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("timestamp with time zone")
+                .HasColumnName("created_at");
+
+            entity.HasIndex(e => e.CreatedAt);
+
+            entity.HasOne<User>().WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("idempotency_keys_user_id_fkey");
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
@@ -288,6 +320,11 @@ public partial class SplitzyContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("joined_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            // A user is a member of a group at most once
+            entity.HasIndex(e => new { e.GroupId, e.UserId })
+                .IsUnique()
+                .HasDatabaseName("group_members_group_id_user_id_key");
 
             entity.HasOne(d => d.Group).WithMany(p => p.GroupMembers)
                 .HasForeignKey(d => d.GroupId)
