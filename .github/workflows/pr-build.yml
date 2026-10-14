@@ -95,6 +95,12 @@ jobs:
         working-directory: UI
         run: npm install
 
+      # environment.prod.ts is empty in git (deploys write it from the FRONTEND_ENV secret),
+      # so a build check uses the default environment instead
+      - name: Use default environment for the build check
+        working-directory: UI
+        run: '[ -s src/environments/environment.prod.ts ] || cp src/environments/environment.ts src/environments/environment.prod.ts'
+
       - name: Build Angular app
         working-directory: UI
         run: npm run build
