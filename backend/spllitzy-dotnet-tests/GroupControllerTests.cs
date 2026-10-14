@@ -158,6 +158,73 @@ namespace spllitzy_dotnet_tests
             Assert.That(members.Count(m => m.GetProperty("IsRegistered").GetBoolean()), Is.EqualTo(3));
         }
 
+        private async Task<(Group group, User owner)> SeedOwnedGroupAsync()
+        {
+            var owner = TestHelper.CreateTestUser("owner@example.com", "Owner");
+            var group = TestHelper.CreateTestGroup();
+            _context.AddRange(owner, group);
+            await _context.SaveChangesAsync();
+            _context.GroupMembers.Add(TestHelper.CreateTestGroupMember(group.GroupId, owner.UserId));
+            await _context.SaveChangesAsync();
+            TestHelper.SetCaller(_controller, owner.UserId);
+            return (group, owner);
+        }
+
+        [Test]
+        public async Task AddUsersToGroup_UnknownEmail_CreatesPlaceholderMember_Returns200()
+        {
+            var (group, _) = await SeedOwnedGroupAsync();
+
+            var result = await _controller.AddUsersToGroup(group.GroupId, new AddUsersToGroupRequest
+            {
+                UserEmails = ["newbie@example.com"]
+            }) as OkObjectResult;
+
+            Assert.That(result, Is.Not.Null);
+            var placeholder = _context.Users.Single(u => u.Email == "newbie@example.com");
+            Assert.That(placeholder.IsRegistered, Is.False);
+            Assert.That(_context.GroupMembers.Any(gm => gm.GroupId == group.GroupId && gm.UserId == placeholder.UserId), Is.True);
+            Assert.That(_context.GroupBalances.Any(b => b.GroupId == group.GroupId && b.UserId == placeholder.UserId), Is.True);
+            var invited = JsonSerializer.SerializeToElement(result!.Value).GetProperty("InvitedEmails")
+                .EnumerateArray().Select(e => e.GetString()).ToList();
+            Assert.That(invited, Is.EqualTo(new[] { "newbie@example.com" }));
+            _mockMessageProducer.Verify(x => x.SendMessageAsync(It.Is<EmailMessage>(m => m.TemplateType == "GroupInvitation")), Times.Once);
+        }
+
+        [Test]
+        public async Task AddUsersToGroup_ExistingPlaceholderFromOtherGroup_ReusesUser()
+        {
+            var (group, _) = await SeedOwnedGroupAsync();
+            _context.Users.Add(TestHelper.CreatePlaceholderUser("pending@example.com"));
+            await _context.SaveChangesAsync();
+
+            var result = await _controller.AddUsersToGroup(group.GroupId, new AddUsersToGroupRequest
+            {
+                UserEmails = ["pending@example.com"]
+            });
+
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
+            Assert.That(_context.Users.Count(u => u.Email == "pending@example.com"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task AddUsersToGroup_PlaceholderAlreadyMember_Returns400()
+        {
+            var (group, _) = await SeedOwnedGroupAsync();
+            var placeholder = TestHelper.CreatePlaceholderUser("pending@example.com");
+            _context.Users.Add(placeholder);
+            await _context.SaveChangesAsync();
+            _context.GroupMembers.Add(TestHelper.CreateTestGroupMember(group.GroupId, placeholder.UserId));
+            await _context.SaveChangesAsync();
+
+            var result = await _controller.AddUsersToGroup(group.GroupId, new AddUsersToGroupRequest
+            {
+                UserEmails = ["pending@example.com"]
+            });
+
+            Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+        }
+
         [Test]
         public void NormalizeEmail_TrimsAndLowercases()
         {

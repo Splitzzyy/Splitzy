@@ -466,23 +466,9 @@ namespace splitzy_dotnet.Controllers
                 if (!requestedEmails.Any())
                     return BadRequest("At least one email is required.");
 
-                // Fetch users by email
-                var usersToAdd = await _context.Users
-                    .Where(u => requestedEmails.Contains(u.Email))
-                    .ToListAsync();
-
-                //Check for missing emails
-                var foundEmails = usersToAdd
-                    .Where(u => u.Email != null)
-                    .Select(u => u.Email)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                var missingEmails = requestedEmails
-                    .Where(e => !foundEmails.Contains(e))
-                    .ToList();
-
-                if (missingEmails.Any())
-                    return NotFound($"User(s) not found: {string.Join(", ", missingEmails)}");
+                var invalidEmails = InvalidEmails(requestedEmails);
+                if (invalidEmails.Any())
+                    return BadRequest($"Invalid email(s): {string.Join(", ", invalidEmails)}");
 
                 // Get existing members to avoid duplicates
                 var existingMembers = await _context.GroupMembers
@@ -490,59 +476,39 @@ namespace splitzy_dotnet.Controllers
                     .Select(gm => gm.UserId)
                     .ToListAsync();
 
-                // Filter out users already in the group
-                var newUsers = usersToAdd
-                    .Where(u => !existingMembers.Contains(u.UserId))
-                    .ToList();
-
-                if (!newUsers.Any())
-                    return BadRequest("All provided users are already members of this group.");
-
                 using var tx = await _context.Database.BeginTransactionAsync();
 
                 try
                 {
-                    var newGroupMembers = newUsers.Select(u => new GroupMember
+                    // Unknown emails become placeholder users (UserId 0 until saved, so never "existing")
+                    var newUsers = (await ResolveOrCreateUsersAsync(requestedEmails))
+                        .Where(u => !existingMembers.Contains(u.UserId))
+                        .ToList();
+
+                    if (!newUsers.Any())
+                        return BadRequest("All provided users are already members of this group.");
+
+                    _context.GroupMembers.AddRange(newUsers.Select(u => new GroupMember
                     {
                         GroupId = groupId,
-                        UserId = u.UserId,
+                        User = u,
                         JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                    });
+                    }));
 
-                    _context.GroupMembers.AddRange(newGroupMembers);
-                    await _context.SaveChangesAsync();
-
-                    var newBalances = newUsers.Select(u => new GroupBalance
+                    _context.GroupBalances.AddRange(newUsers.Select(u => new GroupBalance
                     {
                         GroupId = groupId,
-                        UserId = u.UserId,
+                        User = u,
                         NetBalance = 0
-                    });
+                    }));
 
-                    _context.GroupBalances.AddRange(newBalances);
                     await _context.SaveChangesAsync();
-
                     await tx.CommitAsync();
 
                     _logger.LogInformation("Users added to group {GroupId}: {UserIds}", groupId, string.Join(", ", newUsers.Select(u => u.UserId)));
 
                     foreach (var user in newUsers)
-                    {
-                        var emailMessage = new EmailMessage
-                        {
-                            ToEmail = user.Email,
-                            TemplateType = "GroupAdded",
-                            RetryCount = 0,
-                            Payload = new
-                            {
-                                UserName = user.Name,
-                                GroupName = group.Name,
-                                AddedBy = currentUser.Name
-                            }
-                        };
-
-                        await _messageProducer.SendMessageAsync(emailMessage);
-                    }
+                        await _messageProducer.SendMessageAsync(GroupNotification(user, group.Name, currentUser.Name));
 
                     return Ok(new
                     {
@@ -553,8 +519,10 @@ namespace splitzy_dotnet.Controllers
                         {
                             u.UserId,
                             u.Name,
-                            u.Email
+                            u.Email,
+                            u.IsRegistered
                         }),
+                        InvitedEmails = newUsers.Where(u => !u.IsRegistered).Select(u => u.Email),
                         TotalMembers = existingMembers.Count + newUsers.Count
                     });
                 }
