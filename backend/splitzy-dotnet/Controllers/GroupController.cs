@@ -6,6 +6,7 @@ using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using static splitzy_dotnet.DTO.GroupDTO;
 
 namespace splitzy_dotnet.Controllers
@@ -133,6 +134,55 @@ namespace splitzy_dotnet.Controllers
                                 .FirstOrDefaultAsync(g => g.GroupId == groupId);
         }
 
+        private static List<string> InvalidEmails(IEnumerable<string> emails)
+        {
+            var validator = new EmailAddressAttribute();
+            return emails.Where(e => !validator.IsValid(e)).ToList();
+        }
+
+        /// <summary>
+        /// Returns users for the given normalized emails, adding (unsaved) placeholder users for unknown ones.
+        /// </summary>
+        private async Task<List<User>> ResolveOrCreateUsersAsync(List<string> normalizedEmails)
+        {
+            var users = await _context.Users
+                .Where(u => normalizedEmails.Contains(u.Email))
+                .ToListAsync();
+
+            foreach (var email in normalizedEmails.Except(users.Select(u => u.Email)))
+            {
+                var placeholder = new User
+                {
+                    Email = email,
+                    Name = email.Split('@')[0],
+                    PasswordHash = null,
+                    IsRegistered = false,
+                    IsEmailVerified = false,
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                };
+
+                _context.Users.Add(placeholder);
+                users.Add(placeholder);
+            }
+
+            return users;
+        }
+
+        private static EmailMessage GroupNotification(User user, string groupName, string addedBy) =>
+            user.IsRegistered
+                ? new EmailMessage
+                {
+                    ToEmail = user.Email,
+                    TemplateType = "GroupAdded",
+                    Payload = new { UserName = user.Name, GroupName = groupName, AddedBy = addedBy }
+                }
+                : new EmailMessage
+                {
+                    ToEmail = user.Email,
+                    TemplateType = "GroupInvitation",
+                    Payload = new { InviterName = addedBy, GroupName = groupName }
+                };
+
         [HttpPost("CreateGroup")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
@@ -147,22 +197,13 @@ namespace splitzy_dotnet.Controllers
                 .Distinct()
                 .ToList() ?? new List<string>();
 
-            var users = await _context.Users
-                .Where(u => u.UserId == creatorUserId || requestedEmails.Contains(u.Email))
-                .ToListAsync();
+            var invalidEmails = InvalidEmails(requestedEmails);
+            if (invalidEmails.Any())
+                return BadRequest($"Invalid email(s): {string.Join(", ", invalidEmails)}");
 
-            var creator = users.FirstOrDefault(u => u.UserId == creatorUserId);
+            var creator = await _context.Users.FindAsync(creatorUserId);
             if (creator == null)
                 return Unauthorized("Creator not found");
-
-            var foundEmails = users
-                .Where(u => u.Email != null)
-                .Select(u => u.Email)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-            var missingEmails = requestedEmails
-                .Where(e => !foundEmails.Contains(e))
-                .ToList();
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
@@ -176,75 +217,35 @@ namespace splitzy_dotnet.Controllers
 
                 _context.Groups.Add(group);
 
-                // Existing users → GroupMembers
-                var groupMembers = users
-                    .DistinctBy(u => u.UserId)
-                    .Select(u => new GroupMember
-                    {
-                        Group = group,
-                        UserId = u.UserId,
-                        JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                    });
+                // Unknown emails become placeholder users so they can be part of expenses right away
+                var members = (await ResolveOrCreateUsersAsync(requestedEmails))
+                    .Where(u => u != creator)
+                    .Prepend(creator)
+                    .ToList();
 
-                _context.GroupMembers.AddRange(groupMembers);
-
-                // Persist missing emails
-                var invites = missingEmails.Select(email => new GroupInvite
+                _context.GroupMembers.AddRange(members.Select(u => new GroupMember
                 {
                     Group = group,
-                    Email = email,
-                    Accepted = false,
-                    InvitedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
-                });
-
-                _context.GroupInvites.AddRange(invites);
-
+                    User = u,
+                    JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+                }));
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                foreach (var u in users.Where(u => u.UserId != creator.UserId))
-                {
-                    var emailMessage = new EmailMessage
-                    {
-                        ToEmail = u.Email,
-                        TemplateType = "GroupAdded",
-                        Payload = new
-                        {
-                            UserName = u.Name,
-                            GroupName = request.GroupName,
-                            AddedBy = creator.Name
-                        }
-                    };
-
-                    await _messageProducer.SendMessageAsync(emailMessage);
-                }
-
-                foreach (var email in missingEmails)
-                {
-                    var emailMessage = new EmailMessage
-                    {
-                        ToEmail = email,
-                        TemplateType = "GroupInvitation",
-                        Payload = new
-                        {
-                            InviterName = creator.Name,
-                            GroupName = request.GroupName
-                        }
-                    };
-
-                    await _messageProducer.SendMessageAsync(emailMessage);
-                }
+                foreach (var u in members.Where(u => u != creator))
+                    await _messageProducer.SendMessageAsync(GroupNotification(u, group.Name, creator.Name));
 
                 return Ok(new
                 {
                     group.GroupId,
                     group.Name,
-                    Members = users.Select(u => new
+                    Members = members.Select(u => new
                     {
                         u.UserId,
                         u.Name,
-                        u.Email
+                        u.Email,
+                        u.IsRegistered
                     })
                 });
             }
@@ -302,7 +303,7 @@ namespace splitzy_dotnet.Controllers
                     .Where(u => members.Contains(u.UserId))
                     .ToDictionaryAsync(
                         u => u.UserId,
-                        u => new { u.Name, u.Email });
+                        u => new { u.Name, u.Email, u.IsRegistered });
 
                 // Balances
                 var balances = await _context.GroupBalances
@@ -409,7 +410,8 @@ namespace splitzy_dotnet.Controllers
                     {
                         MemberId = m.Key,
                         MemberName = m.Value.Name,
-                        MemberEmail = m.Value.Email
+                        MemberEmail = m.Value.Email,
+                        m.Value.IsRegistered
                     }),
                     UserSummaries = userSummaries
                 });

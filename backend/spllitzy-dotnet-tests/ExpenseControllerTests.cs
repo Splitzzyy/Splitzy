@@ -63,6 +63,24 @@ namespace spllitzy_dotnet_tests
         }
 
         [Test]
+        public async Task AddExpense_SplitWithPlaceholder_Succeeds()
+        {
+            var (group, member, _) = await SeedWithOutsiderAsync();
+            var placeholder = TestHelper.CreatePlaceholderUser("pending@example.com");
+            _context.Users.Add(placeholder);
+            await _context.SaveChangesAsync();
+            _context.GroupMembers.Add(TestHelper.CreateTestGroupMember(group.GroupId, placeholder.UserId));
+            await _context.SaveChangesAsync();
+            TestHelper.SetCaller(_controller, member.UserId);
+
+            var result = await _controller.AddExpense(Expense(group.GroupId, member.UserId, member.UserId, placeholder.UserId));
+
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
+            var balance = _context.GroupBalances.Single(b => b.GroupId == group.GroupId && b.UserId == placeholder.UserId);
+            Assert.That(balance.NetBalance, Is.EqualTo(-50));
+        }
+
+        [Test]
         public async Task AddExpense_WithNullDto_ShouldReturn400BadRequest()
         {
             var result = await _controller.AddExpense(null);

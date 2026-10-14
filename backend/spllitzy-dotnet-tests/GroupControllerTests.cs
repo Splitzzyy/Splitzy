@@ -6,6 +6,7 @@ using splitzy_dotnet.DTO;
 using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services.Interfaces;
+using System.Text.Json;
 
 namespace spllitzy_dotnet_tests
 {
@@ -93,6 +94,68 @@ namespace spllitzy_dotnet_tests
 
             Assert.That(result, Is.TypeOf<OkObjectResult>());
             Assert.That(_context.GroupMembers.Any(gm => gm.GroupId == group.GroupId && gm.UserId == friend.UserId), Is.True);
+        }
+
+        [Test]
+        public async Task CreateGroup_UnknownEmail_CreatesPlaceholderMember()
+        {
+            await TestHelper.SeedTestDataAsync(_context);
+            var creator = _context.Users.First();
+            TestHelper.SetCaller(_controller, creator.UserId);
+
+            var result = await _controller.CreateGroup(new GroupDTO.CreateGroupRequest
+            {
+                GroupName = "Trip",
+                UserEmails = ["Newbie@Example.com"]
+            });
+
+            Assert.That(result, Is.TypeOf<OkObjectResult>());
+            var placeholder = _context.Users.Single(u => u.Email == "newbie@example.com");
+            Assert.That(placeholder.IsRegistered, Is.False);
+            Assert.That(placeholder.IsEmailVerified, Is.False);
+            Assert.That(placeholder.PasswordHash, Is.Null);
+            Assert.That(placeholder.Name, Is.EqualTo("newbie"));
+            var group = _context.Groups.Single(g => g.Name == "Trip");
+            Assert.That(_context.GroupMembers.Count(gm => gm.GroupId == group.GroupId), Is.EqualTo(2));
+            Assert.That(_context.GroupInvites.Count(), Is.EqualTo(0));
+            _mockMessageProducer.Verify(x => x.SendMessageAsync(It.Is<EmailMessage>(m =>
+                m.ToEmail == "newbie@example.com" && m.TemplateType == "GroupInvitation")), Times.Once);
+        }
+
+        [Test]
+        public async Task CreateGroup_InvalidEmail_Returns400()
+        {
+            await TestHelper.SeedTestDataAsync(_context);
+            TestHelper.SetCaller(_controller, _context.Users.First().UserId);
+
+            var result = await _controller.CreateGroup(new GroupDTO.CreateGroupRequest
+            {
+                GroupName = "Trip",
+                UserEmails = ["not-an-email"]
+            });
+
+            Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+            Assert.That(_context.Groups.Any(g => g.Name == "Trip"), Is.False);
+        }
+
+        [Test]
+        public async Task GetGroupOverview_PlaceholderMember_HasIsRegisteredFalse()
+        {
+            await TestHelper.SeedTestDataAsync(_context);
+            var group = _context.Groups.First();
+            var placeholder = TestHelper.CreatePlaceholderUser("pending@example.com");
+            _context.Users.Add(placeholder);
+            await _context.SaveChangesAsync();
+            _context.GroupMembers.Add(TestHelper.CreateTestGroupMember(group.GroupId, placeholder.UserId));
+            await _context.SaveChangesAsync();
+            TestHelper.SetCaller(_controller, _context.Users.First().UserId);
+
+            var result = await _controller.GetGroupOverview(group.GroupId) as OkObjectResult;
+
+            var members = JsonSerializer.SerializeToElement(result!.Value).GetProperty("Members").EnumerateArray().ToList();
+            Assert.That(members.Single(m => m.GetProperty("MemberEmail").GetString() == "pending@example.com")
+                .GetProperty("IsRegistered").GetBoolean(), Is.False);
+            Assert.That(members.Count(m => m.GetProperty("IsRegistered").GetBoolean()), Is.EqualTo(3));
         }
 
         [Test]
