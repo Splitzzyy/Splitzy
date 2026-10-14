@@ -137,7 +137,7 @@ namespace splitzy_dotnet.Controllers
         private static List<string> InvalidEmails(IEnumerable<string> emails)
         {
             var validator = new EmailAddressAttribute();
-            return emails.Where(e => !validator.IsValid(e)).ToList();
+            return emails.Where(e => e.Length > 150 || !validator.IsValid(e)).ToList(); // users.email is varchar(150)
         }
 
         /// <summary>

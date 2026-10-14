@@ -464,7 +464,7 @@ namespace splitzy_dotnet.Controllers
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword([FromBody] ForgetPasswordRequestUser request)
         {
-            request.Email = Helper.NormalizeEmail(request.Email);
+            request.Email = Helper.NormalizeEmail(request.Email ?? "");
             var user = await _context.Users
                 .FirstOrDefaultAsync(x => x.Email == request.Email);
 
