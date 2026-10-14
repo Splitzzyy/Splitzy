@@ -4,8 +4,32 @@ on:
   pull_request:
     branches:
       - main
+      - beta
+    # "edited" re-runs the checks when a pull request is retargeted to another base branch
+    types: [opened, synchronize, reopened, edited]
+
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
+  branch-policy:
+    name: Branch Policy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Only beta can merge into main
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          if [ "$BASE_REF" = "main" ] && { [ "$HEAD_REF" != "beta" ] || [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; }; then
+            echo "::error::Only the 'beta' branch can be merged into main. Retarget this pull request to 'beta'; beta is promoted to main after testing."
+            exit 1
+          fi
+          echo "Branch policy OK: $HEAD_REF -> $BASE_REF"
+
   detect-changes:
     name: Detect Changes
     runs-on: ubuntu-latest
@@ -41,13 +65,16 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Restore
         run: dotnet restore backend/splitzy-dotnet
 
       - name: Build
         run: dotnet build backend/splitzy-dotnet --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test backend/spllitzy-dotnet-tests --configuration Release
 
   ui-build:
     name: UI - Angular Build
@@ -76,10 +103,23 @@ jobs:
     name: PR Build Validation
     runs-on: ubuntu-latest
     needs:
+      - branch-policy
+      - detect-changes
       - backend-build
       - ui-build
     if: always()
 
     steps:
+      # Required status check: fails if any job above failed or was cancelled (skipped builds are fine)
       - name: Final PR validation
-        run: echo "PR validation completed successfully"
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "::error::A required job did not succeed ($result)"; exit 1 ;;
+            esac
+          done
+          echo "PR validation completed successfully"
