@@ -581,7 +581,7 @@ namespace splitzy_dotnet.Controllers
 
             if (user == null)
             {
-                _logger.LogInformation("New user created via Google login. Email={Email}", email);
+                _logger.LogInformation("Creating new user via Google login");
                 user = new User
                 {
                     Email = email,
@@ -615,7 +615,7 @@ namespace splitzy_dotnet.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+                _logger.LogError(ex, "Failed to queue Google welcome email. UserId={UserId}", user.UserId);
             }
 
             return user;
