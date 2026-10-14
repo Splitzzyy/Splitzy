@@ -36,12 +36,19 @@ namespace splitzy_dotnet.Controllers
             if (!await _context.Groups.AnyAsync(g => g.GroupId == dto.GroupId))
                 return BadRequest("Invalid group");
 
-            if (!await _context.GroupMembers.AnyAsync(gm =>
-                gm.GroupId == dto.GroupId && gm.UserId == dto.PaidByUserId))
+            var memberIds = await GetMemberIdsAsync(dto.GroupId);
+
+            if (!memberIds.Contains(HttpContext.GetCurrentUserId()))
+                return Forbid();
+
+            if (!memberIds.Contains(dto.PaidByUserId))
                 return BadRequest("Payer must be a member");
 
             if (dto.SplitDetails == null || dto.SplitDetails.Count == 0)
                 return BadRequest("Split details required");
+
+            if (dto.SplitDetails.Any(s => !memberIds.Contains(s.UserId)))
+                return BadRequest("All split users must be group members");
 
             if (Math.Abs(dto.SplitDetails.Sum(s => s.Amount) - dto.Amount) > 0.01m)
                 return BadRequest("Split total mismatch");
@@ -130,6 +137,9 @@ namespace splitzy_dotnet.Controllers
             if (expense == null)
                 return NotFound("Expense not found");
 
+            if (!(await GetMemberIdsAsync(expense.GroupId)).Contains(userId))
+                return Forbid();
+
             var affectedUserIds = expense.ExpenseSplits
                 .Select(s => s.UserId)
                 .Append(expense.PaidByUserId)
@@ -189,6 +199,17 @@ namespace splitzy_dotnet.Controllers
 
             if (expense == null)
                 return NotFound("Expense not found");
+
+            if (dto.GroupId != expense.GroupId)
+                return BadRequest("Expense does not belong to this group");
+
+            var memberIds = await GetMemberIdsAsync(expense.GroupId);
+
+            if (!memberIds.Contains(userId))
+                return Forbid();
+
+            if (!memberIds.Contains(dto.PaidByUserId) || dto.SplitDetails.Any(s => !memberIds.Contains(s.UserId)))
+                return BadRequest("Payer and all split users must be group members");
 
             if (Math.Abs(dto.SplitDetails.Sum(s => s.Amount) - dto.Amount) > 0.01m)
                 return BadRequest("Split mismatch");
@@ -280,6 +301,9 @@ namespace splitzy_dotnet.Controllers
                 });
             }
 
+            if (!(await GetMemberIdsAsync(expense.GroupId)).Contains(HttpContext.GetCurrentUserId()))
+                return Forbid();
+
             var userIds = expense.ExpenseSplits
                                 .Select(s => s.UserId)
                                 .Append(expense.PaidByUserId)
@@ -316,6 +340,15 @@ namespace splitzy_dotnet.Controllers
                 Message = "Expense details fetched successfully",
                 Data = response
             });
+        }
+
+        private async Task<HashSet<int>> GetMemberIdsAsync(int groupId)
+        {
+            return (await _context.GroupMembers
+                .Where(gm => gm.GroupId == groupId)
+                .Select(gm => gm.UserId)
+                .ToListAsync())
+                .ToHashSet();
         }
 
         /// <summary>

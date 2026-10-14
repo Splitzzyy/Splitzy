@@ -37,6 +37,7 @@ namespace spllitzy_dotnet_tests
         {
             await TestHelper.SeedTestDataAsync(_context);
             var group = _context.Groups.First();
+            TestHelper.SetCaller(_controller, _context.Users.First().UserId);
 
             var result = await _controller.GetGroupSummary(group.GroupId);
             Assert.That(result.Result, Is.TypeOf<OkObjectResult>());
@@ -45,8 +46,23 @@ namespace spllitzy_dotnet_tests
         [Test]
         public async Task GetGroupSummary_WithInvalidGroupId_ShouldReturn404()
         {
+            TestHelper.SetCaller(_controller, 1);
+
             var result = await _controller.GetGroupSummary(99999);
             Assert.That(result.Result, Is.TypeOf<NotFoundObjectResult>());
+        }
+
+        [Test]
+        public async Task GetGroupSummary_CallerNotMember_Returns403()
+        {
+            await TestHelper.SeedTestDataAsync(_context);
+            var outsider = TestHelper.CreateTestUser("outsider@example.com", "Outsider");
+            _context.Users.Add(outsider);
+            await _context.SaveChangesAsync();
+            TestHelper.SetCaller(_controller, outsider.UserId);
+
+            var result = await _controller.GetGroupSummary(_context.Groups.First().GroupId);
+            Assert.That(result.Result, Is.TypeOf<ForbidResult>());
         }
     }
 }

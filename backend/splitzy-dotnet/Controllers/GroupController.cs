@@ -81,6 +81,9 @@ namespace splitzy_dotnet.Controllers
                 if (group == null)
                     return NotFound("Group not found.");
 
+                if (!group.GroupMembers.Any(gm => gm.UserId == HttpContext.GetCurrentUserId()))
+                    return Forbid();
+
                 var userMap = group.GroupMembers.ToDictionary(
                                     gm => gm.UserId,
                                     gm => gm.User.Name

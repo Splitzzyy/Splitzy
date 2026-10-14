@@ -46,8 +46,32 @@ namespace spllitzy_dotnet_tests
                 Amount = 50
             };
 
+            TestHelper.SetCaller(_controller, users[0].UserId);
             var result = await _controller.SettleUp(settleUpDto);
             Assert.That(result, Is.TypeOf<OkObjectResult>());
+        }
+
+        [Test]
+        public async Task SettleUp_CallerNotMember_Returns403()
+        {
+            await TestHelper.SeedTestDataAsync(_context);
+            var group = _context.Groups.First();
+            var users = _context.Users.Take(2).ToList();
+            var outsider = TestHelper.CreateTestUser("outsider@example.com", "Outsider");
+            _context.Users.Add(outsider);
+            await _context.SaveChangesAsync();
+
+            TestHelper.SetCaller(_controller, outsider.UserId);
+            var result = await _controller.SettleUp(new SettleUpDTO
+            {
+                GroupId = group.GroupId,
+                PaidByUserId = users[1].UserId,
+                PaidToUserId = users[0].UserId,
+                Amount = 10
+            });
+
+            Assert.That(result, Is.TypeOf<ForbidResult>());
+            Assert.That(_context.Settlements.Count(), Is.EqualTo(0));
         }
 
         [Test]

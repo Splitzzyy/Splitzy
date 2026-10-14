@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using splitzy_dotnet.DTO;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 
 namespace splitzy_dotnet.Controllers
@@ -36,6 +37,9 @@ namespace splitzy_dotnet.Controllers
                 .Where(gm => gm.GroupId == dto.GroupId)
                 .Select(gm => gm.UserId)
                 .ToListAsync();
+
+            if (!groupUserIds.Contains(HttpContext.GetCurrentUserId()))
+                return Forbid();
 
             if (!groupUserIds.Contains(dto.PaidByUserId) ||
                 !groupUserIds.Contains(dto.PaidToUserId))
