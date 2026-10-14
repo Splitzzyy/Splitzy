@@ -173,7 +173,9 @@ namespace splitzy_dotnet.Controllers
 
             request.Email = Helper.NormalizeEmail(request.Email);
 
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            var existing = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (existing is { IsRegistered: true })
             {
                 _logger.LogError("Signup failed: Email already exists. Email={Email}", request.Email);
                 return BadRequest(new ApiResponse<string>
@@ -189,16 +191,29 @@ namespace splitzy_dotnet.Controllers
 
             try
             {
-                var user = new User
+                // An invited placeholder is claimed in place so its expenses and balances carry over.
+                // It stays unregistered until the email is verified.
+                var user = existing ?? new User
                 {
-                    Name = request.Name,
                     Email = request.Email,
-                    PasswordHash = hashedPassword,
-                    IsEmailVerified = false,
                     CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 };
 
-                _context.Users.Add(user);
+                user.Name = request.Name;
+                user.PasswordHash = hashedPassword;
+                user.IsEmailVerified = false;
+
+                if (existing == null)
+                {
+                    _context.Users.Add(user);
+                }
+                else
+                {
+                    // Only the latest claimant's verification link may complete the claim
+                    _context.EmailVerifications.RemoveRange(await _context.EmailVerifications
+                        .Where(v => v.UserId == user.UserId && !v.IsUsed)
+                        .ToListAsync());
+                }
 
                 await _context.SaveChangesAsync();
 
@@ -214,8 +229,6 @@ namespace splitzy_dotnet.Controllers
                 _context.EmailVerifications.Add(verification);
 
                 await _context.SaveChangesAsync();
-
-                await HandleGroupInvitesAsync(user);
 
                 await transaction.CommitAsync();
 
@@ -600,16 +613,24 @@ namespace splitzy_dotnet.Controllers
             if (!invites.Any())
                 return;
 
+            var memberGroupIds = await _context.GroupMembers
+                .Where(gm => gm.UserId == user.UserId)
+                .Select(gm => gm.GroupId)
+                .ToListAsync();
+
             foreach (var invite in invites)
             {
+                invite.Accepted = true;
+
+                if (memberGroupIds.Contains(invite.GroupId))
+                    continue;
+
                 _context.GroupMembers.Add(new GroupMember
                 {
                     GroupId = invite.GroupId,
                     UserId = user.UserId,
                     JoinedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
                 });
-
-                invite.Accepted = true;
             }
 
             await _context.SaveChangesAsync();
@@ -723,8 +744,13 @@ namespace splitzy_dotnet.Controllers
 
             record.IsUsed = true;
             record.User.IsEmailVerified = true;
+            if (record.User.PasswordHash != null)
+                record.User.IsRegistered = true;
 
             await _context.SaveChangesAsync();
+
+            // Group access is granted only once email ownership is proven
+            await HandleGroupInvitesAsync(record.User);
 
             return Ok(new
             {
