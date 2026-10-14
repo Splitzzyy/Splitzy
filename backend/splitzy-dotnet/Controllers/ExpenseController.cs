@@ -54,6 +54,7 @@ namespace splitzy_dotnet.Controllers
                 return BadRequest("Split total mismatch");
 
             using var tx = await _context.Database.BeginTransactionAsync();
+            await _context.LockGroupAsync(dto.GroupId);
 
             var expense = new Expense
             {
@@ -130,9 +131,7 @@ namespace splitzy_dotnet.Controllers
 
             int userId = HttpContext.GetCurrentUserId();
 
-            var expense = await _context.Expenses
-                .Include(e => e.ExpenseSplits)
-                .FirstOrDefaultAsync(e => e.ExpenseId == expenseId);
+            var expense = await LoadExpenseForWriteAsync(expenseId);
 
             if (expense == null)
                 return NotFound("Expense not found");
@@ -193,9 +192,7 @@ namespace splitzy_dotnet.Controllers
         {
             using var tx = await _context.Database.BeginTransactionAsync();
             int userId = HttpContext.GetCurrentUserId();
-            var expense = await _context.Expenses
-                .Include(e => e.ExpenseSplits)
-                .FirstOrDefaultAsync(e => e.ExpenseId == dto.ExpenseId);
+            var expense = await LoadExpenseForWriteAsync(dto.ExpenseId);
 
             if (expense == null)
                 return NotFound("Expense not found");
@@ -340,6 +337,27 @@ namespace splitzy_dotnet.Controllers
                 Message = "Expense details fetched successfully",
                 Data = response
             });
+        }
+
+        /// <summary>
+        /// Locks the expense's group, then loads the expense with its splits, so concurrent updates and
+        /// deletes of the same group's expenses apply one after another to fresh balances.
+        /// </summary>
+        private async Task<Expense?> LoadExpenseForWriteAsync(int expenseId)
+        {
+            var groupId = await _context.Expenses
+                .Where(e => e.ExpenseId == expenseId)
+                .Select(e => (int?)e.GroupId)
+                .FirstOrDefaultAsync();
+
+            if (groupId == null)
+                return null;
+
+            await _context.LockGroupAsync(groupId.Value);
+
+            return await _context.Expenses
+                .Include(e => e.ExpenseSplits)
+                .FirstOrDefaultAsync(e => e.ExpenseId == expenseId);
         }
 
         private async Task<HashSet<int>> GetMemberIdsAsync(int groupId)

@@ -260,5 +260,20 @@ namespace spllitzy_dotnet_tests
             var result = await _controller.GetGroupSummary(_context.Groups.First().GroupId);
             Assert.That(result.Result, Is.TypeOf<ForbidResult>());
         }
+
+        [Test]
+        public async Task DeleteGroup_CallerNotMember_Returns403()
+        {
+            await TestHelper.SeedTestDataAsync(_context);
+            var outsider = TestHelper.CreateTestUser("outsider@example.com", "Outsider");
+            _context.Users.Add(outsider);
+            await _context.SaveChangesAsync();
+            TestHelper.SetCaller(_controller, outsider.UserId);
+
+            var result = await _controller.DeleteGroup(_context.Groups.First().GroupId);
+
+            Assert.That(result, Is.TypeOf<ForbidResult>());
+            Assert.That(_context.Groups.Count(), Is.EqualTo(1));
+        }
     }
 }

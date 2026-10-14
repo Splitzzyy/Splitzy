@@ -32,6 +32,10 @@ namespace splitzy_dotnet.Controllers
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
+            // Serialize with other balance writers in this group, so a double-submitted settlement
+            // sees the first one's result and cannot over-settle
+            await _context.LockGroupAsync(dto.GroupId);
+
             // Ensure both users belong to group
             var groupUserIds = await _context.GroupMembers
                 .Where(gm => gm.GroupId == dto.GroupId)
@@ -45,7 +49,7 @@ namespace splitzy_dotnet.Controllers
                 !groupUserIds.Contains(dto.PaidToUserId))
                 return BadRequest("Users do not belong to the group");
 
-            // Fetch balances (row-locked via transaction)
+            // Fetch balances (fresh: read after the group lock)
             var balances = await _context.GroupBalances
                 .Where(b => b.GroupId == dto.GroupId &&
                        (b.UserId == dto.PaidByUserId || b.UserId == dto.PaidToUserId))

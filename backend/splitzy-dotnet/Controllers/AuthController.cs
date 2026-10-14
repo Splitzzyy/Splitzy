@@ -194,7 +194,7 @@ namespace splitzy_dotnet.Controllers
                 if (existing != null)
                 {
                     // Serialize concurrent claims of the same placeholder and re-check under the lock
-                    await LockUserAsync(existing.UserId);
+                    await _context.LockUserAsync(existing.UserId);
                     await _context.Entry(existing).ReloadAsync();
 
                     if (existing.IsRegistered)
@@ -601,7 +601,7 @@ namespace splitzy_dotnet.Controllers
             if (user != null)
             {
                 // Serialize with concurrent signups/verifications of this account and re-check under the lock
-                await LockUserAsync(user.UserId);
+                await _context.LockUserAsync(user.UserId);
                 await _context.Entry(user).ReloadAsync();
 
                 if (user is { IsRegistered: true, IsEmailVerified: true })
@@ -649,17 +649,6 @@ namespace splitzy_dotnet.Controllers
             }
 
             return user;
-        }
-
-        /// <summary>
-        /// Row-locks the user until the current transaction ends, so concurrent claims and
-        /// verifications of the same account run one after another. No-op without a relational
-        /// provider (the in-memory test database has no row locks).
-        /// </summary>
-        private async Task LockUserAsync(int userId)
-        {
-            if (_context.Database.IsRelational())
-                await _context.Database.ExecuteSqlInterpolatedAsync($"SELECT 1 FROM users WHERE user_id = {userId} FOR UPDATE");
         }
 
         /// <summary>
@@ -754,7 +743,7 @@ namespace splitzy_dotnet.Controllers
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             if (userId != null)
-                await LockUserAsync(userId.Value);
+                await _context.LockUserAsync(userId.Value);
 
             var record = await _context.EmailVerifications
                 .Include(x => x.User)
