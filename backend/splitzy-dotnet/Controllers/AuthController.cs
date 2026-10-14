@@ -76,7 +76,8 @@ namespace splitzy_dotnet.Controllers
 
             user.Email = Helper.NormalizeEmail(user.Email);
             var loginUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
-            if (loginUser == null)
+            // Placeholders (invited, never signed up) have no password: same response as unknown email
+            if (loginUser == null || loginUser.PasswordHash == null)
             {
                 _logger.LogError("Login failed: Email not found. Email={Email}", user.Email);
                 return Unauthorized(new ApiResponse<string>
@@ -493,7 +494,7 @@ namespace splitzy_dotnet.Controllers
             var user = await _context.Users
                 .FirstOrDefaultAsync(x => x.Email == request.Email);
 
-            if (user == null)
+            if (user == null || user.PasswordHash == null)
             {
                 return BadRequest(new
                 {
@@ -751,8 +752,8 @@ namespace splitzy_dotnet.Controllers
             email = Helper.NormalizeEmail(email ?? "");
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
 
-            if (user == null || user.IsEmailVerified)
-                return Ok(); // avoid email enumeration
+            if (user == null || user.IsEmailVerified || user.PasswordHash == null)
+                return Ok(); // avoid email enumeration; placeholders have nothing to verify
 
             var token = Guid.NewGuid().ToString("N");
 

@@ -51,6 +51,22 @@ namespace spllitzy_dotnet_tests
         }
 
         /// <summary>
+        /// Creates an invited-but-unregistered placeholder user
+        /// </summary>
+        public static User CreatePlaceholderUser(string email)
+        {
+            return new User
+            {
+                Email = email,
+                Name = email.Split('@')[0],
+                PasswordHash = null,
+                IsRegistered = false,
+                IsEmailVerified = false,
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+            };
+        }
+
+        /// <summary>
         /// Creates a test group
         /// </summary>
         public static Group CreateTestGroup(string name = "Test Group")
