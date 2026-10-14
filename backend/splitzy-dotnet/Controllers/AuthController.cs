@@ -266,7 +266,16 @@ namespace splitzy_dotnet.Controllers
                     }
                 };
 
-                await _messageProducer.SendMessageAsync(emailEvent);
+                // Account is committed: a broker failure must not report "Signup failed" (a retry would
+                // then hit "Email already exists"). The user can use resend-verification instead.
+                try
+                {
+                    await _messageProducer.SendMessageAsync(emailEvent);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to queue verification email. UserId={UserId}", user.UserId);
+                }
 
                 return CreatedAtAction(nameof(Signup), new ApiResponse<object>
                 {
