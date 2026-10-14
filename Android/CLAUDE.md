@@ -1,7 +1,7 @@
 # Splitzy Mobile App - Development Guidelines
 
 ## Overview
-React Native (Expo SDK 55) mobile app for the Splitzy expense sharing platform. Cross-platform (Android + iOS) connecting to the existing .NET 8 backend API.
+React Native (Expo SDK 55) mobile app for the Splitzy expense sharing platform. Cross-platform (Android + iOS) connecting to the existing .NET 10 backend API.
 
 ## Tech Stack
 - **Runtime**: Expo SDK 55, React Native 0.83, React 19

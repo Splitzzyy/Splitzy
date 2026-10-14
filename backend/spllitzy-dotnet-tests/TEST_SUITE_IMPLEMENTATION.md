@@ -67,19 +67,19 @@ Test summary: total: 13, failed: 0, succeeded: 13, skipped: 0, duration: 2.1s
 ## ??? Technical Stack
 
 ### Testing Framework
-- **NUnit** 4.3.2 - Test execution and assertions
-- **NUnit3TestAdapter** 5.0.0 - Visual Studio integration
-- **Moq** 4.20.70 - Mocking framework for dependencies
+- **NUnit** 5.0.0 - Test execution and assertions
+- **NUnit3TestAdapter** 6.3.1 - Visual Studio integration
+- **Moq** 4.21.0 - Mocking framework for dependencies
 
 ### Database Testing
-- **Microsoft.EntityFrameworkCore.InMemory** 8.0.22
+- **Microsoft.EntityFrameworkCore.InMemory** 10.0.13
   - Isolated test database per test
   - No persistence between tests
   - Zero transaction overhead
   - ~2 seconds total execution time
 
 ### Target Framework
-- **.NET 8.0**
+- **.NET 10.0**
 - **C# 14.0**
 
 ---
