@@ -4,7 +4,8 @@
 .idea/
 
 # Claude Code
-.claude/
+.claude/*
+!.claude/settings.json
 
 # Environment / secrets
 .env
