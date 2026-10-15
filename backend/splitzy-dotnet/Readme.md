@@ -90,7 +90,7 @@ Adding an email that has no account (`CreateGroup` or `AddUsersToGroup`) creates
   - A repeat that arrives while the first is still running waits for it (up to 10 s, then `409`).
   - Reusing a key for a different request returns `422`.
   - Only successful (2xx) responses are stored; a rejected or failed request releases its key, so it can be retried.
-  - Requests without the header behave as before. The web and Android apps send a key automatically and reuse it when they resend the same request.
+  - Requests without the header behave as before. Clients opt in by sending a key and reusing it when they resend the same request.
 
 ---
 

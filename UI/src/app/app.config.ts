@@ -4,7 +4,6 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { offlineInterceptor } from './interceptors/offline.interceptor';
-import { idempotencyInterceptor } from './interceptors/idempotency.interceptor';
 import { timeoutInterceptor } from './interceptors/timeout.interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -12,7 +11,6 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptors([
-      idempotencyInterceptor, // first, so retries and offline replays below reuse the same key
       timeoutInterceptor,
       authInterceptor,
       offlineInterceptor

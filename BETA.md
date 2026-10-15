@@ -199,8 +199,7 @@ echo "SELECT u.email, 'https://splitzy-beta.aarshiv.xyz/verify-email?token=' || 
 | 11 | Edit an expense, then delete it | Balances follow the edit and return to before when deleted |
 | 12 | Delete a group with unsettled balances, then a settled one | First is refused, second is deleted |
 | 13 | Google sign-in (after step 7.3) with an invited Gmail address | Logs in as the invited account with its group data |
-| 14 | Turn the network off in the browser dev tools (or on the phone), add an expense, turn it back on and submit again | Only one expense is created |
-| 15 | Run the data checks (B) | No rows |
+| 14 | Run the data checks (B) | No rows |
 
 ---
 
