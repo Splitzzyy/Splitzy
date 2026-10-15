@@ -188,5 +188,68 @@ namespace spllitzy_dotnet_tests
             Assert.That(_runs, Is.EqualTo(1));
             Assert.That(((ContentResult)second!).StatusCode, Is.EqualTo(201));
         }
+
+        /// <summary>Leaves a claimed, still-running row for "k1" with the hash of an amount-10 request.</summary>
+        private async Task SimulateInFlightAsync()
+        {
+            await InvokeAsync("k1", new { amount = 10 });
+            var db = Db();
+            var row = db.IdempotencyKeys.Single();
+            row.StatusCode = null;
+            row.ResponseBody = null;
+            await db.SaveChangesAsync();
+        }
+
+        [Test]
+        public async Task KeyReleasedAndReclaimedByOtherPayloadWhileWaiting_Returns422()
+        {
+            await SimulateInFlightAsync();
+
+            // The first request fails and releases the key; a corrected request claims it and succeeds
+            var swap = Task.Run(async () =>
+            {
+                await Task.Delay(400);
+                var db2 = Db();
+                db2.IdempotencyKeys.Remove(db2.IdempotencyKeys.Single());
+                db2.IdempotencyKeys.Add(new IdempotencyKey
+                {
+                    UserId = 1,
+                    Key = "k1",
+                    RequestHash = "hash-of-corrected-request",
+                    StatusCode = 200,
+                    ResponseBody = "{\"expenseId\":99}",
+                    ResponseContentType = "application/json; charset=utf-8",
+                    CreatedAt = DateTime.UtcNow
+                });
+                await db2.SaveChangesAsync();
+            });
+
+            var (waiting, _) = await InvokeAsync("k1", new { amount = 10 });
+            await swap;
+
+            Assert.That(waiting, Is.TypeOf<UnprocessableEntityObjectResult>(), "must not replay another payload's response");
+            Assert.That(_runs, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task KeyReleasedWhileWaiting_RunsTheRepeat()
+        {
+            await SimulateInFlightAsync();
+
+            var release = Task.Run(async () =>
+            {
+                await Task.Delay(400);
+                var db2 = Db();
+                db2.IdempotencyKeys.Remove(db2.IdempotencyKeys.Single());
+                await db2.SaveChangesAsync();
+            });
+
+            var (waiting, _) = await InvokeAsync("k1", new { amount = 10 });
+            await release;
+
+            Assert.That(waiting, Is.Null, "the repeat runs the action itself");
+            Assert.That(_runs, Is.EqualTo(2));
+            Assert.That(Db().IdempotencyKeys.Single().StatusCode, Is.EqualTo(200));
+        }
     }
 }

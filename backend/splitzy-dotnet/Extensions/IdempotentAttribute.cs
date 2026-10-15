@@ -70,9 +70,10 @@ namespace splitzy_dotnet.Extensions
                 }
 
                 // The earlier request with this key failed and released it: run this one instead
-                if (await ClaimAsync(db, userId, key, requestHash) != null)
+                var claimedByOther = await ClaimAsync(db, userId, key, requestHash);
+                if (claimedByOther != null)
                 {
-                    context.Result = new ConflictObjectResult("A request with this Idempotency-Key is still being processed.");
+                    context.Result = claimedByOther.RequestHash == requestHash ? InFlightResult() : KeyReusedResult();
                     return;
                 }
             }
@@ -115,30 +116,36 @@ namespace splitzy_dotnet.Extensions
         private static async Task<IActionResult?> ResultForRepeatAsync(
             SplitzyContext db, IdempotencyKey existing, string requestHash, HttpContext http)
         {
-            if (existing.RequestHash != requestHash)
-                return new UnprocessableEntityObjectResult(
-                    $"{HeaderName} was already used for a different request. Use a new key for a new request.");
-
-            // The first request is still running (e.g. a double tap): wait for its result
             var deadline = DateTime.UtcNow + InFlightWait;
-            while (existing is { StatusCode: null } && DateTime.UtcNow < deadline)
+            IdempotencyKey? row = existing;
+
+            // While the first request is still running (e.g. a double tap), wait for its result.
+            // Recheck the hash on every reload: if that request failed and released the key, a request
+            // with a different payload may have claimed it in the meantime.
+            while (true)
             {
+                if (row == null)
+                    return null;
+
+                if (row.RequestHash != requestHash)
+                    return KeyReusedResult();
+
+                if (row.StatusCode != null)
+                    break;
+
+                if (DateTime.UtcNow >= deadline)
+                    return InFlightResult();
+
                 await Task.Delay(PollInterval, http.RequestAborted);
-                existing = await FindAsync(db, existing.UserId, existing.Key);
+                row = await FindAsync(db, existing.UserId, existing.Key);
             }
-
-            if (existing == null)
-                return null;
-
-            if (existing.StatusCode == null)
-                return new ConflictObjectResult("A request with this Idempotency-Key is still being processed.");
 
             http.Response.Headers[ReplayedHeaderName] = "true";
             return new ContentResult
             {
-                StatusCode = existing.StatusCode,
-                Content = existing.ResponseBody,
-                ContentType = existing.ResponseContentType
+                StatusCode = row.StatusCode,
+                Content = row.ResponseBody,
+                ContentType = row.ResponseContentType
             };
         }
 
@@ -185,6 +192,12 @@ namespace splitzy_dotnet.Extensions
                     .LogError(ex, "Failed to record idempotency result. UserId={UserId}", userId);
             }
         }
+
+        private static ConflictObjectResult InFlightResult() =>
+            new("A request with this Idempotency-Key is still being processed.");
+
+        private static UnprocessableEntityObjectResult KeyReusedResult() =>
+            new($"{HeaderName} was already used for a different request. Use a new key for a new request.");
 
         private static Task<IdempotencyKey?> FindAsync(SplitzyContext db, int userId, string key) =>
             db.IdempotencyKeys.AsNoTracking().SingleOrDefaultAsync(k => k.UserId == userId && k.Key == key);
