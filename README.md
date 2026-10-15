@@ -1,4 +1,5 @@
-<img width="1536" height="1024" alt="Splitzy Enterprise" src="https://github.com/user-attachments/assets/3fc5f000-7918-4bc9-b418-8dd3a2a20fe8" />
+<img width="3584" height="1184" alt="splitzy_github_banner_exact_logo" src="https://github.com/user-attachments/assets/9840e40d-797b-4d51-9924-34f2fcc803ee" />
+
 
 ## Overview
 
