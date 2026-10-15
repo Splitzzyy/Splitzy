@@ -271,6 +271,7 @@ namespace splitzy_dotnet.Controllers
         /// <returns>An IActionResult indicating the outcome of the reminder operation. Returns a success message if the reminder
         /// is sent; otherwise, returns a message describing why the reminder was not sent.</returns>
         [HttpPost("reminder")]
+        [Idempotent]
         public async Task<IActionResult> SendReminder([FromBody] ReminderRequestForPayment request)
         {
             if (request.OwedUserId <= 0 || request.OwedToUserId <= 0 || request.Amount <= 0)

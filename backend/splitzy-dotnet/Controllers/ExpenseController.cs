@@ -28,6 +28,7 @@ namespace splitzy_dotnet.Controllers
         /// <param name="dto"></param>
         /// <returns></returns>
         [HttpPost("AddExpense")]
+        [Idempotent]
         public async Task<IActionResult> AddExpense([FromBody] CreateExpenseDto dto)
         {
             if (dto == null)
@@ -125,6 +126,7 @@ namespace splitzy_dotnet.Controllers
         /// <param name="expenseId"></param>
         /// <returns></returns>
         [HttpDelete("DeleteExpense/{expenseId}")]
+        [Idempotent]
         public async Task<IActionResult> DeleteExpense(int expenseId)
         {
             using var tx = await _context.Database.BeginTransactionAsync();
@@ -188,6 +190,7 @@ namespace splitzy_dotnet.Controllers
         /// 404 Not Found if the expense does not exist, or 400 Bad Request if the split amounts do not match the total
         /// amount.</returns>
         [HttpPut("UpdateExpense")]
+        [Idempotent]
         public async Task<IActionResult> UpdateExpense([FromBody] UpdateExpenseDto dto)
         {
             using var tx = await _context.Database.BeginTransactionAsync();

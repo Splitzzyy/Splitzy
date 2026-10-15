@@ -17,7 +17,7 @@ namespace splitzy_dotnet.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.22")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -324,11 +324,55 @@ namespace splitzy_dotnet.Migrations
                     b.HasKey("Id")
                         .HasName("group_members_pkey");
 
-                    b.HasIndex("GroupId");
-
                     b.HasIndex("UserId");
 
+                    b.HasIndex("GroupId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("group_members_group_id_user_id_key");
+
                     b.ToTable("group_members", (string)null);
+                });
+
+            modelBuilder.Entity("splitzy_dotnet.Models.IdempotencyKey", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_hash");
+
+                    b.Property<string>("ResponseBody")
+                        .HasColumnType("text")
+                        .HasColumnName("response_body");
+
+                    b.Property<string>("ResponseContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("response_content_type");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("integer")
+                        .HasColumnName("status_code");
+
+                    b.HasKey("UserId", "Key")
+                        .HasName("idempotency_keys_pkey");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.ToTable("idempotency_keys", (string)null);
                 });
 
             modelBuilder.Entity("splitzy_dotnet.Models.RefreshToken", b =>
@@ -595,6 +639,16 @@ namespace splitzy_dotnet.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("splitzy_dotnet.Models.IdempotencyKey", b =>
+                {
+                    b.HasOne("splitzy_dotnet.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("idempotency_keys_user_id_fkey");
                 });
 
             modelBuilder.Entity("splitzy_dotnet.Models.RefreshToken", b =>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using splitzy_dotnet.Extensions;
 using splitzy_dotnet.Models;
 using splitzy_dotnet.Services.Interfaces;
 
@@ -32,6 +33,14 @@ namespace splitzy_dotnet.Services
                 "Refresh-token cleanup deleted {Count} rows",
                 deleted
             );
+
+            // Idempotency keys only need to outlive client retries
+            var keyCutoff = now - IdempotentAttribute.Retention;
+            var deletedKeys = await _db.IdempotencyKeys
+                .Where(k => k.CreatedAt < keyCutoff)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            _logger.LogInformation("Idempotency-key cleanup deleted {Count} rows", deletedKeys);
         }
     }
 }
