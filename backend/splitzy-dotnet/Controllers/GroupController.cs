@@ -57,6 +57,34 @@ namespace splitzy_dotnet.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets each member of a group with their total spend.
+        /// </summary>
+        [HttpGet("GetMemberSpend/{groupId}")]
+        public async Task<IActionResult> GetMemberSpend(int groupId)
+        {
+            var members = await _context.GroupMembers
+                .Where(gm => gm.GroupId == groupId)
+                .ToListAsync();
+
+            var result = new List<object>();
+            foreach (var member in members)
+            {
+                var user = await _context.Users.FirstAsync(u => u.UserId == member.UserId);
+                var expenses = await _context.Expenses
+                    .Where(e => e.GroupId == groupId && e.PaidByUserId == member.UserId)
+                    .ToListAsync();
+
+                float total = 0;
+                foreach (var e in expenses)
+                    total += (float)e.Amount;
+
+                result.Add(new { User = user, Total = total });
+            }
+
+            return Ok(result);
+        }
+
         private async Task<List<GroupMember>> GetUserGroupMembers(int userId)
         {
             return await _context.GroupMembers
